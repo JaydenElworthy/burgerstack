@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #FDFCF8;
+}
+
+body {
+  background: var(--background);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
