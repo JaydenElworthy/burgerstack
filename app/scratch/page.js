@@ -8,33 +8,37 @@ import confetti from 'canvas-confetti';
 export default function ScratchCard() {
   const canvasRef = useRef(null);
   const [isRevealed, setIsRevealed] = useState(false);
-  const [prize, setPrize] = useState({ title: 'FREE SIDE', code: 'NBHD-772' });
-  const [isScratching, setIsScratching] = useState(false);
+  const [prize] = useState({ title: 'FREE SIDE', code: 'NBHD-772' });
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    // 1. Setup Canvas Size
-    canvas.width = 320;
-    canvas.height = 320;
+    // 1. Setup Canvas Size (Runs only once)
+    if (!isInitialized) {
+      canvas.width = 320;
+      canvas.height = 320;
 
-    // 2. Draw the "Scratch Layer" (The top)
-    ctx.fillStyle = '#222'; // Dark Grey
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Add some "Brand Texture" to the top
-    ctx.font = 'bold 24px Arial';
-    ctx.fillStyle = '#444';
-    for(let i=0; i<5; i++) {
-        ctx.fillText('SCRATCH HERE', 60, 60 + (i*60));
+      // Draw the "Scratch Layer"
+      ctx.fillStyle = '#222'; 
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Add Text Texture
+      ctx.font = 'bold 20px Arial';
+      ctx.fillStyle = '#333';
+      for(let i=0; i<6; i++) {
+          ctx.fillText('NBHD CLUB • NBHD CLUB • NBHD CLUB', -20, 40 + (i*60));
+      }
+      setIsInitialized(true);
     }
 
-    // 3. Scratching Logic
+    // 2. Scratching Logic
     const scratch = (x, y) => {
       ctx.globalCompositeOperation = 'destination-out';
       ctx.beginPath();
-      ctx.arc(x, y, 30, 0, Math.PI * 2);
+      ctx.arc(x, y, 35, 0, Math.PI * 2);
       ctx.fill();
       checkScratchPercentage();
     };
@@ -46,6 +50,7 @@ export default function ScratchCard() {
       for (let i = 0; i < pixels.length; i += 4) {
         if (pixels[i + 3] === 0) clearPixels++;
       }
+      // If 50% is cleared, reveal everything
       if (clearPixels > (pixels.length / 4) * 0.5) {
         if (!isRevealed) {
             setIsRevealed(true);
@@ -54,51 +59,57 @@ export default function ScratchCard() {
       }
     };
 
+    // 3. Touch/Mouse Event Handlers
     const handleMove = (e) => {
-      if (!isScratching) return;
+      // Prevent the screen from scrolling while scratching
+      if (e.cancelable) e.preventDefault();
+      
       const rect = canvas.getBoundingClientRect();
-      const x = (e.pageX || e.touches[0].pageX) - rect.left;
-      const y = (e.pageY || e.touches[0].pageY) - rect.top;
-      scratch(x, y);
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      
+      // Only scratch if mouse is down or it's a touch event
+      if (e.buttons === 1 || e.touches) {
+        scratch(x, y);
+      }
     };
 
-    canvas.addEventListener('mousedown', () => setIsScratching(true));
-    canvas.addEventListener('touchstart', () => setIsScratching(true));
-    window.addEventListener('mouseup', () => setIsScratching(false));
-    window.addEventListener('touchend', () => setIsScratching(false));
     canvas.addEventListener('mousemove', handleMove);
-    canvas.addEventListener('touchmove', handleMove);
+    canvas.addEventListener('touchmove', handleMove, { passive: false });
 
     return () => {
       canvas.removeEventListener('mousemove', handleMove);
       canvas.removeEventListener('touchmove', handleMove);
     };
-  }, [isScratching, isRevealed]);
+  }, [isInitialized, isRevealed]);
 
   return (
-    <div className="min-h-screen bg-[#FDFCF8] flex flex-col items-center p-6 font-sans">
+    <div className="min-h-screen bg-[#FDFCF8] flex flex-col items-center p-6 font-sans overflow-hidden">
       
       {/* Header */}
-      <div className="w-full flex justify-between items-center mb-10">
+      <div className="w-full flex justify-between items-center mb-10 pt-4">
         <Link href="/"><ArrowLeft size={30} /></Link>
-        <h1 className="text-3xl font-black italic uppercase tracking-tighter italic">Daily Drop</h1>
+        <h1 className="text-3xl font-black italic uppercase tracking-tighter">Daily Drop</h1>
         <div className="w-8" />
       </div>
 
       <div className="text-center mb-8">
         <p className="font-black uppercase text-xs tracking-widest text-red-600 mb-1">One go per day</p>
-        <h2 className="text-4xl font-black italic uppercase leading-none">Scratch<br/>to Win</h2>
+        <h2 className="text-4xl font-black italic uppercase leading-none tracking-tighter">Scratch<br/>to Win</h2>
       </div>
 
       {/* The Scratch Card Container */}
-      <div className="relative w-80 h-80 bg-white border-8 border-black rounded-[2rem] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+      <div className="relative w-80 h-80 bg-white border-8 border-black rounded-[2.5rem] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
         
         {/* Underneath Layer (The Prize) */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-            <Ticket size={60} className="mb-4 text-red-600" />
-            <p className="text-sm font-bold uppercase opacity-40">You Won!</p>
-            <h3 className="text-4xl font-black italic uppercase leading-tight mb-4">{prize.title}</h3>
-            <div className="bg-black text-[#E5FF44] px-4 py-2 rounded-lg font-mono font-bold tracking-widest">
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none">
+            <Ticket size={64} className="mb-4 text-red-600" />
+            <p className="text-[10px] font-black uppercase opacity-40 tracking-widest">Prize Unlocked</p>
+            <h3 className="text-4xl font-black italic uppercase leading-tight mb-4 tracking-tighter">{prize.title}</h3>
+            <div className="bg-black text-[#E5FF44] px-6 py-2 rounded-xl font-mono font-bold tracking-[0.2em] shadow-lg">
                 {prize.code}
             </div>
         </div>
@@ -106,34 +117,40 @@ export default function ScratchCard() {
         {/* Scratchable Canvas Layer */}
         <canvas 
           ref={canvasRef} 
-          className={`absolute inset-0 cursor-crosshair transition-opacity duration-500 ${isRevealed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+          style={{ touchAction: 'none' }} // STOPS THE SCREEN MOVING
+          className={`absolute inset-0 cursor-crosshair transition-opacity duration-700 ${isRevealed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         />
       </div>
 
       {/* Post-Scratch Actions */}
-      {isRevealed && (
+      <AnimatePresence>
+        {isRevealed && (
+            <motion.div 
+                initial={{ y: 50, opacity: 0 }} 
+                animate={{ y: 0, opacity: 1 }}
+                className="mt-10 text-center space-y-4 w-full px-4"
+            >
+                <Link href="/wallet" className="block w-full bg-black text-white p-5 rounded-2xl font-black uppercase italic text-2xl shadow-xl hover:bg-red-600 transition-colors">
+                    Add to Wallet
+                </Link>
+                <p className="text-[10px] font-black uppercase opacity-30 tracking-[0.1em] px-8 leading-relaxed">
+                    This reward is now saved in your wallet. Show it to the team at the counter to redeem.
+                </p>
+            </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bottom Tip */}
+      {!isRevealed && (
         <motion.div 
-            initial={{ y: 20, opacity: 0 }} 
-            animate={{ y: 0, opacity: 1 }}
-            className="mt-10 text-center space-y-4 w-full"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="mt-12 p-5 bg-[#E5FF44] border-4 border-black rounded-3xl flex gap-4 items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
         >
-            <Link href="/wallet" className="block w-full bg-black text-white p-5 rounded-2xl font-black uppercase italic text-xl shadow-xl">
-                Add to Wallet
-            </Link>
-            <p className="text-[10px] font-bold uppercase opacity-40 tracking-widest px-10">
-                This prize has been linked to your account. Show the code to staff to redeem.
+            <Trophy size={28} className="shrink-0" />
+            <p className="text-[10px] font-black uppercase tracking-tight leading-tight">
+                Scratch off 50% of the card to reveal your daily prize!
             </p>
         </motion.div>
-      )}
-
-      {/* Fun Fact / Tip */}
-      {!isRevealed && (
-        <div className="mt-12 p-6 bg-[#E5FF44] border-4 border-black rounded-3xl flex gap-4 items-center">
-            <Trophy size={24} className="shrink-0" />
-            <p className="text-xs font-black uppercase tracking-tight leading-tight">
-                New prizes added every morning! Come back tomorrow for another go.
-            </p>
-        </div>
       )}
     </div>
   );
