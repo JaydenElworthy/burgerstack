@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion'; // <--- ADD THIS
 import { Gamepad2, Ticket, Wallet, Trophy, ShoppingBag, Star } from 'lucide-react';
-
 export default function Home() {
   return (
     <div className="p-6 max-w-md mx-auto min-h-screen flex flex-col bg-[#FDFCF8]">
