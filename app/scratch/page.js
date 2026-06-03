@@ -1,31 +1,34 @@
 'use client'
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Ticket, Trophy } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export default function ScratchCard() {
   const canvasRef = useRef(null);
+  const [mounted, setMounted] = useState(false); // NEW: Track if we are on the client
   const [isRevealed, setIsRevealed] = useState(false);
   const [prize] = useState({ title: 'FREE SIDE', code: 'NBHD-772' });
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // 1. Only set mounted to true once we are in the browser
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return; // Exit if we are still on the server
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    // 1. Setup Canvas Size (Runs only once)
     if (!isInitialized) {
       canvas.width = 320;
       canvas.height = 320;
-
-      // Draw the "Scratch Layer"
       ctx.fillStyle = '#222'; 
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Add Text Texture
       ctx.font = 'bold 20px Arial';
       ctx.fillStyle = '#333';
       for(let i=0; i<6; i++) {
@@ -34,7 +37,6 @@ export default function ScratchCard() {
       setIsInitialized(true);
     }
 
-    // 2. Scratching Logic
     const scratch = (x, y) => {
       ctx.globalCompositeOperation = 'destination-out';
       ctx.beginPath();
@@ -50,7 +52,6 @@ export default function ScratchCard() {
       for (let i = 0; i < pixels.length; i += 4) {
         if (pixels[i + 3] === 0) clearPixels++;
       }
-      // If 50% is cleared, reveal everything
       if (clearPixels > (pixels.length / 4) * 0.5) {
         if (!isRevealed) {
             setIsRevealed(true);
@@ -59,20 +60,74 @@ export default function ScratchCard() {
       }
     };
 
-    // 3. Touch/Mouse Event Handlers
     const handleMove = (e) => {
-      // Prevent the screen from scrolling while scratching
       if (e.cancelable) e.preventDefault();
-      
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      
       const x = clientX - rect.left;
       const y = clientY - rect.top;
-      
-      // Only scratch if mouse is down or it's a touch event
-      if (e.buttons === 1 || e.touches) {
+      if (e.buttons === 1 || e.touches) scratch(x, y);
+    };
+
+    canvas.addEventListener('mousemove', handleMove);
+    canvas.addEventListener('touchmove', handleMove, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('mousemove', handleMove);
+      canvas.removeEventListener('touchmove', handleMove);
+    };
+  }, [mounted, isInitialized, isRevealed]);
+
+  // If not mounted, show a simple loading state or empty div
+  // This prevents the server from trying to render the canvas
+  if (!mounted) return <div className="min-h-screen bg-[#FDFCF8]" />;
+
+  return (
+    <div className="min-h-screen bg-[#FDFCF8] flex flex-col items-center p-6 font-sans overflow-hidden">
+      <div className="w-full flex justify-between items-center mb-10 pt-4">
+        <Link href="/"><ArrowLeft size={30} /></Link>
+        <h1 className="text-3xl font-black italic uppercase tracking-tighter">Daily Drop</h1>
+        <div className="w-8" />
+      </div>
+
+      <div className="text-center mb-8">
+        <p className="font-black uppercase text-xs tracking-widest text-red-600 mb-1 leading-none">One go per day</p>
+        <h2 className="text-[12vw] sm:text-5xl font-black italic uppercase leading-[0.8] tracking-tighter">Scratch<br/>to Win</h2>
+      </div>
+
+      <div className="relative w-80 h-80 bg-white border-8 border-black rounded-[2.5rem] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none">
+            <Ticket size={64} className="mb-4 text-red-600" />
+            <p className="text-[10px] font-black uppercase opacity-40 tracking-widest">Prize Unlocked</p>
+            <h3 className="text-4xl font-black italic uppercase leading-tight mb-4 tracking-tighter">{prize.title}</h3>
+            <div className="bg-black text-[#E5FF44] px-6 py-2 rounded-xl font-mono font-bold tracking-[0.2em] shadow-lg">
+                {prize.code}
+            </div>
+        </div>
+
+        <canvas 
+          ref={canvasRef} 
+          style={{ touchAction: 'none' }} 
+          className={`absolute inset-0 cursor-crosshair transition-opacity duration-700 ${isRevealed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        />
+      </div>
+
+      <AnimatePresence>
+        {isRevealed && (
+            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mt-10 text-center space-y-4 w-full px-4">
+                <Link href="/wallet" className="block w-full bg-black text-white p-5 rounded-2xl font-black uppercase italic text-2xl shadow-xl hover:bg-red-600 transition-colors">
+                    Add to Wallet
+                </Link>
+                <p className="text-[10px] font-black uppercase opacity-30 tracking-[0.1em] px-8 leading-relaxed">
+                    This reward is now saved in your wallet. Show it to the team at the counter to redeem.
+                </p>
+            </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}      if (e.buttons === 1 || e.touches) {
         scratch(x, y);
       }
     };
