@@ -6,8 +6,8 @@ export default function Home() {
   return (
     <div className="p-6 max-w-md mx-auto min-h-screen flex flex-col bg-[#FDFCF8]">
       <header className="py-10 text-center">
-        <h2 className="text-6xl font-black italic uppercase tracking-tighter leading-[0.75] mb-2">
-          NEIGHBOURHOOD<br/><span className="text-red-600">CLUB</span>
+        <h2 className="text-[12vw] sm:text-6xl font-black italic uppercase tracking-tighter leading-[0.8] mb-2">
+  NEIGHBOURHOOD<br/><span className="text-red-600">CLUB</span>
         </h2>
         <p className="font-bold uppercase text-[10px] tracking-[0.2em] text-black/40">The Daily Drop & Rewards</p>
       </header>
