@@ -22,6 +22,11 @@ export default function Home() {
         </div>
       </div>
 
+    // Find the Scratch button in your app/page.js and wrap it in a Link
+<Link href="/scratch" className="bg-white border-4 border-black p-6 rounded-[2rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
+  <Ticket size={32} />
+  <span className="font-black uppercase text-xs">Scratch</span>
+
       <div className="grid grid-cols-2 gap-4 mb-6">
         <Link href="/game" className="bg-[#E5FF44] border-4 border-black p-6 rounded-[2rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
           <Gamepad2 size={40} />
@@ -32,7 +37,7 @@ export default function Home() {
           <span className="font-black uppercase text-xs">Scratch Card</span>
         </button>
       </div>
-
+</Link>
       <div className="space-y-4 mb-10">
         <Link href="/wallet" className="w-full bg-white border-4 border-black p-5 rounded-2xl flex justify-between items-center font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
           <span className="flex items-center gap-3"><Wallet size={24}/> My Rewards</span>
