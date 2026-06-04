@@ -11,6 +11,7 @@ export default function BurgerGame() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [gameState, setGameState] = useState('start'); 
   const [isExiting, setIsExiting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // LOCK
   const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
@@ -25,36 +26,46 @@ export default function BurgerGame() {
 
   const spawnBurger = () => {
     setIsExiting(false);
+    setIsProcessing(false);
     setFeedback(null);
-    const initialStack = [{ type: 'bottom-bun', id: `bottom-${Date.now()}` }];
-    if (Math.random() > 0.5) {
-      initialStack.push({ type: 'patty', id: `patty-${Date.now()}` });
-    }
-    setStack(initialStack);
+    
+    // STARTING BASE: 
+    // Always starts with just a Bottom Bun sliding in from the left.
+    setStack([{ type: 'bottom-bun', id: `base-${Date.now()}` }]);
   };
 
-  const handleInput = (input) => {
-    if (gameState !== 'playing' || isExiting) return;
+  const handleInput = (inputType) => {
+    // 1. Prevent input if game over, already exiting, or currently dropping a piece
+    if (gameState !== 'playing' || isExiting || isProcessing) return;
 
-    const currentStep = stack.length;
+    const currentHeight = stack.length;
     let isCorrect = false;
 
-    if (currentStep === 1 && stack[0].type === 'bottom-bun' && input === 'patty') isCorrect = true;
-    if (currentStep === 2 && stack[1].type === 'patty' && input === 'bun') isCorrect = true;
+    // 2. LOGIC CHECK
+    // If only 1 item (Bottom Bun) -> We need a PATTY.
+    // If 2 items (Bun + Patty) -> We need a BUN (Top).
+    if (currentHeight === 1 && inputType === 'patty') isCorrect = true;
+    if (currentHeight === 2 && inputType === 'bun') isCorrect = true;
 
     if (isCorrect) {
-      const nextType = (input === 'bun') ? 'top-bun' : 'patty';
-      const newItem = { type: nextType, id: `${nextType}-${Date.now()}` };
+      setIsProcessing(true); // LOCK INPUT
+      const nextPieceType = (currentHeight === 2) ? 'top-bun' : 'patty';
+      const newPiece = { type: nextPieceType, id: `drop-${Date.now()}` };
       
-      setStack(prev => [...prev, newItem]);
-      
-      if (nextType === 'top-bun') {
+      setStack(prev => [...prev, newPiece]);
+
+      if (nextPieceType === 'top-bun') {
+        // FINISHER SEQUENCE
         setScore(s => s + 1);
-        // Wait for bun to slam down, then slide out
-        setTimeout(() => setIsExiting(true), 600); 
-        setTimeout(() => spawnBurger(), 1200); 
+        setTimeout(() => setIsExiting(true), 600); // Wait for slam
+        setTimeout(() => spawnBurger(), 1100); // Reset for next
+      } else {
+        // MIDDLE PIECE (Patty)
+        // Unlock input after the patty has finished falling (400ms)
+        setTimeout(() => setIsProcessing(false), 400);
       }
     } else {
+      // WRONG MOVE
       setFeedback('wrong');
       setGameState('lost');
     }
@@ -87,7 +98,7 @@ export default function BurgerGame() {
         <AnimatePresence>
           {!isExiting && (
             <motion.div
-              key={`burger-${score}`}
+              key={`active-burger-${score}`}
               initial={{ x: -1200 }}
               animate={{ x: 0 }}
               exit={{ x: 2500, transition: { duration: 0.4, ease: "expoIn" } }}
@@ -98,23 +109,22 @@ export default function BurgerGame() {
                 <motion.div
                   key={item.id}
                   layout
-                  initial={i === stack.length - 1 && i !== 0 ? { y: -1000 } : {}}
+                  initial={i !== 0 ? { y: -1000 } : {}} // Only falling pieces start high
                   animate={{ y: 0 }}
                   transition={{ y: { type: "spring", damping: 12, stiffness: 200 } }}
                   style={{ zIndex: i }}
-                  className={`border-[6px] border-black shadow-xl relative flex-shrink-0 transition-all ${
+                  className={`border-[6px] border-black shadow-xl relative flex-shrink-0 ${
                     item.type === 'bottom-bun' ? 'w-64 h-16 bg-[#F3A344] rounded-b-[2.5rem] rounded-t-xl mb-0' :
-                    item.type === 'patty' ? 'w-60 h-12 bg-[#4B2C20] rounded-2xl -mb-4 border-b-[10px]' :
+                    item.type === 'patty' ? 'w-60 h-12 bg-[#4B2C20] rounded-2xl -mb-4' :
                     'w-64 h-28 bg-[#F3A344] rounded-t-[6rem] rounded-b-2xl -mb-12 overflow-hidden'
                   }`}
                 >
                   {/* Visual Detail for Top Bun (Sesame Seeds) */}
                   {item.type === 'top-bun' && (
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full h-full flex flex-wrap justify-center gap-4 px-8 opacity-40">
-                      <div className="w-2 h-3 bg-white rounded-full rotate-45" />
-                      <div className="w-2 h-3 bg-white rounded-full -rotate-12" />
-                      <div className="w-2 h-3 bg-white rounded-full rotate-12" />
-                      <div className="w-2 h-3 bg-white rounded-full -rotate-45" />
+                    <div className="absolute top-4 left-0 w-full h-full flex flex-wrap justify-center gap-4 px-8 opacity-40">
+                      {[...Array(6)].map((_, i) => (
+                        <div key={i} className="w-2 h-3 bg-white rounded-full rotate-45" />
+                      ))}
                     </div>
                   )}
                 </motion.div>
@@ -127,14 +137,14 @@ export default function BurgerGame() {
       {/* CONTROLS */}
       <div className="p-8 grid grid-cols-2 gap-8 bg-white border-t-8 border-black pb-16 z-30">
         <button 
-          onPointerDown={() => handleInput('bun')}
-          className="bg-[#F3A344] border-[8px] border-black py-12 rounded-[2.5rem] font-black text-4xl uppercase italic shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none transition-all text-black"
+          onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }}
+          className={`bg-[#F3A344] border-[8px] border-black py-12 rounded-[2.5rem] font-black text-4xl uppercase italic shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none transition-all text-black ${isProcessing ? 'opacity-50' : 'opacity-100'}`}
         >
           BUN
         </button>
         <button 
-          onPointerDown={() => handleInput('patty')}
-          className="bg-[#4B2C20] text-white border-[8px] border-black py-12 rounded-[2.5rem] font-black text-4xl uppercase italic shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none transition-all"
+          onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }}
+          className={`bg-[#4B2C20] text-white border-[8px] border-black py-12 rounded-[2.5rem] font-black text-4xl uppercase italic shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none transition-all ${isProcessing ? 'opacity-50' : 'opacity-100'}`}
         >
           PATTY
         </button>
