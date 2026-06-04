@@ -31,7 +31,6 @@ const CheeseImg = () => (
 const TopBunImg = () => (
   <svg width="240" height="120" viewBox="0 0 240 120" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M10 110C10 110 10 10 120 10C230 10 230 110 230 110H10Z" fill="#F3A344" stroke="black" strokeWidth="8" strokeLinejoin="round"/>
-    {/* Sesame Seeds */}
     <ellipse cx="70" cy="40" rx="3" ry="5" transform="rotate(30 70 40)" fill="white"/>
     <ellipse cx="120" cy="30" rx="3" ry="5" fill="white"/>
     <ellipse cx="170" cy="45" rx="3" ry="5" transform="rotate(-20 170 45)" fill="white"/>
@@ -87,13 +86,14 @@ export default function BurgerGame() {
 
       if (nextPieceType === 'top-bun') {
         setScore(s => s + 1);
-        setTimeout(() => setIsExiting(true), 600);
+        setTimeout(() => setIsExiting(true), 500); // Wait for the visual landing
         setTimeout(() => {
           setBurgerId(prev => prev + 1);
           spawnBurger();
-        }, 1200); 
+        }, 1100); 
       } else {
-        setTimeout(() => setIsProcessing(false), 400);
+        // Unlock input almost immediately for snappy gameplay
+        setTimeout(() => setIsProcessing(false), 200);
       }
     } else {
       setFeedback('wrong');
@@ -105,7 +105,7 @@ export default function BurgerGame() {
     <div className={`h-screen flex flex-col overflow-hidden select-none font-sans transition-colors duration-300 ${feedback === 'wrong' ? 'bg-red-600' : 'bg-[#FDFCF8]'}`}>
       
       {/* HUD */}
-      <div className="p-6 flex justify-between items-center bg-white border-b-8 border-black z-30 shadow-lg">
+      <div className="p-6 flex justify-between items-center bg-white border-b-8 border-black z-30">
         <Link href="/"><ArrowLeft size={32} className="text-black" /></Link>
         <div className="flex gap-4 font-black uppercase italic tracking-tighter">
           <div className="bg-black text-white px-5 py-2 rounded-xl text-2xl tracking-tighter">{timeLeft}s</div>
@@ -117,6 +117,7 @@ export default function BurgerGame() {
 
       {/* PLAY AREA */}
       <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden pb-[30%]">
+        {/* COUNTER SURFACE */}
         <div className="absolute bottom-[30%] w-full h-16 bg-[#EFEFEF] border-t-8 border-black z-0 shadow-2xl" />
         
         <AnimatePresence>
@@ -125,17 +126,21 @@ export default function BurgerGame() {
               key={`round-${burgerId}`}
               initial={{ x: -1200 }}
               animate={{ x: 0 }}
-              exit={{ x: 2500, transition: { duration: 0.5, ease: "expoIn" } }}
-              transition={{ x: { type: "spring", damping: 25, stiffness: 120 } }}
+              exit={{ x: 2500, transition: { duration: 0.4, ease: "circIn" } }}
+              transition={{ x: { type: "tween", ease: "circOut", duration: 0.3 } }}
               className="flex flex-col-reverse items-center relative z-10 origin-bottom" 
             >
               {stack.map((item, i) => (
                 <motion.div
                   key={item.id}
                   layout
-                  initial={i !== 0 ? { y: -1000, scale: 0.8 } : {}}
-                  animate={{ y: 0, scale: 1 }}
-                  transition={{ y: { type: "spring", damping: 12, stiffness: 200 } }}
+                  initial={i !== 0 ? { y: -1000 } : {}}
+                  animate={{ y: 0 }}
+                  // THE FIX: Changed from spring to tween to remove yoyo bounce
+                  transition={{ 
+                    y: { type: "tween", ease: "circIn", duration: 0.2 },
+                    layout: { duration: 0 } // No jiggle when existing pieces shift
+                  }}
                   style={{ zIndex: i }}
                   className={`relative flex-shrink-0 ${
                     item.type === 'bottom-bun' ? 'mb-0' :
@@ -159,19 +164,19 @@ export default function BurgerGame() {
       <div className="p-6 grid grid-cols-3 gap-4 bg-white border-t-8 border-black pb-12 z-30">
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }}
-          className="bg-[#4B2C20] text-white border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
+          className={`bg-[#4B2C20] text-white border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all ${isProcessing ? 'opacity-50' : 'opacity-100'}`}
         >
           Patty
         </button>
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }}
-          className="bg-[#FFD700] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
+          className={`bg-[#FFD700] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all ${isProcessing ? 'opacity-50' : 'opacity-100'}`}
         >
           Cheese
         </button>
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }}
-          className="bg-[#F3A344] border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
+          className={`bg-[#F3A344] border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all text-black ${isProcessing ? 'opacity-50' : 'opacity-100'}`}
         >
           Bun
         </button>
@@ -189,8 +194,8 @@ export default function BurgerGame() {
             </h1>
             
             {gameState === 'lost' && (
-              <div className="mb-12">
-                <p className="text-white/40 font-black uppercase text-xs tracking-widest mb-2 italic">Burgers Built</p>
+              <div className="mb-12 text-center">
+                <p className="text-white/40 font-black uppercase text-xs tracking-widest mb-2 italic tracking-tighter">Burgers Built</p>
                 <p className="text-9xl font-black italic text-[#E5FF44] leading-none tracking-tighter">{score}</p>
               </div>
             )}
