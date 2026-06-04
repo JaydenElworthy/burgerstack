@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowLeft, Trophy, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export default function BurgerGame() {
@@ -48,8 +48,12 @@ export default function BurgerGame() {
       
       if (nextType === 'top-bun') {
         setScore(s => s + 1);
-        setTimeout(() => setIsExiting(true), 300);
-        setTimeout(() => spawnBurger(), 700);
+        
+        // 1. Let the player admire the burger for a split second
+        // 2. Trigger the exponential exit
+        // 3. Spawn the next burger
+        setTimeout(() => setIsExiting(true), 350); 
+        setTimeout(() => spawnBurger(), 850); 
       }
     } else {
       setFeedback('wrong');
@@ -58,113 +62,102 @@ export default function BurgerGame() {
   };
 
   return (
-    <div className={`h-screen flex flex-col overflow-hidden select-none font-sans transition-colors duration-200 ${feedback === 'wrong' ? 'bg-red-600' : 'bg-[#FDFCF8]'}`}>
+    <div className={`h-screen flex flex-col overflow-hidden select-none font-sans transition-colors duration-300 ${feedback === 'wrong' ? 'bg-red-600' : 'bg-[#FDFCF8]'}`}>
       
-      {/* HUD */}
+      {/* CLEAN HUD */}
       <div className="p-6 flex justify-between items-center bg-white border-b-8 border-black z-30">
         <Link href="/"><ArrowLeft size={32} className="text-black" /></Link>
         <div className="flex gap-4 font-black uppercase italic tracking-tighter">
-          <div className="bg-black text-white px-4 py-2 rounded-xl text-xl tracking-tighter">{timeLeft}s</div>
+          <div className="bg-black text-white px-5 py-2 rounded-xl text-2xl tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]">{timeLeft}s</div>
           <motion.div 
             key={score}
-            initial={{ scale: 1.8 }} animate={{ scale: 1 }}
-            className="bg-red-600 text-white px-4 py-2 rounded-xl text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black"
+            initial={{ scale: 1.5 }} animate={{ scale: 1 }}
+            className="bg-red-600 text-white px-5 py-2 rounded-xl text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black"
           >
             {score}
           </motion.div>
         </div>
       </div>
 
-      {/* Play Area */}
+      {/* STAGE AREA */}
       <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden pb-[32%]">
         
-        {/* THE COUNTER SURFACE */}
-        <div className="absolute bottom-[32%] w-full h-12 bg-[#e2e2e2] border-t-8 border-black z-0 shadow-2xl">
-            <div className="w-full h-2 bg-white/30" /> {/* Highlight line */}
+        {/* PHYSICAL COUNTER SURFACE */}
+        <div className="absolute bottom-[32%] w-full h-16 bg-[#F3F3F3] border-t-8 border-black z-0 shadow-2xl">
+            <div className="w-full h-3 bg-white/50" /> 
         </div>
         
         <AnimatePresence mode="wait">
           {!isExiting && (
             <motion.div
-              key={`stack-${score}`}
-              initial={{ x: -1000 }}
+              key={`burger-on-pass-${score}`}
+              initial={{ x: -1200 }}
               animate={{ x: 0 }}
-              exit={{ x: 2000, rotate: 5, transition: { duration: 0.2, ease: "circIn" } }}
-              transition={{ x: { type: "spring", damping: 20, stiffness: 120 } }}
+              exit={{ 
+                x: 1500, 
+                transition: { duration: 0.5, ease: "expoIn" } // Starts slow, ends like a rocket
+              }}
+              transition={{ x: { type: "spring", damping: 22, stiffness: 100 } }}
               className="flex flex-col-reverse items-center relative z-10 origin-bottom" 
             >
               {stack.map((item, i) => (
                 <motion.div
                   key={item.id}
-                  layout // Allows existing pieces to animate when new ones land
-                  initial={i === stack.length - 1 && i !== 0 ? { y: -800, scaleY: 1.5 } : {}}
-                  animate={{ y: 0, scaleY: 1 }}
-                  transition={{ 
-                    type: "spring", 
-                    damping: 12, 
-                    stiffness: 200,
-                  }}
+                  layout
+                  initial={i === stack.length - 1 && i !== 0 ? { y: -800 } : {}}
+                  animate={{ y: 0 }}
+                  transition={{ type: "spring", damping: 14, stiffness: 180 }}
                   style={{ zIndex: i }}
                   className={`border-[6px] border-black shadow-lg relative flex-shrink-0 ${
-                    item.type === 'bottom-bun' ? 'w-56 h-14 bg-[#F3A344] rounded-b-[2rem] rounded-t-lg' :
-                    item.type === 'patty' ? 'w-52 h-10 bg-[#4B2C20] rounded-xl -mb-4' :
-                    'w-56 h-20 bg-[#F3A344] rounded-t-[4rem] rounded-b-lg -mb-6'
+                    item.type === 'bottom-bun' ? 'w-60 h-16 bg-[#F3A344] rounded-b-[2.5rem] rounded-t-xl' :
+                    item.type === 'patty' ? 'w-56 h-12 bg-[#4B2C20] rounded-2xl -mb-4' :
+                    'w-60 h-22 bg-[#F3A344] rounded-t-[4.5rem] rounded-b-xl -mb-8'
                   }`}
                 />
               ))}
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Action Prompt */}
-        {gameState === 'playing' && !isExiting && (
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-            className="absolute top-10 bg-[#E5FF44] border-4 border-black px-8 py-3 rounded-full font-black uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] z-20 text-xl tracking-tighter"
-          >
-            {stack.length === 1 ? 'DROP PATTY!' : 'ADD TOP BUN!'}
-          </motion.div>
-        )}
       </div>
 
-      {/* Controls */}
-      <div className="p-8 grid grid-cols-2 gap-6 bg-white border-t-8 border-black pb-16 z-30">
+      {/* HEAVY STICKER CONTROLS */}
+      <div className="p-8 grid grid-cols-2 gap-8 bg-white border-t-8 border-black pb-16 z-30 shadow-[0px_-10px_40px_rgba(0,0,0,0.1)]">
         <button 
           onPointerDown={() => handleInput('bun')}
-          className="bg-[#F3A344] border-[8px] border-black py-10 rounded-[2.5rem] font-black text-4xl uppercase italic shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none transition-all active:bg-[#e6922e]"
+          className="bg-[#F3A344] border-[8px] border-black py-12 rounded-[2.5rem] font-black text-4xl uppercase italic shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none transition-all active:bg-[#e6922e] text-black"
         >
           BUN
         </button>
         <button 
           onPointerDown={() => handleInput('patty')}
-          className="bg-[#4B2C20] text-white border-[8px] border-black py-10 rounded-[2.5rem] font-black text-4xl uppercase italic shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none transition-all active:bg-[#361f17]"
+          className="bg-[#4B2C20] text-white border-[8px] border-black py-12 rounded-[2.5rem] font-black text-4xl uppercase italic shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none transition-all active:bg-[#361f17]"
         >
           PATTY
         </button>
       </div>
 
-      {/* Overlays */}
+      {/* GAME OVER / START OVERLAYS */}
       {gameState !== 'playing' && (
-        <div className="absolute inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-10 text-center text-white">
+        <div className="absolute inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-10 text-center text-white font-sans">
           <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
             {gameState === 'lost' && <AlertCircle size={100} className="text-red-600 mx-auto mb-6" />}
-            <h1 className="text-7xl font-black italic uppercase leading-none mb-2">
+            <h1 className="text-7xl font-black italic uppercase leading-none mb-2 tracking-tighter">
               {gameState === 'start' ? 'BURGER' : 'GAME'}
             </h1>
-            <h1 className="text-7xl font-black italic text-[#E5FF44] uppercase leading-none mb-10">
+            <h1 className="text-7xl font-black italic text-[#E5FF44] uppercase leading-none mb-10 tracking-tighter">
               {gameState === 'start' ? 'STACKER' : 'OVER'}
             </h1>
             
             {gameState === 'lost' && (
               <div className="mb-12">
-                <p className="text-white/40 font-black uppercase text-sm tracking-widest leading-none mb-2">Score</p>
+                <p className="text-white/40 font-black uppercase text-xs tracking-widest mb-2">Burgers Built</p>
                 <p className="text-9xl font-black italic text-[#E5FF44] leading-none tracking-tighter">{score}</p>
               </div>
             )}
 
             <button 
               onClick={() => { setGameState('playing'); setScore(0); setTimeLeft(60); spawnBurger(); }}
-              className="bg-[#E5FF44] border-4 border-white text-black px-12 py-6 rounded-full font-black text-3xl uppercase italic shadow-2xl active:scale-95 transition-all"
+              className="bg-[#E5FF44] border-4 border-white text-black px-14 py-6 rounded-full font-black text-3xl uppercase italic shadow-2xl active:scale-95 transition-all tracking-tighter"
             >
               {gameState === 'start' ? 'START' : 'RETRY'}
             </button>
