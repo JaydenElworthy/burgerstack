@@ -126,13 +126,13 @@ export default function BurgerGame() {
       <div className="p-8 grid grid-cols-2 gap-6 bg-white border-t-8 border-black pb-16 z-30">
         <button 
           onPointerDown={() => handleInput('bun')}
-          className="bg-[#F3A344] border-[6px] border-black py-10 rounded-[2.5rem] font-black text-3xl uppercase italic shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none transition-all"
+          className="bg-[#F3A344] border-[6px] border-black py-10 rounded-[2.5rem] font-black text-3xl uppercase italic shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none"
         >
           BUN
         </button>
         <button 
           onPointerDown={() => handleInput('patty')}
-          className="bg-[#4B2C20] text-white border-[6px] border-black py-10 rounded-[2.5rem] font-black text-3xl uppercase italic shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none transition-all"
+          className="bg-[#4B2C20] text-white border-[6px] border-black py-10 rounded-[2.5rem] font-black text-3xl uppercase italic shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none"
         >
           PATTY
         </button>
