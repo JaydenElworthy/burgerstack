@@ -26,7 +26,6 @@ export default function BurgerGame() {
   const spawnBurger = () => {
     setIsExiting(false);
     setFeedback(null);
-    // Unique IDs ensure Framer Motion treats these as new objects every time
     const initialStack = [{ type: 'bottom-bun', id: `bottom-${Date.now()}` }];
     if (Math.random() > 0.5) {
       initialStack.push({ type: 'patty', id: `patty-${Date.now()}` });
@@ -40,7 +39,6 @@ export default function BurgerGame() {
     const currentStep = stack.length;
     let isCorrect = false;
 
-    // Logic: 1 item -> needs patty. 2 items -> needs bun.
     if (currentStep === 1 && stack[0].type === 'bottom-bun' && input === 'patty') isCorrect = true;
     if (currentStep === 2 && stack[1].type === 'patty' && input === 'bun') isCorrect = true;
 
@@ -48,21 +46,13 @@ export default function BurgerGame() {
       const nextType = (input === 'bun') ? 'top-bun' : 'patty';
       const newItem = { type: nextType, id: `${nextType}-${Date.now()}` };
       
-      // 1. Add the piece to the stack immediately so it can animate falling
       setStack(prev => [...prev, newItem]);
       
       if (nextType === 'top-bun') {
         setScore(s => s + 1);
-        
-        // 2. WAIT for the bun to actually fall and land (600ms)
-        setTimeout(() => {
-          setIsExiting(true);
-        }, 600); 
-
-        // 3. WAIT for the exit animation to finish before spawning next (1100ms total)
-        setTimeout(() => {
-          spawnBurger();
-        }, 1100); 
+        // Wait for bun to slam down, then slide out
+        setTimeout(() => setIsExiting(true), 600); 
+        setTimeout(() => spawnBurger(), 1200); 
       }
     } else {
       setFeedback('wrong');
@@ -77,7 +67,7 @@ export default function BurgerGame() {
       <div className="p-6 flex justify-between items-center bg-white border-b-8 border-black z-30">
         <Link href="/"><ArrowLeft size={32} className="text-black" /></Link>
         <div className="flex gap-4 font-black uppercase italic tracking-tighter">
-          <div className="bg-black text-white px-5 py-2 rounded-xl text-2xl tracking-tighter">{timeLeft}s</div>
+          <div className="bg-black text-white px-5 py-2 rounded-xl text-2xl tracking-tighter shadow-lg">{timeLeft}s</div>
           <motion.div 
             key={score}
             initial={{ scale: 1.5 }} animate={{ scale: 1 }}
@@ -92,40 +82,42 @@ export default function BurgerGame() {
       <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden pb-[32%]">
         
         {/* COUNTER SURFACE */}
-        <div className="absolute bottom-[32%] w-full h-16 bg-[#F3F3F3] border-t-8 border-black z-0 shadow-2xl">
-            <div className="w-full h-3 bg-white/50" /> 
-        </div>
+        <div className="absolute bottom-[32%] w-full h-16 bg-[#EFEFEF] border-t-8 border-black z-0 shadow-2xl" />
         
         <AnimatePresence>
           {!isExiting && (
             <motion.div
-              key={`active-burger-${score}`}
+              key={`burger-${score}`}
               initial={{ x: -1200 }}
               animate={{ x: 0 }}
-              exit={{ 
-                x: 2000, 
-                transition: { duration: 0.5, ease: "expoIn" } 
-              }}
-              transition={{ x: { type: "spring", damping: 22, stiffness: 100 } }}
+              exit={{ x: 2500, transition: { duration: 0.4, ease: "expoIn" } }}
+              transition={{ x: { type: "spring", damping: 25, stiffness: 120 } }}
               className="flex flex-col-reverse items-center relative z-10 origin-bottom" 
             >
               {stack.map((item, i) => (
                 <motion.div
                   key={item.id}
                   layout
-                  initial={i === stack.length - 1 && i !== 0 ? { y: -1000, opacity: 1 } : {}}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ 
-                    y: { type: "spring", damping: 15, stiffness: 200 },
-                    opacity: { duration: 0.1 }
-                  }}
+                  initial={i === stack.length - 1 && i !== 0 ? { y: -1000 } : {}}
+                  animate={{ y: 0 }}
+                  transition={{ y: { type: "spring", damping: 12, stiffness: 200 } }}
                   style={{ zIndex: i }}
-                  className={`border-[6px] border-black shadow-lg relative flex-shrink-0 ${
-                    item.type === 'bottom-bun' ? 'w-60 h-16 bg-[#F3A344] rounded-b-[2.5rem] rounded-t-xl' :
-                    item.type === 'patty' ? 'w-56 h-12 bg-[#4B2C20] rounded-2xl -mb-4' :
-                    'w-62 h-24 bg-[#F3A344] rounded-t-[5rem] rounded-b-xl -mb-10'
+                  className={`border-[6px] border-black shadow-xl relative flex-shrink-0 transition-all ${
+                    item.type === 'bottom-bun' ? 'w-64 h-16 bg-[#F3A344] rounded-b-[2.5rem] rounded-t-xl mb-0' :
+                    item.type === 'patty' ? 'w-60 h-12 bg-[#4B2C20] rounded-2xl -mb-4 border-b-[10px]' :
+                    'w-64 h-28 bg-[#F3A344] rounded-t-[6rem] rounded-b-2xl -mb-12 overflow-hidden'
                   }`}
-                />
+                >
+                  {/* Visual Detail for Top Bun (Sesame Seeds) */}
+                  {item.type === 'top-bun' && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full h-full flex flex-wrap justify-center gap-4 px-8 opacity-40">
+                      <div className="w-2 h-3 bg-white rounded-full rotate-45" />
+                      <div className="w-2 h-3 bg-white rounded-full -rotate-12" />
+                      <div className="w-2 h-3 bg-white rounded-full rotate-12" />
+                      <div className="w-2 h-3 bg-white rounded-full -rotate-45" />
+                    </div>
+                  )}
+                </motion.div>
               ))}
             </motion.div>
           )}
@@ -152,7 +144,6 @@ export default function BurgerGame() {
       {gameState !== 'playing' && (
         <div className="absolute inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-10 text-center text-white">
           <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
-            {gameState === 'lost' && <AlertCircle size={100} className="text-red-600 mx-auto mb-6" />}
             <h1 className="text-7xl font-black italic uppercase leading-none mb-2 tracking-tighter">
               {gameState === 'start' ? 'BURGER' : 'GAME'}
             </h1>
@@ -161,8 +152,8 @@ export default function BurgerGame() {
             </h1>
             
             {gameState === 'lost' && (
-              <div className="mb-12 text-center">
-                <p className="text-white/40 font-black uppercase text-xs tracking-widest mb-2">Burgers Built</p>
+              <div className="mb-12">
+                <p className="text-white/40 font-black uppercase text-xs tracking-widest mb-2 italic">Burgers Made</p>
                 <p className="text-9xl font-black italic text-[#E5FF44] leading-none tracking-tighter">{score}</p>
               </div>
             )}
