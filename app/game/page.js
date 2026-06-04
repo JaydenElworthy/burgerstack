@@ -1,76 +1,160 @@
 'use client'
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, AlertCircle, Trophy } from 'lucide-react';
+import { ArrowLeft, Ticket, Trophy } from 'lucide-react';
+
+// --- CRITICAL IMPORTS ---
+// We import these carefully to ensure the build server doesn't crash
+import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
-export default function BurgerGame() {
-  const [stack, setStack] = useState([]);
-  const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(60);
-  const [gameState, setGameState] = useState('start'); // start, playing, lost
-  const [feedback, setFeedback] = useState(null); // 'correct' or 'wrong'
+export default function ScratchCard() {
+  const canvasRef = useRef(null);
+  const [mounted, setMounted] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [prize] = useState({ title: 'FREE SIDE', code: 'NBHD-772' });
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Game Loop
+  // 1. MOUNT GUARD: Prevents Prerender Error
   useEffect(() => {
-    if (gameState === 'playing' && timeLeft > 0) {
-      const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
-      return () => clearInterval(timer);
-    } else if (timeLeft === 0 && gameState === 'playing') {
-      setGameState('lost');
-      confetti();
-    }
-  }, [gameState, timeLeft]);
+    setMounted(true);
+  }, []);
 
-  // Start a new burger round
-  const spawnBurger = () => {
-    setFeedback(null);
-    // Randomly spawn: 1 = Just Bottom Bun, 2 = Bottom Bun + Patty
-    const type = Math.random() > 0.5 ? ['bottom-bun'] : ['bottom-bun', 'patty'];
-    setStack(type);
-  };
+  // 2. CANVAS LOGIC
+  useEffect(() => {
+    if (!mounted || !canvasRef.current) return;
 
-  const handleInput = (input) => {
-    if (gameState !== 'playing') return;
-
-    const currentStep = stack.length;
-    let isCorrect = false;
-
-    // Logic Check
-    if (currentStep === 1 && stack[0] === 'bottom-bun' && input === 'patty') isCorrect = true;
-    if (currentStep === 2 && stack[1] === 'patty' && input === 'bun') isCorrect = true;
-
-    if (isCorrect) {
-      const newStack = [...stack, input === 'bun' ? 'top-bun' : 'patty'];
-      setStack(newStack);
-      
-      // If burger is finished (has 3 parts)
-      if (newStack.length === 3) {
-        setScore(s => s + 1);
-        setFeedback('correct');
-        setTimeout(() => spawnBurger(), 200);
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    if (!isInitialized) {
+      canvas.width = 320;
+      canvas.height = 320;
+      ctx.fillStyle = '#222'; 
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = 'bold 20px Arial';
+      ctx.fillStyle = '#333';
+      for(let i=0; i<6; i++) {
+          ctx.fillText('NBHD CLUB • NBHD CLUB • NBHD CLUB', -20, 40 + (i*60));
       }
-    } else {
-      // WRONG MOVE = GAME OVER
-      setFeedback('wrong');
-      setGameState('lost');
+      setIsInitialized(true);
     }
-  };
+
+    const scratch = (x, y) => {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(x, y, 35, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Check percentage
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imageData.data;
+      let clearPixels = 0;
+      for (let i = 0; i < pixels.length; i += 4) {
+        if (pixels[i + 3] === 0) clearPixels++;
+      }
+      if (clearPixels > (pixels.length / 4) * 0.5) {
+        if (!isRevealed) {
+            setIsRevealed(true);
+            confetti(); // Safe to call here as it's inside useEffect
+        }
+      }
+    };
+
+    const handleMove = (e) => {
+      if (e.cancelable) e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      if (e.buttons === 1 || e.touches) scratch(x, y);
+    };
+
+    canvas.addEventListener('mousemove', handleMove);
+    canvas.addEventListener('touchmove', handleMove, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('mousemove', handleMove);
+      canvas.removeEventListener('touchmove', handleMove);
+    };
+  }, [mounted, isInitialized, isRevealed]);
+
+  // --- THE SAFETY SHIELD ---
+  // If we are on the Vercel Build Server, render nothing. 
+  // This stops ALL Prerender and Reference errors.
+  if (!mounted) {
+    return <div className="min-h-screen bg-[#FDFCF8]" />;
+  }
 
   return (
-    <div className={`h-screen flex flex-col overflow-hidden select-none font-sans transition-colors duration-200 ${feedback === 'wrong' ? 'bg-red-500' : 'bg-[#FDFCF8]'}`}>
+    <div className="min-h-screen bg-[#FDFCF8] flex flex-col items-center p-6 font-sans overflow-hidden">
       
-      {/* HUD */}
-      <div className="p-6 flex justify-between items-center bg-white border-b-8 border-black z-20">
+      {/* Header */}
+      <div className="w-full flex justify-between items-center mb-10 pt-4 px-2">
         <Link href="/"><ArrowLeft size={32} className="text-black" /></Link>
-        <div className="flex gap-4 font-black uppercase italic tracking-tighter">
-          <div className="bg-black text-white px-4 py-2 rounded-xl text-xl">{timeLeft}s</div>
-          <div className="bg-red-600 text-white px-4 py-2 rounded-xl text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Score: {score}</div>
-        </div>
+        <h1 className="text-2xl font-black italic uppercase tracking-tighter">Daily Drop</h1>
+        <div className="w-8" />
       </div>
 
-      {/* Play Area */}
+      {/* Hero Text */}
+      <div className="text-center mb-8 px-4">
+        <p className="font-black uppercase text-[10px] tracking-widest text-red-600 mb-1 leading-none">One go per day</p>
+        <h2 className="text-[12vw] sm:text-5xl font-black italic uppercase leading-[0.8] tracking-tighter">Scratch<br/>to Win</h2>
+      </div>
+
+      {/* Card Container */}
+      <div className="relative w-80 h-80 bg-white border-8 border-black rounded-[2.5rem] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        
+        {/* Under Layer (Prize) */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none">
+            <Ticket size={64} className="mb-4 text-red-600" />
+            <p className="text-[10px] font-black uppercase opacity-40 tracking-widest">Prize Unlocked</p>
+            <h3 className="text-4xl font-black italic uppercase leading-tight mb-4 tracking-tighter">{prize.title}</h3>
+            <div className="bg-black text-[#E5FF44] px-6 py-2 rounded-xl font-mono font-bold tracking-[0.2em] shadow-lg">
+                {prize.code}
+            </div>
+        </div>
+
+        {/* Scratch Layer */}
+        <canvas 
+          ref={canvasRef} 
+          style={{ touchAction: 'none' }} 
+          className={`absolute inset-0 cursor-crosshair transition-opacity duration-700 ${isRevealed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        />
+      </div>
+
+      {/* Reveal Actions */}
+      <AnimatePresence>
+        {isRevealed && (
+            <motion.div 
+              initial={{ y: 50, opacity: 0 }} 
+              animate={{ y: 0, opacity: 1 }} 
+              className="mt-10 text-center space-y-4 w-full px-4"
+            >
+                <Link href="/wallet" className="block w-full bg-black text-white p-5 rounded-2xl font-black uppercase italic text-2xl shadow-xl hover:bg-red-600 transition-colors">
+                    Add to Wallet
+                </Link>
+                <p className="text-[10px] font-black uppercase opacity-30 tracking-[0.1em] px-8 leading-relaxed">
+                    This reward is now saved in your wallet. Show it to the team at the counter to redeem.
+                </p>
+            </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Instruction Tip */}
+      {!isRevealed && (
+        <div className="mt-12 p-5 bg-[#E5FF44] border-4 border-black rounded-3xl flex gap-4 items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mx-4">
+            <Trophy size={28} className="shrink-0" />
+            <p className="text-[10px] font-black uppercase tracking-tight leading-tight text-left">
+                Scratch off 50% of the card to reveal your daily prize!
+            </p>
+        </div>
+      )}
+    </div>
+  );
+}      {/* Play Area */}
       <div className="flex-1 relative flex flex-col-reverse items-center pb-40">
         {/* Table/Shadow */}
         <div className="w-72 h-8 bg-black/10 rounded-full blur-2xl absolute bottom-32" />
