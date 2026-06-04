@@ -8,10 +8,11 @@ import confetti from 'canvas-confetti';
 export default function BurgerGame() {
   const [stack, setStack] = useState([]); 
   const [score, setScore] = useState(0);
+  const [burgerId, setBurgerId] = useState(0); // NEW: Track rounds separately from score
   const [timeLeft, setTimeLeft] = useState(60);
   const [gameState, setGameState] = useState('start'); 
   const [isExiting, setIsExiting] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false); // LOCK
+  const [isProcessing, setIsProcessing] = useState(false); 
   const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
@@ -25,47 +26,50 @@ export default function BurgerGame() {
   }, [gameState, timeLeft]);
 
   const spawnBurger = () => {
+    setFeedback(null);
     setIsExiting(false);
     setIsProcessing(false);
-    setFeedback(null);
-    
-    // STARTING BASE: 
-    // Always starts with just a Bottom Bun sliding in from the left.
+    // Reset stack to just the bottom bun base
     setStack([{ type: 'bottom-bun', id: `base-${Date.now()}` }]);
   };
 
   const handleInput = (inputType) => {
-    // 1. Prevent input if game over, already exiting, or currently dropping a piece
     if (gameState !== 'playing' || isExiting || isProcessing) return;
 
     const currentHeight = stack.length;
     let isCorrect = false;
 
-    // 2. LOGIC CHECK
-    // If only 1 item (Bottom Bun) -> We need a PATTY.
-    // If 2 items (Bun + Patty) -> We need a BUN (Top).
+    // 1. Logic Check
     if (currentHeight === 1 && inputType === 'patty') isCorrect = true;
     if (currentHeight === 2 && inputType === 'bun') isCorrect = true;
 
     if (isCorrect) {
-      setIsProcessing(true); // LOCK INPUT
+      setIsProcessing(true); 
       const nextPieceType = (currentHeight === 2) ? 'top-bun' : 'patty';
-      const newPiece = { type: nextPieceType, id: `drop-${Date.now()}` };
+      const newPiece = { type: nextPieceType, id: `piece-${Date.now()}` };
       
       setStack(prev => [...prev, newPiece]);
 
       if (nextPieceType === 'top-bun') {
-        // FINISHER SEQUENCE
+        // --- THE FIX SEQUENCE ---
+        // 1. Increment score (HUD updates, but burger stays)
         setScore(s => s + 1);
-        setTimeout(() => setIsExiting(true), 600); // Wait for slam
-        setTimeout(() => spawnBurger(), 1100); // Reset for next
+
+        // 2. Wait for the Bun to land (600ms)
+        setTimeout(() => {
+          setIsExiting(true);
+        }, 600);
+
+        // 3. After it flies off, change the Burger ID and Spawn New
+        setTimeout(() => {
+          setBurgerId(prev => prev + 1); // This triggers the exit of the OLD and entry of NEW
+          spawnBurger();
+        }, 1100); 
       } else {
-        // MIDDLE PIECE (Patty)
-        // Unlock input after the patty has finished falling (400ms)
+        // Patty landed, unlock buttons after 400ms
         setTimeout(() => setIsProcessing(false), 400);
       }
     } else {
-      // WRONG MOVE
       setFeedback('wrong');
       setGameState('lost');
     }
@@ -79,26 +83,20 @@ export default function BurgerGame() {
         <Link href="/"><ArrowLeft size={32} className="text-black" /></Link>
         <div className="flex gap-4 font-black uppercase italic tracking-tighter">
           <div className="bg-black text-white px-5 py-2 rounded-xl text-2xl tracking-tighter shadow-lg">{timeLeft}s</div>
-          <motion.div 
-            key={score}
-            initial={{ scale: 1.5 }} animate={{ scale: 1 }}
-            className="bg-red-600 text-white px-5 py-2 rounded-xl text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black"
-          >
+          <div className="bg-red-600 text-white px-5 py-2 rounded-xl text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black">
             {score}
-          </motion.div>
+          </div>
         </div>
       </div>
 
       {/* PLAY AREA */}
       <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden pb-[32%]">
-        
-        {/* COUNTER SURFACE */}
         <div className="absolute bottom-[32%] w-full h-16 bg-[#EFEFEF] border-t-8 border-black z-0 shadow-2xl" />
         
         <AnimatePresence>
           {!isExiting && (
             <motion.div
-              key={`active-burger-${score}`}
+              key={`burger-round-${burgerId}`} // FIXED: Key linked to round, not score
               initial={{ x: -1200 }}
               animate={{ x: 0 }}
               exit={{ x: 2500, transition: { duration: 0.4, ease: "expoIn" } }}
@@ -109,7 +107,7 @@ export default function BurgerGame() {
                 <motion.div
                   key={item.id}
                   layout
-                  initial={i !== 0 ? { y: -1000 } : {}} // Only falling pieces start high
+                  initial={i !== 0 ? { y: -1000 } : {}}
                   animate={{ y: 0 }}
                   transition={{ y: { type: "spring", damping: 12, stiffness: 200 } }}
                   style={{ zIndex: i }}
@@ -119,7 +117,6 @@ export default function BurgerGame() {
                     'w-64 h-28 bg-[#F3A344] rounded-t-[6rem] rounded-b-2xl -mb-12 overflow-hidden'
                   }`}
                 >
-                  {/* Visual Detail for Top Bun (Sesame Seeds) */}
                   {item.type === 'top-bun' && (
                     <div className="absolute top-4 left-0 w-full h-full flex flex-wrap justify-center gap-4 px-8 opacity-40">
                       {[...Array(6)].map((_, i) => (
@@ -154,10 +151,10 @@ export default function BurgerGame() {
       {gameState !== 'playing' && (
         <div className="absolute inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-10 text-center text-white">
           <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
-            <h1 className="text-7xl font-black italic uppercase leading-none mb-2 tracking-tighter">
+            <h1 className="text-7xl font-black italic uppercase leading-none mb-2 tracking-tighter italic">
               {gameState === 'start' ? 'BURGER' : 'GAME'}
             </h1>
-            <h1 className="text-7xl font-black italic text-[#E5FF44] uppercase leading-none mb-10 tracking-tighter">
+            <h1 className="text-7xl font-black italic text-[#E5FF44] uppercase leading-none mb-10 tracking-tighter italic">
               {gameState === 'start' ? 'STACKER' : 'OVER'}
             </h1>
             
@@ -169,7 +166,7 @@ export default function BurgerGame() {
             )}
 
             <button 
-              onClick={() => { setGameState('playing'); setScore(0); setTimeLeft(60); spawnBurger(); }}
+              onClick={() => { setGameState('playing'); setScore(0); setBurgerId(0); setTimeLeft(60); spawnBurger(); }}
               className="bg-[#E5FF44] border-4 border-white text-black px-14 py-6 rounded-full font-black text-3xl uppercase italic shadow-2xl active:scale-95 transition-all tracking-tighter"
             >
               {gameState === 'start' ? 'START' : 'RETRY'}
