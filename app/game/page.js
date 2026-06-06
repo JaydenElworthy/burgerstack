@@ -80,65 +80,67 @@ export default function BurgerGame() {
         <div className="absolute bottom-[25%] w-full h-12 bg-gray-200 border-t-8 border-black z-0 shadow-2xl" />
         
         <AnimatePresence>
-  {!isExiting && (
-    <motion.div
-      key={`burger-container-${burgerId}`}
-      initial={{ x: -1200 }}
-      animate={{ x: 0 }}
-      exit={{ x: 2500, transition: { duration: 0.4, ease: "expoIn" } }}
-      transition={{ x: { type: "tween", ease: "circOut", duration: 0.4 } }}
-      className="relative w-full h-[300px] z-10" 
-    >
-      {stack.map((item, i) => {
-        let elevation = 0;
-        if (item.type === 'bottom-bun') elevation = 0;
-        if (item.type === 'patty')      elevation = 30;
-        if (item.type === 'cheese')     elevation = 55;
-        if (item.type === 'top-bun')    elevation = 75;
+          {!isExiting && (
+            <motion.div
+              key={`burger-container-${burgerId}`}
+              initial={{ x: -1200 }}
+              animate={{ x: 0 }}
+              exit={{ x: 2500, transition: { duration: 0.4, ease: "expoIn" } }}
+              transition={{ x: { type: "tween", ease: "circOut", duration: 0.4 } }}
+              className="relative w-full h-[300px] z-10" 
+            >
+              {stack.map((item, i) => {
+                let elevation = 0;
+                if (item.type === 'bottom-bun') elevation = 0;
+                if (item.type === 'patty')      elevation = 30;
+                if (item.type === 'cheese')     elevation = 55;
+                if (item.type === 'top-bun')    elevation = 75;
 
-        return (
-          <motion.div
-            key={item.id}
-            initial={i !== 0 ? { y: -1000, x: "-50%" } : { x: "-50%" }}
-            animate={{ y: -elevation, x: "-50%" }}
-            transition={{ 
-              y: { type: "tween", ease: "circIn", duration: 0.25 }
-            }}
-            style={{ zIndex: i }}
-            className="absolute bottom-0 left-1/2"
+                return (
+                  <motion.div
+                    key={item.id}
+                    initial={i !== 0 ? { y: -1000, x: "-50%" } : { x: "-50%" }}
+                    animate={{ y: -elevation, x: "-50%" }}
+                    transition={{ 
+                      y: { type: "tween", ease: "circIn", duration: 0.25 }
+                    }}
+                    style={{ zIndex: i }}
+                    className="absolute bottom-0 left-1/2"
+                  >
+                    <img 
+                      src={`/images/${item.type}.svg`} 
+                      alt={item.type} 
+                      className="w-80 h-auto block max-w-none" 
+                      style={{ transform: 'translateX(0)' }} 
+                    />
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* CONTROLS */}
+        <div className="p-6 grid grid-cols-3 gap-4 bg-white border-t-8 border-black pb-12 z-30 shadow-2xl">
+          <button 
+            onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }}
+            className="bg-[#4B2C20] text-white border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
           >
-            <img 
-              src={`/images/${item.type}.svg`} 
-              alt={item.type} 
-              className="w-80 h-auto block max-w-none" 
-              style={{ transform: 'translateX(0)' }} 
-            />
-          </motion.div>
-        );
-      })}
-    </motion.div>
-  )}
-</AnimatePresence>
-      {/* CONTROLS */}
-      <div className="p-6 grid grid-cols-3 gap-4 bg-white border-t-8 border-black pb-12 z-30 shadow-2xl">
-        <button 
-          onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }}
-          className="bg-[#4B2C20] text-white border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none"
-        >
-          Patty
-        </button>
-        <button 
-          onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }}
-          className="bg-[#FFD700] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none"
-        >
-          Cheese
-        </button>
-        <button 
-          onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }}
-          className="bg-[#F3A344] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none"
-        >
-          Bun
-        </button>
+            Patty
+          </button>
+          <button 
+            onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }}
+            className="bg-[#FFD700] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
+          >
+            Cheese
+          </button>
+          <button 
+            onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }}
+            className="bg-[#F3A344] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
+          >
+            Bun
+          </button>
+        </div>
       </div>
 
       {/* OVERLAY */}
