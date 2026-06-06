@@ -90,49 +90,36 @@ export default function BurgerGame() {
               className="flex flex-col-reverse items-center relative z-10 origin-bottom" 
             >
               {stack.map((item, i) => {
-  // --- TUNING SECTION ---
-  // Increase these numbers to move the items LOWER
-  // Decrease them to move them HIGHER
-  let yOffset = "0px";
-  if (item.type === 'patty')     yOffset = "45px";  // Moves patty down onto bun
-  if (item.type === 'cheese')    yOffset = "70px";  // Moves cheese down onto patty
-  if (item.type === 'top-bun')   yOffset = "110px"; // Moves lid down onto cheese
-  // ----------------------
+                let yOffset = "0px";
+                if (item.type === 'patty')     yOffset = "45px";
+                if (item.type === 'cheese')    yOffset = "70px";
+                if (item.type === 'top-bun')   yOffset = "110px";
 
-  return (
-    <motion.div
-      key={item.id}
-      layout
-      initial={i !== 0 ? { y: -1000 } : {}}
-      animate={{ y: 0 }}
-      transition={{ 
-        y: { type: "tween", ease: "circIn", duration: 0.25 },
-        layout: { duration: 0 } 
-      }}
-      style={{ 
-        zIndex: i,
-        transform: `translateY(${yOffset})`, // THE FIX
-        marginBottom: i === 0 ? "0px" : "-30px" // Slight compression
-      }}
-      className="relative flex-shrink-0"
-    >
-      <img 
-        src={`/images/${item.type}.svg`} 
-        alt={item.type} 
-        className="w-72 h-auto block" 
-      />
-    </motion.div>
-  );
-})}
-                >
-                  {/* Using standard <img> tags for perfect visual quality */}
-                  <img 
-                    src={`/images/${item.type}.svg`} 
-                    alt={item.type} 
-                    className="w-72 h-auto block" 
-                  />
-                </motion.div>
-              ))}
+                return (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={i !== 0 ? { y: -1000 } : {}}
+                    animate={{ y: 0 }}
+                    transition={{ 
+                      y: { type: "tween", ease: "circIn", duration: 0.25 },
+                      layout: { duration: 0 } 
+                    }}
+                    style={{ 
+                      zIndex: i,
+                      transform: `translateY(${yOffset})`,
+                      marginBottom: i === 0 ? "0px" : "-30px"
+                    }}
+                    className="relative flex-shrink-0"
+                  >
+                    <img 
+                      src={`/images/${item.type}.svg`} 
+                      alt={item.type} 
+                      className="w-72 h-auto block" 
+                    />
+                  </motion.div>
+                );
+              })}
             </motion.div>
           )}
         </AnimatePresence>
@@ -142,19 +129,19 @@ export default function BurgerGame() {
       <div className="p-6 grid grid-cols-3 gap-4 bg-white border-t-8 border-black pb-12 z-30 shadow-2xl">
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }}
-          className={`bg-[#4B2C20] text-white border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all ${isProcessing ? 'opacity-50' : 'opacity-100'}`}
+          className="bg-[#4B2C20] text-white border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
         >
           Patty
         </button>
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }}
-          className={`bg-[#FFD700] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all ${isProcessing ? 'opacity-50' : 'opacity-100'}`}
+          className="bg-[#FFD700] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
         >
           Cheese
         </button>
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }}
-          className={`bg-[#F3A344] border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all text-black ${isProcessing ? 'opacity-50' : 'opacity-100'}`}
+          className="bg-[#F3A344] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
         >
           Bun
         </button>
