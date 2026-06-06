@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 // 1. IMPORT YOUR NEW ICONS
-import { TopBun, Cheese, Patty, BottomBun } from './BurgerIcons';
+import { TopBun, Cheese, Patty, BottomBun } from './burgericons';
 
 export default function BurgerGame() {
   const [stack, setStack] = useState([]); 
