@@ -89,21 +89,41 @@ export default function BurgerGame() {
               transition={{ x: { type: "tween", ease: "circOut", duration: 0.4 } }}
               className="flex flex-col-reverse items-center relative z-10 origin-bottom" 
             >
-              {stack.map((item, i) => (
-                <motion.div
-                  key={item.id}
-                  layout
-                  initial={i !== 0 ? { y: -1000 } : {}}
-                  animate={{ y: 0 }}
-                  transition={{ y: { type: "tween", ease: "circIn", duration: 0.25 } }}
-                  style={{ zIndex: i }}
-                  // THE FIX: Tightened negative margins to stop pieces floating
-                  className={`relative flex-shrink-0 ${
-                    item.type === 'bottom-bun' ? 'mb-0' :
-                    item.type === 'patty' ? '-mb-130' : 
-                    item.type === 'cheese' ? '-mb-30' :
-                    '-mb-30'
-                  }`}
+              {stack.map((item, i) => {
+  // --- TUNING SECTION ---
+  // Increase these numbers to move the items LOWER
+  // Decrease them to move them HIGHER
+  let yOffset = "0px";
+  if (item.type === 'patty')     yOffset = "45px";  // Moves patty down onto bun
+  if (item.type === 'cheese')    yOffset = "70px";  // Moves cheese down onto patty
+  if (item.type === 'top-bun')   yOffset = "110px"; // Moves lid down onto cheese
+  // ----------------------
+
+  return (
+    <motion.div
+      key={item.id}
+      layout
+      initial={i !== 0 ? { y: -1000 } : {}}
+      animate={{ y: 0 }}
+      transition={{ 
+        y: { type: "tween", ease: "circIn", duration: 0.25 },
+        layout: { duration: 0 } 
+      }}
+      style={{ 
+        zIndex: i,
+        transform: `translateY(${yOffset})`, // THE FIX
+        marginBottom: i === 0 ? "0px" : "-30px" // Slight compression
+      }}
+      className="relative flex-shrink-0"
+    >
+      <img 
+        src={`/images/${item.type}.svg`} 
+        alt={item.type} 
+        className="w-72 h-auto block" 
+      />
+    </motion.div>
+  );
+})}
                 >
                   {/* Using standard <img> tags for perfect visual quality */}
                   <img 
