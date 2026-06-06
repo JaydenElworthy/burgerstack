@@ -100,9 +100,9 @@ export default function BurgerGame() {
                   // THE FIX: Tightened negative margins to stop pieces floating
                   className={`relative flex-shrink-0 ${
                     item.type === 'bottom-bun' ? 'mb-0' :
-                    item.type === 'patty' ? '-mb-0' : 
-                    item.type === 'cheese' ? '-mb-0' :
-                    '-mb-0'
+                    item.type === 'patty' ? '-mb-30' : 
+                    item.type === 'cheese' ? '-mb-30' :
+                    '-mb-30'
                   }`}
                 >
                   {/* Using standard <img> tags for perfect visual quality */}
