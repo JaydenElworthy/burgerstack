@@ -91,9 +91,9 @@ export default function BurgerGame() {
             >
               {stack.map((item, i) => {
                 let yOffset = "0px";
-                if (item.type === 'patty')     yOffset = "45px";
-                if (item.type === 'cheese')    yOffset = "70px";
-                if (item.type === 'top-bun')   yOffset = "110px";
+                if (item.type === 'patty')     yOffset = "150px";
+                if (item.type === 'cheese')    yOffset = "100px";
+                if (item.type === 'top-bun')   yOffset = "175px";
 
                 return (
                   <motion.div
