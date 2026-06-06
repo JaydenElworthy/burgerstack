@@ -80,51 +80,54 @@ export default function BurgerGame() {
         <div className="absolute bottom-[25%] w-full h-12 bg-gray-200 border-t-8 border-black z-0 shadow-2xl" />
         
         <AnimatePresence>
-          {!isExiting && (
-            <motion.div
-              key={`burger-${burgerId}`}
-              initial={{ x: -1200 }}
-              animate={{ x: 0 }}
-              exit={{ x: 2500, transition: { duration: 0.4, ease: "expoIn" } }}
-              transition={{ x: { type: "tween", ease: "circOut", duration: 0.4 } }}
-              className="flex flex-col-reverse items-center relative z-10 origin-bottom" 
-            >
-              {stack.map((item, i) => {
-                let yOffset = "0px";
-                if (item.type === 'patty')     yOffset = "150px";
-                if (item.type === 'cheese')    yOffset = "100px";
-                if (item.type === 'top-bun')   yOffset = "175px";
+  {!isExiting && (
+    <motion.div
+      key={`burger-container-${burgerId}`}
+      initial={{ x: -1200 }}
+      animate={{ x: 0 }}
+      exit={{ x: 2500, transition: { duration: 0.4, ease: "expoIn" } }}
+      transition={{ x: { type: "tween", ease: "circOut", duration: 0.4 } }}
+      // THE STAGE: Relative container with a fixed height
+      className="relative w-full h-[300px] z-10" 
+    >
+      {stack.map((item, i) => {
+        // --- TUNING SECTION ---
+        // These numbers move the pieces UP from the counter.
+        // If a piece is floating too high, LOWER the number.
+        // If a piece is buried inside another, RAISE the number.
+        let elevation = 0;
+        if (item.type === 'bottom-bun') elevation = 0;   // Stays on counter
+        if (item.type === 'patty')      elevation = 30;  // 30px above counter
+        if (item.type === 'cheese')     elevation = 55;  // 55px above counter
+        if (item.type === 'top-bun')    elevation = 75;  // 75px above counter
+        // ----------------------
 
-                return (
-                  <motion.div
-                    key={item.id}
-                    layout
-                    initial={i !== 0 ? { y: -1000 } : {}}
-                    animate={{ y: 0 }}
-                    transition={{ 
-                      y: { type: "tween", ease: "circIn", duration: 0.25 },
-                      layout: { duration: 0 } 
-                    }}
-                    style={{ 
-                      zIndex: i,
-                      transform: `translateY(${yOffset})`,
-                      marginBottom: i === 0 ? "0px" : "-30px"
-                    }}
-                    className="relative flex-shrink-0"
-                  >
-                    <img 
-                      src={`/images/${item.type}.svg`} 
-                      alt={item.type} 
-                      className="w-72 h-auto block" 
-                    />
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
+        return (
+          <motion.div
+            key={item.id}
+            initial={i !== 0 ? { y: -1000, x: "-50%" } : { x: "-50%" }}
+            // We use a negative 'y' value to move them UP from the bottom
+            animate={{ y: -elevation, x: "-50%" }}
+            transition={{ 
+              y: { type: "tween", ease: "circIn", duration: 0.25 }
+            }}
+            style={{ zIndex: i }}
+            // Absolute positioning puts every piece at the bottom-center of the stage
+            className="absolute bottom-0 left-1/2"
+          >
+            <img 
+              src={`/images/${item.type}.svg`} 
+              alt={item.type} 
+              // 'max-content' prevents the image from squishing
+              className="w-80 h-auto block max-w-none" 
+              style={{ transform: 'translateX(0)' }} 
+            />
+          </motion.div>
+        );
+      })}
+    </motion.div>
+  )}
+</AnimatePresence>
       {/* CONTROLS */}
       <div className="p-6 grid grid-cols-3 gap-4 bg-white border-t-8 border-black pb-12 z-30 shadow-2xl">
         <button 
