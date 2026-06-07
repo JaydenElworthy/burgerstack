@@ -121,22 +121,22 @@ export default function BurgerGame() {
         </AnimatePresence>
 
         {/* CONTROLS */}
-        <div className="p-6 grid grid-cols-3 gap-4 bg-white border-t-8 border-black pb-12 z-30 shadow-2xl">
+        <div className="grid grid-cols-3 gap-4 bg-white border-t-8 border-black z-30 w-full px-6 py-6">
           <button 
             onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }}
-            className="bg-[#4B2C20] text-white border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
+            className="bg-[#4B2C20] text-white border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic active:translate-y-1 transition-transform"
           >
             Patty
           </button>
           <button 
             onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }}
-            className="bg-[#FFD700] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
+            className="bg-[#FFD700] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic active:translate-y-1 transition-transform"
           >
             Cheese
           </button>
           <button 
             onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }}
-            className="bg-[#F3A344] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
+            className="bg-[#F3A344] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic active:translate-y-1 transition-transform"
           >
             Bun
           </button>
