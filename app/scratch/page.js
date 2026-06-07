@@ -148,7 +148,7 @@ export default function ScratchCard() {
         <div className="mt-12 p-5 bg-[#E5FF44] border-4 border-black rounded-3xl flex gap-4 items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mx-4">
             <Trophy size={28} className="shrink-0" />
             <p className="text-[10px] font-black uppercase tracking-tight leading-tight text-left">
-                Scratch off 50% of the card to reveal your daily prize!
+                Scratch the card to reveal your daily prize!
             </p>
         </div>
       )}
