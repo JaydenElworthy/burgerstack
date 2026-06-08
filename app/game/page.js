@@ -136,19 +136,20 @@ export default function BurgerGame() {
       </div>
 
       {/* CONTROLS & COUNTER CONTAINER */}
-      <div className="relative bg-[#FFE974] z-0">
-        {/* Counter positioned absolutely, bottom anchored to top of controls */}
-        <div 
-          className="absolute bottom-full left-0 w-full"
-          ref={(el) => el && setCounterHeight(el.offsetHeight)}
-        >
-          <img 
-            src="/images/counter.svg" 
-            alt="wooden counter" 
-            className="w-full h-auto block"
-          />
-        </div>
-
+      <div className="relative bg-[url('/images/bbqbackground.jpg')] bg-cover bg-center z-0">
+  {/* Counter positioned absolutely, bottom anchored to top of controls */}
+  <div 
+    className="absolute bottom-full left-0 w-full"
+    ref={(el) => el && setCounterHeight(el.offsetHeight)}
+  >
+    <img 
+      src="/images/counter.svg" 
+      alt="wooden counter" 
+      className="w-full h-auto block"
+    />
+  </div>
+</div>
+        
         {/* Control buttons */}
         <div className="p-6 grid grid-cols-3 gap-4 border-t-8 border-black pb-12 shadow-2xl">
           <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">PATTY</button>
