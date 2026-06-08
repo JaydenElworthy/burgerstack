@@ -62,7 +62,7 @@ export default function BurgerGame() {
       isCorrect = true; pieceToDrop = 'top-bun';
     }
 
-if (isCorrect) {
+    if (isCorrect) {
       setIsProcessing(true); 
       const nextPieceType = (inputType === 'patty') ? 'patty' : (inputType === 'cheese') ? 'cheese' : 'top-bun';
       setStack(prev => [...prev, { type: nextPieceType, id: `drop-${Date.now()}` }]);
@@ -107,6 +107,8 @@ if (isCorrect) {
         // If it wasn't a top bun, just unlock the buttons for the next piece
         setTimeout(() => setIsProcessing(false), 250);
       }
+    }
+  };
 
   return (
     <div className={`h-screen flex flex-col overflow-hidden select-none font-sans transition-colors duration-300 ${feedback === 'wrong' ? 'bg-red-500' : 'bg-[#FDFCF8]'}`}>
@@ -172,19 +174,19 @@ if (isCorrect) {
       <div className="p-6 grid grid-cols-3 gap-4 bg-white border-t-8 border-black pb-12 z-30">
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }}
-          className="bg-[#4B2C20] text-white border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none"
+          className="bg-[#4B2C20] text-white border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shad[...]"
         >
           Patty
         </button>
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }}
-          className="bg-[#FFD700] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none"
+          className="bg-[#FFD700] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shad[...]"
         >
           Cheese
         </button>
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }}
-          className="bg-[#F3A344] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none"
+          className="bg-[#F3A344] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shad[...]"
         >
           Bun
         </button>
