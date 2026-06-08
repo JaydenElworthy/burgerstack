@@ -136,7 +136,7 @@ export default function BurgerGame() {
       </div>
 
       {/* CONTROLS & COUNTER CONTAINER */}
-      <div className="relative bg-[#FFE974] z-30">
+      <div className="relative bg-[#FFE974] z-0">
         {/* Counter positioned absolutely, bottom anchored to top of controls */}
         <div 
           className="absolute bottom-full left-0 w-full"
