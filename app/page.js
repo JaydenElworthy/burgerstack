@@ -52,15 +52,21 @@ export default function Home() {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto min-h-screen flex flex-col bg-[#E55937] text-[#FFE974] font-sans overflow-x-hidden">
-      <header className="py-12 text-center relative">
-        <h1 className="text-5xl font-bold uppercase leading-[0.85] tracking-tighter mb-2">
-          PICNIC AT<br/><span className="text-white text-6xl">HOME</span>
-        </h1>
-        <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/60 italic">
-          {user ? `Welcome back, ${user.email.split('@')[0]}` : "Your Daily Prizes & Perks"}
-        </p>
-      </header>
+    <div className="p-6 max-w-md mx-auto min-h-screen flex flex-col bg-[#E55937] text-[#FFE974] font-gopher overflow-x-hidden">
+      <header className="py-12 text-center relative px-4">
+  <h1 
+    className="text-[12vw] sm:text-6xl uppercase leading-none tracking-tighter text-[#FFE974]" 
+    style={{ 
+      fontFamily: 'gopher, sans-serif', 
+      fontWeight: 700 
+    }}
+  >
+    Picnic At Home
+  </h1>
+  <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/60 mt-2 italic">
+    {user ? `Welcome back, ${user.email.split('@')[0]}` : "Your Daily Prizes & Perks"}
+  </p>
+</header>
 
       {/* Points Card */}
       <div className="bg-[#FFE974] text-[#E55937] p-6 rounded-[2.5rem] mb-6 shadow-2xl flex justify-between items-center border-4 border-black">
