@@ -16,6 +16,7 @@ export default function BurgerGame() {
   const [isProcessing, setIsProcessing] = useState(false); 
   const [feedback, setFeedback] = useState(null);
   const [baseCount, setBaseCount] = useState(0);
+  const [counterHeight, setCounterHeight] = useState(0);
 
   // --- TIMER LOGIC ---
   useEffect(() => {
@@ -100,48 +101,52 @@ export default function BurgerGame() {
       </div>
 
       {/* STAGE */}
-      <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden pb">
-        <div className="absolute bottom w-full flex items-end justify-center z-0">
-          <img src="/images/counter.svg" alt="wooden counter" className="w-full h-auto max-w-4xl" />
+      <div className="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
+        <div className="w-full relative" ref={(el) => el && setCounterHeight(el.offsetHeight)}>
+          <img 
+            src="/images/counter.svg" 
+            alt="wooden counter" 
+            className="w-full h-auto block"
+          />
+          <AnimatePresence>
+            {!isExiting && (
+              <motion.div
+                key={`burger-${burgerId}`}
+                initial={{ x: -1200 }} animate={{ x: 0 }}
+                exit={{ x: 2500, transition: { duration: 0.4, ease: "expoIn" } }}
+                transition={{ x: { type: "tween", ease: "circOut", duration: 0.4 } }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[320px] z-10" 
+              >
+                {stack.map((item, i) => {
+                  let elevation = 0;
+                  if (i === 1) elevation = 38; 
+                  if (i === 2) elevation = 62;
+                  if (i === 3) elevation = 84;
+                  return (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={i < baseCount ? { x: "-50%" } : { y: -1000, x: "-50%" }}
+                      animate={{ y: -elevation, x: "-50%" }}
+                      transition={{ y: { type: "tween", ease: "circIn", duration: 0.25 } }}
+                      style={{ zIndex: i }}
+                      className="absolute bottom-1/2 left-1/2"
+                    >
+                      <img src={`/images/${item.type}.svg`} alt={item.type} className="w-80 h-auto block max-w-none" />
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-        <AnimatePresence>
-          {!isExiting && (
-            <motion.div
-              key={`burger-${burgerId}`}
-              initial={{ x: -1200 }} animate={{ x: 0 }}
-              exit={{ x: 2500, transition: { duration: 0.4, ease: "expoIn" } }}
-              transition={{ x: { type: "tween", ease: "circOut", duration: 0.4 } }}
-              className="relative w-full h-[320px] z-10" 
-            >
-              {stack.map((item, i) => {
-                let elevation = 0;
-                if (i === 1) elevation = 38; 
-                if (i === 2) elevation = 62;
-                if (i === 3) elevation = 84;
-                return (
-                  <motion.div
-                    key={item.id}
-                    layout
-                    initial={i < baseCount ? { x: "-50%" } : { y: -1000, x: "-50%" }}
-                    animate={{ y: -elevation, x: "-50%" }}
-                    transition={{ y: { type: "tween", ease: "circIn", duration: 0.25 } }}
-                    style={{ zIndex: i }}
-                    className="absolute bottom-0 left-1/2"
-                  >
-                    <img src={`/images/${item.type}.svg`} alt={item.type} className="w-80 h-auto block max-w-none" />
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       {/* CONTROLS */}
       <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-30 shadow-2xl">
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">Patty</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">Cheese</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">Bun</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">PATTY</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">CHEESE</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">BUN</button>
       </div>
 
       {/* OVERLAYS (WIN / LOSS) */}
@@ -181,7 +186,7 @@ export default function BurgerGame() {
               {gameState !== 'start' && (
                 <Link 
                   href="/"
-                  className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:opacity-90 transition-opacity"
+                  className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform"
                 >
                   <Home size={16} /> Exit to Menu
                 </Link>
