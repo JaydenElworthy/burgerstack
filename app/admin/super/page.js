@@ -17,21 +17,20 @@ export default function SuperAdmin() {
 
   useEffect(() => {
     async function initAdmin() {
-      // 1. Security Gatekeeper: Only allow if is_admin is true
+      // 1. Security Check
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push('/login'); return; }
 
       const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
       if (!profile || !profile.is_admin) { router.push('/'); return; }
 
-      // 2. Fetch Squarespace Products
+      // 2. Fetch Data
       try {
-        const res = await fetch('/api/squarespace/products');
-        const data = await res.json();
-        setProducts(data || []);
+        const prodRes = await fetch('/api/squarespace/products');
+        const prodData = await prodRes.json();
+        setProducts(prodData || []);
       } catch (e) { console.error("Could not load products"); }
 
-      // 3. Load App Settings
       const { data: settings } = await supabase.from('app_settings').select('*').single();
       if (settings) {
         setMethod(settings.redemption_strategy);
@@ -39,7 +38,6 @@ export default function SuperAdmin() {
         setWinnerCount(settings.weekly_winner_limit);
       }
 
-      // 4. Load Players & Top Scorer
       const { data: usersData } = await supabase.from('profiles').select('*').order('high_score', { ascending: false });
       setUsers(usersData || []);
       if (usersData && usersData.length > 0) setCurrentTopScorer(usersData[0]);
@@ -58,19 +56,125 @@ export default function SuperAdmin() {
       weekly_winner_limit: winnerCount
     }).eq('id', 1);
 
-    if (!error) alert("Global Configuration Saved!");
+    if (!error) alert("Settings Saved!");
   };
 
   const finalizeWeek = async () => {
     if (!currentTopScorer || currentTopScorer.high_score === 0) {
-      alert("No valid winner found yet.");
+      alert("No winner found.");
       return;
     }
-    
-    if (!confirm(`Award prize to ${currentTopScorer.email} and reset the board?`)) return;
+    if (!confirm(`Award prize to ${currentTopScorer.email}?`)) return;
 
     const res = await fetch('/api/admin/finalize-week', {
       method: 'POST',
+      body: JSON.stringify({ winnerId: currentTopScorer.id, winnerEmail: currentTopScorer.email })
+    });
+
+    if (res.ok) {
+      alert("WEEK FINALIZED!");
+      window.location.reload();
+    }
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center font-black uppercase italic">Verifying Admin...</div>;
+
+  return (
+    <div className="p-6 max-w-6xl mx-auto min-h-screen bg-gray-50 text-black font-sans pb-20">
+      
+      <div className="flex justify-between items-center mb-10">
+        <Link href="/" className="flex items-center gap-2 font-bold uppercase text-xs opacity-50">
+          <ArrowLeft size={16} /> Back
+        </Link>
+        <h1 className="text-4xl font-black italic uppercase tracking-tighter">Super Admin</h1>
+        <div className="w-10" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* WINNER SECTION */}
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-black text-white p-8 rounded-[2.5rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(229,255,68,1)]">
+            <h2 className="text-[#E5FF44] font-black uppercase italic text-2xl mb-6 flex items-center gap-2">
+              <Crown size={24} /> Weekly Champion
+            </h2>
+            
+            {currentTopScorer && currentTopScorer.high_score > 0 ? (
+              <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div>
+                  <p className="text-xs uppercase font-black opacity-50 mb-1">Top Scorer</p>
+                  <p className="text-xl font-bold mb-2">{currentTopScorer.email}</p>
+                  <p className="text-6xl font-black text-[#E5FF44] italic leading-none">{currentTopScorer.high_score}</p>
+                </div>
+                <button 
+                  onClick={finalizeWeek}
+                  className="bg-[#E5FF44] text-black px-10 py-6 rounded-2xl font-black uppercase italic text-xl shadow-lg active:scale-95 transition-all"
+                >
+                  End Week & Award
+                </button>
+              </div>
+            ) : (
+              <p className="opacity-50 font-bold uppercase">No scores yet...</p>
+            )}
+          </div>
+
+          {/* ACTIVE USERS */}
+          <div className="bg-white border-4 border-black rounded-[2rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div className="bg-black p-4 text-white font-black uppercase text-xs italic">
+              User Rankings
+            </div>
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-gray-100 text-[10px] uppercase font-black border-b-2 border-black">
+                  <th className="p-4">Customer</th>
+                  <th className="p-4 text-center">Best</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allUsers.map((u, i) => (
+                  <tr key={u.id} className="border-b-2 border-gray-100">
+                    <td className="p-4 font-bold text-sm">{u.email}</td>
+                    <td className="p-4 text-center font-black text-red-600 italic text-xl">{u.high_score}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* SETTINGS SECTION */}
+        <div className="bg-white p-6 rounded-[2rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] self-start">
+          <h2 className="font-black uppercase text-sm mb-6 flex items-center gap-2 text-blue-600">
+            <Settings size={16} /> Configuration
+          </h2>
+          
+          <div className="space-y-6">
+            <div>
+              <label className="block font-black uppercase text-[10px] opacity-40 mb-2">Method</label>
+              <select value={method} onChange={(e) => setMethod(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs">
+                <option value="manual">Manual Pool</option>
+                <option value="api">Automated API</option>
+                <option value="in-app">Staff Check</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-black uppercase text-[10px] opacity-40 mb-2">Grand Prize</label>
+              <select value={selectedProduct} onChange={(e) => setSelectedItem(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs">
+                <option value="">-- Select Product --</option>
+                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+
+            <button onClick={saveSettings} className="w-full bg-black text-white py-4 rounded-xl font-black uppercase italic hover:bg-green-500 transition-colors">
+              Save Config
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}      method: 'POST',
       body: JSON.stringify({ 
         winnerId: currentTopScorer.id, 
         winnerEmail: currentTopScorer.email 
