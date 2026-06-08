@@ -88,7 +88,10 @@ export default function BurgerGame() {
 
   return (
     <div className={`h-screen flex flex-col overflow-hidden select-none font-sans transition-colors duration-300 ${feedback === 'wrong' ? 'bg-red-500' : 'bg-[#FDFCF8]'}`}>
-      
+
+      {/* very back background image */}
+      <div className="absolute inset-0 -z-20 bg-[url('/images/bbqbackground.jpg')] bg-cover bg-center" />
+
       {/* HUD */}
       <div className="p-6 flex justify-between items-center bg-[#FFE974] border-b-8 border-black z-30 shadow-lg">
         <Link href="/"><ArrowLeft size={32} className="text-[#E55937]" /></Link>
@@ -136,25 +139,30 @@ export default function BurgerGame() {
       </div>
 
       {/* CONTROLS & COUNTER CONTAINER */}
-      <div className="relative bg-[url('/images/bbqbackground.jpg')] bg-cover bg-center z-0">
-  {/* Counter positioned absolutely, bottom anchored to top of controls */}
-  <div 
-    className="absolute bottom-full left-0 w-full"
-    ref={(el) => el && setCounterHeight(el.offsetHeight)}
-  >
-    <img 
-      src="/images/counter.svg" 
-      alt="wooden counter" 
-      className="w-full h-auto block"
-    />
-  </div>
-</div>
-        
+      <div className="relative z-0">
+        {/* Counter positioned absolutely, bottom anchored to top of controls */}
+        <div 
+          className="absolute bottom-full left-0 w-full"
+          ref={(el) => el && setCounterHeight(el.offsetHeight)}
+        >
+          <img 
+            src="/images/counter.svg" 
+            alt="wooden counter" 
+            className="w-full h-auto block"
+          />
+        </div>
+
         {/* Control buttons */}
-        <div className="p-6 grid grid-cols-3 gap-4 border-t-8 border-black pb-12 shadow-2xl">
-          <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">PATTY</button>
-          <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">CHEESE</button>
-          <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">BUN</button>
+        <div className="p-6 grid grid-cols-3 gap-4 border-t-8 border-black pb-12 shadow-2xl bg-transparent">
+          <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            PATTY
+          </button>
+          <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            CHEESE
+          </button>
+          <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            BUN
+          </button>
         </div>
       </div>
 
@@ -195,7 +203,7 @@ export default function BurgerGame() {
               {gameState !== 'start' && (
                 <Link 
                   href="/"
-                  className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform"
+                  className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs tracking-widest shadow-[4px_4px_0px_rgba(0,0,0,1)]"
                 >
                   <Home size={16} /> Exit to Menu
                 </Link>
