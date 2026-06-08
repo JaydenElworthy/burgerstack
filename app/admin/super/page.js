@@ -7,6 +7,40 @@ export default function SuperAdmin() {
   const [method, setMethod] = useState('manual');
   const [selectedProduct, setSelectedItem] = useState('');
   const [winnerCount, setWinnerCount] = useState(10);
+  // Add this to your SuperAdmin component
+const [currentTopScorer, setCurrentTopScorer] = useState(null);
+
+useEffect(() => {
+  // Fetch the #1 player
+  const getTopPlayer = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, email, high_score')
+      .order('high_score', { ascending: false })
+      .limit(1)
+      .single();
+    setCurrentTopScorer(data);
+  };
+  getTopPlayer();
+}, []);
+
+const finalizeWeek = async () => {
+  if (!confirm(`Are you sure? This will award the prize to ${currentTopScorer.email} and reset the board.`)) return;
+
+  // 1. Call your API to create the Squarespace code and notify the winner
+  const res = await fetch('/api/admin/finalize-week', {
+    method: 'POST',
+    body: JSON.stringify({ 
+      winnerId: currentTopScorer.id, 
+      winnerEmail: currentTopScorer.email 
+    })
+  });
+
+  if (res.ok) {
+    alert("Winner Awarded! Board Reset.");
+    window.location.reload();
+  }
+};
 
   useEffect(() => {
     // 1. Fetch Products from Squarespace API
@@ -65,7 +99,29 @@ export default function SuperAdmin() {
             Save Weekly Configuration
           </button>
         </div>
-
+// --- In your JSX ---
+<div className="bg-black text-white p-8 rounded-3xl border-4 border-black mb-10 shadow-[8px_8px_0px_0px_rgba(229,255,68,1)]">
+  <h2 className="text-[#E5FF44] font-black uppercase italic text-2xl mb-2">Grand Prize Control</h2>
+  <p className="text-xs uppercase font-bold opacity-60 mb-6">Weekly Winner Selection</p>
+  
+  {currentTopScorer ? (
+    <div className="flex justify-between items-center bg-white/10 p-6 rounded-2xl border-2 border-dashed border-white/20">
+      <div>
+        <p className="text-[10px] uppercase font-black opacity-40">Current #1 Seed</p>
+        <p className="text-xl font-bold">{currentTopScorer.email}</p>
+        <p className="text-3xl font-black text-[#E5FF44] italic">Score: {currentTopScorer.high_score}</p>
+      </div>
+      <button 
+        onClick={finalizeWeek}
+        className="bg-[#E5FF44] text-black px-8 py-4 rounded-xl font-black uppercase italic hover:scale-105 transition-transform"
+      >
+        Close Week & Award Prize
+      </button>
+    </div>
+  ) : (
+    <p>No players yet this week.</p>
+  )}
+</div>
         {/* LOGS SECTION */}
         <div className="bg-white border-4 border-black rounded-3xl overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <div className="bg-black p-4 text-white font-black uppercase text-xs italic">User Leaderboard & Winnings</div>
