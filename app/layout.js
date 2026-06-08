@@ -1,9 +1,10 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'NEIGHBOURHOOD CLUB',
-  description: 'Street food energy & secret perks',
-}
+  title: 'Picnic At Home',
+  description: 'Gourmet home food and weekly prizes',
+  manifest: '/manifest.json',
+};
 
 export default function RootLayout({ children }) {
   return (
