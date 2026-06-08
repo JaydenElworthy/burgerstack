@@ -100,8 +100,8 @@ export default function BurgerGame() {
       </div>
 
       {/* STAGE */}
-      <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden pb-[25%]">
-        <div className="absolute bottom-[25%] w-full flex items-end justify-center z-0">
+      <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden pb">
+        <div className="absolute bottom w-full flex items-end justify-center z-0">
           <img src="/images/counter.svg" alt="wooden counter" className="w-full h-auto max-w-4xl" />
         </div>
         <AnimatePresence>
