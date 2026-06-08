@@ -8,23 +8,47 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
 
+  // --- UPDATED LOGIC START ---
   useEffect(() => {
-    async function getAuth() {
-      const { data: { user } } = await supabase.auth.getUser();
+    // 1. Function to fetch profile data from Supabase
+    const fetchProfile = async (currentUser) => {
+      if (!currentUser) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+      if (data) setProfile(data);
+    };
+
+    // 2. Check initial session on load
+    supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUser(user);
-        // Fetch profile
-        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-        setProfile(data);
+        fetchProfile(user);
       }
-    }
-    getAuth();
-  }, []);
+    });
 
-  // FIXED: Added the missing Sign Out function
+    // 3. Listen for Auth Changes (Magic Link clicks, Sign Outs, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        fetchProfile(session.user);
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+    });
+
+    // 4. Cleanup listener when user leaves the page
+    return () => subscription.unsubscribe();
+  }, []);
+  // --- UPDATED LOGIC END ---
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/"; 
+    // No need for window.location.href anymore because the listener above 
+    // will detect the sign-out and clear the screen automatically!
   };
 
   return (
@@ -55,17 +79,17 @@ export default function Home() {
       <div className="grid grid-cols-2 gap-4 mb-6">
         <Link href="/game" className="bg-[#E5FF44] border-4 border-black p-6 rounded-[2rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
           <Gamepad2 size={40} />
-          <span className="font-black uppercase text-xs">Stack Game</span>
+          <span className="font-black uppercase text-xs text-black">Stack Game</span>
         </Link>
         <Link href="/scratch" className="bg-white border-4 border-black p-6 rounded-[2rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
           <Ticket size={40} />
-          <span className="font-black uppercase text-xs">Scratch</span>
+          <span className="font-black uppercase text-xs text-black">Scratch</span>
         </Link>
       </div>
 
       <div className="space-y-4 mb-10">
         <Link href="/wallet" className="w-full bg-white border-4 border-black p-5 rounded-2xl flex justify-between items-center font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all">
-          <span className="flex items-center gap-3"><Wallet size={24}/> My Rewards</span>
+          <span className="flex items-center gap-3"><Wallet size={24}/> My Wallet</span>
           <span>→</span>
         </Link>
         <Link href="/leaderboard" className="w-full bg-white border-4 border-black p-5 rounded-2xl flex justify-between items-center font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all">
@@ -80,12 +104,19 @@ export default function Home() {
         </a>
 
         {user ? (
-          <button onClick={handleSignOut} className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-30 hover:opacity-100 transition-opacity">
+          <button onClick={handleSignOut} className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-30 hover:opacity-100 transition-opacity text-black">
             <LogOut size={14} /> Sign Out
           </button>
         ) : (
-          <Link href="/login" className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-60 hover:opacity-100 transition-opacity">
+          <Link href="/login" className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-60 hover:opacity-100 transition-opacity text-black">
             <User size={14} /> Sign In to Save Progress
+          </Link>
+        )}
+
+        {/* ADMIN SHORTCUT (Visible only to you) */}
+        {profile?.is_admin && (
+          <Link href="/admin/super" className="w-full border-2 border-dashed border-black/20 p-2 text-center text-[8px] uppercase font-black opacity-20 hover:opacity-100 transition-opacity text-black">
+            Access Admin Panel
           </Link>
         )}
       </div>
