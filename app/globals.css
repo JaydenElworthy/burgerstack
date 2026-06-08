@@ -1,31 +1,63 @@
+/* 1. Define the custom font */
+@font-face {
+  font-family: 'Gopher';
+  src: url('/fonts/Gopher-Bold.otf') format('opentype'),
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gopher';
+  src: url('/fonts/Gopher-Regular.otf') format('opentype'),
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gopher';
+  src: url('/fonts/Gopher-Medium.otf') format('opentype'),
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2. Global Picnic Branding */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* If you have an Adobe Fonts link, paste the @import here */
-
 :root {
   --background: #E55937;
-  --text-main: #FFE974;
+  --text-yellow: #FFE974;
 }
 
 body {
   background-color: var(--background);
-  color: var(--text-main);
-  font-family: "gopher", sans-serif; /* Gopher font applied globally */
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
+  color: var(--text-yellow);
+  font-family: 'Gopher', sans-serif; /* Set Gopher as default */
+  -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2 {
+  font-family: 'Gopher', sans-serif;
   font-weight: 700; /* Headers weighted at 700 */
-  color: var(--text-main);
+  color: var(--text-yellow);
+  text-transform: uppercase;
+}
+h3, h4 {
+  font-family: 'Gopher', sans-serif;
+  font-weight: 500; /* Headers weighted at 500 */
+  color: var(--text-yellow);
   text-transform: uppercase;
 }
 
 p {
-  color: white; /* Small paragraphs set to white */
-  font-weight: 400;
+  font-family: 'Gopher', sans-serif;
+  font-weight: 500; /* Headers weighted at 400 */
+  color: var(--text-white);
+  text-transform: uppercase;
 }
 
 /* Custom button style for Picnic At Home */
