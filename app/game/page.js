@@ -220,7 +220,7 @@ export default function BurgerGame() {
       </div>
 
       {/* STAGE */}
-      <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden bg-[url('/images/bbqbackground.jpg')] bg-cover bg-center">
+      <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden bg-[url('/images/bbqbackground.jpeg')] bg-cover bg-center">
         <AnimatePresence>
           {!isExiting && (
             <motion.div
