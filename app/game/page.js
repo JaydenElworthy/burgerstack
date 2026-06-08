@@ -144,34 +144,34 @@ export default function BurgerGame() {
 
       {/* OVERLAYS (WIN / LOSS) */}
       {gameState !== 'playing' && (
-        <div className="absolute inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-10 text-center text-white">
+        <div className="absolute inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-10 text-center">
           <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="w-full max-w-sm">
             
             {gameState === 'won' ? (
               <>
-                <Trophy size={80} className="text-[#E5FF44] mx-auto mb-4" />
-                <h1 className="text-7xl font-black italic uppercase leading-none mb-2 tracking-tighter text-[#E5FF44]">YOU WIN!</h1>
-                <p className="text-xl font-bold uppercase mb-8">Shift Completed Successfully</p>
+                <Trophy size={80} className="text-[#FFE974] mx-auto mb-4" />
+                <h1 className="text-7xl font-black italic uppercase leading-none mb-2 tracking-tighter text-[#FFE974]">YOU WIN!</h1>
+                <p className="text-xl font-bold uppercase mb-8 text-white">Shift Completed Successfully</p>
               </>
             ) : gameState === 'lost' ? (
               <>
-                <AlertCircle size={80} className="text-red-600 mx-auto mb-4" />
-                <h1 className="text-6xl font-black italic uppercase leading-none mb-2 tracking-tighter">GAME OVER</h1>
-                <p className="text-xl font-bold uppercase mb-8 opacity-60">The Kitchen Exploded!</p>
+                <AlertCircle size={80} className="text-[#E55937] mx-auto mb-4" />
+                <h1 className="text-6xl font-black italic uppercase leading-none mb-2 tracking-tighter text-[#FFE974]">GAME OVER</h1>
+                <p className="text-xl font-bold uppercase mb-8 text-white opacity-80">The Kitchen Exploded!</p>
               </>
             ) : (
-              <h1 className="text-7xl font-black italic uppercase leading-none mb-10 tracking-tighter">BURGER<br/>STACKER</h1>
+              <h1 className="text-7xl font-black italic uppercase leading-none mb-10 tracking-tighter text-[#FFE974]">BURGER<br/>STACKER</h1>
             )}
 
             <div className="mb-10">
-              <p className="text-white/40 font-black uppercase text-xs tracking-widest mb-1 italic">Your Score</p>
-              <p className="text-8xl font-black italic leading-none text-white">{score}</p>
+              <p className="text-white/60 font-black uppercase text-xs tracking-widest mb-1 italic">Your Score</p>
+              <p className="text-8xl font-black italic leading-none text-[#FFE974]">{score}</p>
             </div>
 
             <div className="space-y-4">
               <button 
                 onClick={() => { setGameState('playing'); setScore(0); setBurgerId(0); setTimeLeft(60); spawnBurger(); }}
-                className="w-full bg-[#E5FF44] border-4 border-white text-black py-5 rounded-full font-black text-2xl uppercase italic shadow-2xl active:scale-95 transition-all"
+                className="w-full bg-[#FFE974] border-4 border-black text-black py-5 rounded-full font-black text-2xl uppercase italic shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-all"
               >
                 {gameState === 'start' ? 'START SHIFT' : 'PLAY AGAIN'}
               </button>
@@ -179,7 +179,7 @@ export default function BurgerGame() {
               {gameState !== 'start' && (
                 <Link 
                   href="/"
-                  className="w-full flex items-center justify-center gap-2 bg-white/10 border-2 border-white/20 text-white py-4 rounded-full font-bold uppercase text-xs tracking-widest hover:bg-white/20 transition-all"
+                  className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#D44A2A] transition-colors"
                 >
                   <Home size={16} /> Exit to Menu
                 </Link>
