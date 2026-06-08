@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { supabase } from '@/lib/supabase'
 
 export default function BurgerGame() {
   const [stack, setStack] = useState([]); 
@@ -61,22 +62,51 @@ export default function BurgerGame() {
       isCorrect = true; pieceToDrop = 'top-bun';
     }
 
-    if (isCorrect) {
+if (isCorrect) {
       setIsProcessing(true); 
-      setStack(prev => [...prev, { type: pieceToDrop, id: `drop-${Date.now()}` }]);
+      const nextPieceType = (inputType === 'patty') ? 'patty' : (inputType === 'cheese') ? 'cheese' : 'top-bun';
+      setStack(prev => [...prev, { type: nextPieceType, id: `drop-${Date.now()}` }]);
 
-      if (pieceToDrop === 'top-bun') {
-        setScore(s => s + 1);
+      if (nextPieceType === 'top-bun') {
+        // 1. Calculate the actual new score immediately
+        const newScore = score + 1;
+        setScore(newScore); // Update the HUD
+        
+        // 2. Define the DB Save logic
+        const saveWin = async () => {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            // Get current high score from DB
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('high_score')
+              .eq('id', user.id)
+              .single();
+
+            // Only update if the current game score is higher than the record
+            if (newScore > (profile?.high_score || 0)) {
+              await supabase
+                .from('profiles')
+                .update({ high_score: newScore })
+                .eq('id', user.id);
+            }
+          }
+        };
+
+        // 3. Fire the save
+        saveWin();
+
+        // 4. Handle animations
         setTimeout(() => setIsExiting(true), 600);
-        setTimeout(() => { setBurgerId(prev => prev + 1); spawnBurger(); }, 1100); 
+        setTimeout(() => { 
+          setBurgerId(prev => prev + 1); 
+          spawnBurger(); 
+        }, 1100);
+
       } else {
-        setTimeout(() => setIsProcessing(false), 250); // Fast unlock for rapid stacking
+        // If it wasn't a top bun, just unlock the buttons for the next piece
+        setTimeout(() => setIsProcessing(false), 250);
       }
-    } else {
-      setFeedback('wrong');
-      setGameState('lost');
-    }
-  };
 
   return (
     <div className={`h-screen flex flex-col overflow-hidden select-none font-sans transition-colors duration-300 ${feedback === 'wrong' ? 'bg-red-500' : 'bg-[#FDFCF8]'}`}>
