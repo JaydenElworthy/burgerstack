@@ -11,28 +11,45 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function getAuth() {
-      // 1. Check if a user is logged in
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
-        // 2. Fetch their real-time profile data (High Score)
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        setProfile(data);
-      }
-      setLoading(false);
-    }
-    getAuth();
-  }, []);
+  async function getAuthAndSync() {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      setUser(user);
+      
+      // 1. Get current profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      setProfile(profileData);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.reload(); // Refresh to clear state
-  };
+      // 2. If we don't have a Square ID yet, go get one!
+      if (!profileData?.square_customer_id) {
+        const res = await fetch('/api/square/sync-customer', {
+          method: 'POST',
+          body: JSON.stringify({ email: user.email }),
+        });
+        const { square_customer_id } = await res.json();
+
+        if (square_customer_id) {
+          // 3. Save the Square ID into Supabase forever
+          await supabase
+            .from('profiles')
+            .update({ square_customer_id })
+            .eq('id', user.id);
+            
+          // Update local state so the app knows
+          setProfile({ ...profileData, square_customer_id });
+        }
+      }
+    }
+    setLoading(false);
+  }
+  getAuthAndSync();
+}, []);
 
   return (
     <div className="p-6 max-w-md mx-auto min-h-screen flex flex-col bg-[#FDFCF8] overflow-x-hidden">
