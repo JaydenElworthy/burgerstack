@@ -13,7 +13,7 @@
     "react-dom": "^18",
     "framer-motion": "^11.2.10",
     "lucide-react": "^0.395.0",
-    "canvas-confetti": "^1.9.3"
+    "canvas-confetti": "^1.9.3",
     "@supabase/supabase-js": "latest"
   },
   "devDependencies": {
