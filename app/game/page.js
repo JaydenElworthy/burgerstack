@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 export default function BurgerGame() {
   const [stack, setStack] = useState([]); 
