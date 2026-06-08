@@ -1,76 +1,216 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Trophy, Settings, Users, Star, Crown } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SuperAdmin() {
+  const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [method, setMethod] = useState('manual');
   const [selectedProduct, setSelectedItem] = useState('');
   const [winnerCount, setWinnerCount] = useState(10);
-  // Add this to your SuperAdmin component
-const [currentTopScorer, setCurrentTopScorer] = useState(null);
-
-useEffect(() => {
-  // Fetch the #1 player
-  const getTopPlayer = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, email, high_score')
-      .order('high_score', { ascending: false })
-      .limit(1)
-      .single();
-    setCurrentTopScorer(data);
-  };
-  getTopPlayer();
-}, []);
-
-const finalizeWeek = async () => {
-  if (!confirm(`Are you sure? This will award the prize to ${currentTopScorer.email} and reset the board.`)) return;
-
-  // 1. Call your API to create the Squarespace code and notify the winner
-  const res = await fetch('/api/admin/finalize-week', {
-    method: 'POST',
-    body: JSON.stringify({ 
-      winnerId: currentTopScorer.id, 
-      winnerEmail: currentTopScorer.email 
-    })
-  });
-
-  if (res.ok) {
-    alert("Winner Awarded! Board Reset.");
-    window.location.reload();
-  }
-};
+  const [currentTopScorer, setCurrentTopScorer] = useState(null);
+  const [allUsers, setUsers] = useState([]);
+  const router = useRouter();
 
   useEffect(() => {
-    // 1. Fetch Products from Squarespace API
-    fetch('/api/squarespace/products').then(res => res.json()).then(setProducts);
-    
-    // 2. Load current settings from Supabase
-    const loadSettings = async () => {
-      const { data } = await supabase.from('app_settings').select('*').single();
-      if (data) {
-        setMethod(data.redemption_strategy);
-        setSelectedItem(data.active_item_id);
+    async function initAdmin() {
+      // 1. Security Gatekeeper: Only allow if is_admin is true
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push('/login'); return; }
+
+      const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
+      if (!profile || !profile.is_admin) { router.push('/'); return; }
+
+      // 2. Fetch Squarespace Products
+      try {
+        const res = await fetch('/api/squarespace/products');
+        const data = await res.json();
+        setProducts(data || []);
+      } catch (e) { console.error("Could not load products"); }
+
+      // 3. Load App Settings
+      const { data: settings } = await supabase.from('app_settings').select('*').single();
+      if (settings) {
+        setMethod(settings.redemption_strategy);
+        setSelectedItem(settings.active_item_id);
+        setWinnerCount(settings.weekly_winner_limit);
       }
-    };
-    loadSettings();
-  }, []);
+
+      // 4. Load Players & Top Scorer
+      const { data: usersData } = await supabase.from('profiles').select('*').order('high_score', { ascending: false });
+      setUsers(usersData || []);
+      if (usersData && usersData.length > 0) setCurrentTopScorer(usersData[0]);
+
+      setLoading(false);
+    }
+    initAdmin();
+  }, [router]);
 
   const saveSettings = async () => {
     const item = products.find(p => p.id === selectedProduct);
-    await supabase.from('app_settings').update({
+    const { error } = await supabase.from('app_settings').update({
       redemption_strategy: method,
       active_item_id: selectedProduct,
-      prize_title: item?.name || 'Free Burger',
+      prize_title: item?.name || 'Weekly Special',
       weekly_winner_limit: winnerCount
     }).eq('id', 1);
-    alert("Settings Updated!");
+
+    if (!error) alert("Global Configuration Saved!");
   };
 
+  const finalizeWeek = async () => {
+    if (!currentTopScorer || currentTopScorer.high_score === 0) {
+      alert("No valid winner found yet.");
+      return;
+    }
+    
+    if (!confirm(`Award prize to ${currentTopScorer.email} and reset the board?`)) return;
+
+    const res = await fetch('/api/admin/finalize-week', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        winnerId: currentTopScorer.id, 
+        winnerEmail: currentTopScorer.email 
+      })
+    });
+
+    if (res.ok) {
+      alert("WEEK CLOSED: Winner awarded and scores reset.");
+      window.location.reload();
+    }
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center font-black uppercase italic">Verifying Admin...</div>;
+
   return (
-    <div className="p-8 bg-gray-50 min-h-screen font-sans text-black">
-      <h1 className="text-4xl font-black uppercase italic mb-10">Super Admin</h1>
+    <div className="p-6 max-w-6xl mx-auto min-h-screen bg-gray-50 text-black font-sans pb-20">
+      
+      <div className="flex justify-between items-center mb-10">
+        <Link href="/" className="flex items-center gap-2 font-bold uppercase text-xs opacity-50 hover:opacity-100 transition-opacity">
+          <ArrowLeft size={16} /> Dashboard
+        </Link>
+        <h1 className="text-4xl font-black italic uppercase tracking-tighter">Super <span className="text-red-600">Admin</span></h1>
+        <div className="w-20" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* COLUMN 1: THE WEEKLY CHAMPION (GRAND PRIZE) */}
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-black text-white p-8 rounded-[2.5rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(229,255,68,1)] relative overflow-hidden">
+            <Crown className="absolute -right-4 -top-4 text-white/10 w-40 h-40 rotate-12" />
+            <h2 className="text-[#E5FF44] font-black uppercase italic text-2xl mb-6 flex items-center gap-2">
+              <Star fill="#E5FF44" /> Weekly Champion
+            </h2>
+            
+            {currentTopScorer && currentTopScorer.high_score > 0 ? (
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                  <p className="text-xs uppercase font-black opacity-50 tracking-widest mb-1">Current #1 Seed</p>
+                  <p className="text-2xl font-bold mb-1">{currentTopScorer.email}</p>
+                  <p className="text-6xl font-black text-[#E5FF44] italic tracking-tighter">{currentTopScorer.high_score} <span className="text-sm not-italic uppercase tracking-normal">Burgers</span></p>
+                </div>
+                <button 
+                  onClick={finalizeWeek}
+                  className="bg-[#E5FF44] text-black px-10 py-6 rounded-2xl font-black uppercase italic text-xl shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform whitespace-nowrap"
+                >
+                  End Week & Award
+                </button>
+              </div>
+            ) : (
+              <p className="opacity-50 font-bold uppercase">Waiting for first players...</p>
+            )}
+          </div>
+
+          {/* USER TABLE */}
+          <div className="bg-white border-4 border-black rounded-[2rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div className="bg-black p-4 text-white font-black uppercase text-xs italic flex items-center gap-2">
+              <Users size={14} /> Active Players
+            </div>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-100 text-[10px] uppercase font-black border-b-4 border-black">
+                  <th className="p-4">Customer</th>
+                  <th className="p-4 text-center">Top Score</th>
+                  <th className="p-4 text-center">Total Wins</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allUsers.map((u, i) => (
+                  <tr key={u.id} className="border-b-2 border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="p-4 font-bold text-sm">
+                        {u.email} {i === 0 && "🥇"}
+                    </td>
+                    <td className="p-4 text-center font-black text-red-600 italic text-xl">{u.high_score}</td>
+                    <td className="p-4 text-center font-bold opacity-40">{u.total_winnings || 0}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* COLUMN 2: GLOBAL CONFIGURATION */}
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-[2rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <h2 className="font-black uppercase text-sm mb-6 flex items-center gap-2">
+              <Settings size={16} /> Global Config
+            </h2>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block font-black uppercase text-[10px] tracking-widest opacity-40 mb-2">Redemption Method</label>
+                <select 
+                  value={method} 
+                  onChange={(e) => setMethod(e.target.value)}
+                  className="w-full border-4 border-black p-4 rounded-xl font-bold uppercase text-xs"
+                >
+                  <option value="manual">Manual Pool (Paste CSV)</option>
+                  <option value="api">Automated Squarespace Sync</option>
+                  <option value="in-app">In-App Staff Check</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-black uppercase text-[10px] tracking-widest opacity-40 mb-2">Weekly Prize Product</label>
+                <select 
+                  value={selectedProduct} 
+                  onChange={(e) => setSelectedItem(e.target.value)}
+                  className="w-full border-4 border-black p-4 rounded-xl font-bold uppercase text-xs"
+                >
+                  <option value="">-- Select from Squarespace --</option>
+                  {products.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-black uppercase text-[10px] tracking-widest opacity-40 mb-2">Winners Per Week</label>
+                <input 
+                  type="number"
+                  value={winnerCount}
+                  onChange={(e) => setWinnerCount(parseInt(e.target.value))}
+                  className="w-full border-4 border-black p-4 rounded-xl font-bold uppercase text-xs"
+                />
+              </div>
+
+              <button 
+                onClick={saveSettings}
+                className="w-full bg-black text-white py-4 rounded-xl font-black uppercase italic hover:bg-red-600 transition-colors"
+              >
+                Save Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}      <h1 className="text-4xl font-black uppercase italic mb-10">Super Admin</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <div className="space-y-8">
