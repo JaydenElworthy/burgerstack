@@ -2,12 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* If you have an Adobe Fonts link, paste the @import here */
+
 :root {
-  --background: #FDFCF8;
+  --background: #E55937;
+  --text-main: #FFE974;
 }
 
 body {
-  background: var(--background);
-  user-select: none;
+  background-color: var(--background);
+  color: var(--text-main);
+  font-family: "gopher", sans-serif; /* Gopher font applied globally */
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700; /* Headers weighted at 700 */
+  color: var(--text-main);
+  text-transform: uppercase;
+}
+
+p {
+  color: white; /* Small paragraphs set to white */
+  font-weight: 400;
+}
+
+/* Custom button style for Picnic At Home */
+.btn-picnic {
+  background-color: #FFE974;
+  color: #E55937;
+  border: 4px solid black;
+  border-radius: 1rem;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: all 0.1s ease;
+}
+
+.btn-picnic:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px 0px rgba(0,0,0,1);
 }
