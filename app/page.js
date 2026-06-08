@@ -52,11 +52,11 @@ export default function Home() {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto min-h-screen flex flex-col bg-[#E55937] text-[#FFE974] font-gopher overflow-x-hidden">
+    <div className="p-6 max-w-md mx-auto min-h-screen flex flex-col bg-[#E55937] text-[#FFE974] font-Gopher-Bold.otf overflow-x-hidden">
       <header className="py-12 text-center relative px-4">
-  <h1 className="text-[12vw] sm:text-6xl uppercase leading-none tracking-tighter text-[#FFE974] font-bold">
+  <h2 className="text-[12vw] sm:text-6xl leading-none tracking-tighter text-[#FFE974] font-bold">
     Picnic At Home
-  </h1>
+  </h2>
   <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white opacity-80 mt-3">
     Daily Prizes & Perks
   </p>
