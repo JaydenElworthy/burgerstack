@@ -89,11 +89,11 @@ export default function BurgerGame() {
     <div className={`h-screen flex flex-col overflow-hidden select-none font-sans transition-colors duration-300 ${feedback === 'wrong' ? 'bg-red-500' : 'bg-[#FDFCF8]'}`}>
       
       {/* HUD */}
-      <div className="p-6 flex justify-between items-center bg-white border-b-8 border-black z-30 shadow-lg">
-        <Link href="/"><ArrowLeft size={32} className="text-black" /></Link>
-        <div className="flex gap-4 font-black uppercase italic tracking-tighter text-black">
-          <div className="bg-black text-white px-5 py-2 rounded-xl text-2xl tracking-tighter">{timeLeft}s</div>
-          <div className="bg-red-600 text-white px-5 py-2 rounded-xl text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black">
+      <div className="p-6 flex justify-between items-center bg-[#FFE974] border-b-8 border-black z-30 shadow-lg">
+        <Link href="/"><ArrowLeft size={32} className="text-[#E55937]" /></Link>
+        <div className="flex gap-4 font-black uppercase tracking-tighter">
+          <div className="bg-[#E55937] text-[#FFE974] px-5 py-2 rounded-xl text-2xl border-2 border-black">{timeLeft}s</div>
+          <div className="bg-white text-[#E55937] px-5 py-2 rounded-xl text-2xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             {score}
           </div>
         </div>
@@ -136,10 +136,10 @@ export default function BurgerGame() {
       </div>
 
       {/* CONTROLS */}
-      <div className="p-6 grid grid-cols-3 gap-4 bg-white border-t-8 border-black pb-12 z-30 shadow-2xl">
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">Patty</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">Cheese</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-[#F3A344] text-black border-[6px] border-black py-8 rounded-2xl font-black text-xl uppercase italic shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">Bun</button>
+      <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-30 shadow-2xl">
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Patty</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Cheese</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Bun</button>
       </div>
 
       {/* OVERLAYS (WIN / LOSS) */}
