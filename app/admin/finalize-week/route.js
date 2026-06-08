@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../../lib/supabase';
 
 export async function POST(request) {
   const { winnerId, winnerEmail } = await request.json();
