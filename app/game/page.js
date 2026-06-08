@@ -115,7 +115,7 @@ export default function BurgerGame() {
                 initial={{ x: -1200 }} animate={{ x: 0 }}
                 exit={{ x: 2500, transition: { duration: 0.4, ease: "expoIn" } }}
                 transition={{ x: { type: "tween", ease: "circOut", duration: 0.4 } }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[320px] z-10" 
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[320px] z-10" 
               >
                 {stack.map((item, i) => {
                   let elevation = 0;
@@ -144,7 +144,7 @@ export default function BurgerGame() {
 
       {/* CONTROLS */}
       <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-30 shadow-2xl">
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">PATTY</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">MEAT</button>
         <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">CHEESE</button>
         <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">BUN</button>
       </div>
@@ -186,7 +186,7 @@ export default function BurgerGame() {
               {gameState !== 'start' && (
                 <Link 
                   href="/"
-                  className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform"
+                  className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:scale-95"
                 >
                   <Home size={16} /> Exit to Menu
                 </Link>
