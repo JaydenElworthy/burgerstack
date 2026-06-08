@@ -101,7 +101,9 @@ export default function BurgerGame() {
 
       {/* STAGE */}
       <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden pb-[25%]">
-        <div className="absolute bottom-[25%] w-full h-12 bg-gray-200 border-t-8 border-black z-0 shadow-2xl" />
+        <div className="absolute bottom-[25%] w-full flex items-end justify-center z-0">
+          <img src="/images/counter.svg" alt="wooden counter" className="w-full h-auto max-w-4xl" />
+        </div>
         <AnimatePresence>
           {!isExiting && (
             <motion.div
@@ -137,9 +139,9 @@ export default function BurgerGame() {
 
       {/* CONTROLS */}
       <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-30 shadow-2xl">
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Patty</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Cheese</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Bun</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">Patty</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">Cheese</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">Bun</button>
       </div>
 
       {/* OVERLAYS (WIN / LOSS) */}
@@ -171,7 +173,7 @@ export default function BurgerGame() {
             <div className="space-y-4">
               <button 
                 onClick={() => { setGameState('playing'); setScore(0); setBurgerId(0); setTimeLeft(60); spawnBurger(); }}
-                className="w-full bg-[#FFE974] border-4 border-black text-black py-5 rounded-full font-black text-2xl uppercase italic shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-all"
+                className="w-full bg-[#FFE974] border-4 border-black text-black py-5 rounded-full font-black text-2xl uppercase italic shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform"
               >
                 {gameState === 'start' ? 'START SHIFT' : 'PLAY AGAIN'}
               </button>
@@ -179,7 +181,7 @@ export default function BurgerGame() {
               {gameState !== 'start' && (
                 <Link 
                   href="/"
-                  className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#D44A2A] transition-colors"
+                  className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:opacity-90 transition-opacity"
                 >
                   <Home size={16} /> Exit to Menu
                 </Link>
