@@ -52,70 +52,70 @@ export default function Home() {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto min-h-screen flex flex-col bg-[#FDFCF8] overflow-x-hidden text-black font-sans">
-      <header className="py-10 text-center relative">
-        <h2 className="text-[12vw] sm:text-6xl font-black italic uppercase tracking-tighter leading-[0.8] mb-2">
-          NEIGHBOURHOOD<br/><span className="text-red-600">CLUB</span>
-        </h2>
-        <p className="font-bold uppercase text-[10px] tracking-[0.2em] text-black/40 italic">
-          {user ? `Logged in as ${user.email.split('@')[0]}` : "The Daily Drop & Rewards"}
+    <div className="p-6 max-w-md mx-auto min-h-screen flex flex-col bg-[#E55937] text-[#FFE974] font-sans overflow-x-hidden">
+      <header className="py-12 text-center relative">
+        <h1 className="text-5xl font-bold uppercase leading-[0.85] tracking-tighter mb-2">
+          PICNIC AT<br/><span className="text-white text-6xl">HOME</span>
+        </h1>
+        <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/60 italic">
+          {user ? `Welcome back, ${user.email.split('@')[0]}` : "Your Daily Prizes & Perks"}
         </p>
       </header>
 
       {/* Points Card */}
-      <div className="bg-black text-[#E5FF44] p-6 rounded-[2.5rem] mb-6 shadow-2xl flex justify-between items-center border-4 border-black">
+      <div className="bg-[#FFE974] text-[#E55937] p-6 rounded-[2.5rem] mb-6 shadow-2xl flex justify-between items-center border-4 border-black">
         <div>
-          <p className="text-[10px] uppercase font-black opacity-60 tracking-widest">Personal Best</p>
-          <p className="text-5xl font-black italic tracking-tighter leading-none">
+          <p className="text-[10px] uppercase font-black opacity-60 tracking-widest text-[#E55937]">Best Effort</p>
+          <p className="text-6xl font-bold italic tracking-tighter leading-none">
             {profile ? profile.high_score : '0'}
           </p>
         </div>
-        <div className="bg-[#E5FF44] text-black p-4 rounded-full shadow-lg">
+        <div className="bg-[#E55937] text-[#FFE974] p-4 rounded-full shadow-lg border-2 border-black">
           <Star size={32} fill="currentColor" />
         </div>
       </div>
 
       {/* Grid */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <Link href="/game" className="bg-[#E5FF44] border-4 border-black p-6 rounded-[2rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
-          <Gamepad2 size={40} />
-          <span className="font-black uppercase text-xs text-black">Stack Game</span>
+        <Link href="/game" className="bg-[#FFE974] border-4 border-black p-6 rounded-[2.5rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all">
+          <Gamepad2 size={40} className="text-[#E55937]" />
+          <span className="font-bold uppercase text-xs text-[#E55937]">The Stacker</span>
         </Link>
-        <Link href="/scratch" className="bg-white border-4 border-black p-6 rounded-[2rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
-          <Ticket size={40} />
-          <span className="font-black uppercase text-xs text-black">Scratch</span>
+        <Link href="/scratch" className="bg-white border-4 border-black p-6 rounded-[2.5rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all">
+          <Ticket size={40} className="text-[#E55937]" />
+          <span className="font-bold uppercase text-xs text-[#E55937]">Daily Drop</span>
         </Link>
       </div>
 
       <div className="space-y-4 mb-10">
-        <Link href="/wallet" className="w-full bg-white border-4 border-black p-5 rounded-2xl flex justify-between items-center font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all">
-          <span className="flex items-center gap-3"><Wallet size={24}/> My Wallet</span>
+        <Link href="/wallet" className="w-full bg-[#FFE974] border-4 border-black p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
+          <span className="flex items-center gap-3"><Wallet size={24}/> My Basket</span>
           <span>→</span>
         </Link>
-        <Link href="/leaderboard" className="w-full bg-white border-4 border-black p-5 rounded-2xl flex justify-between items-center font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all">
-          <span className="flex items-center gap-3"><Trophy size={24}/> Leaderboard</span>
+        <Link href="/leaderboard" className="w-full bg-[#FFE974] border-4 border-black p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
+          <span className="flex items-center gap-3"><Trophy size={24}/> Leaders</span>
           <span>→</span>
         </Link>
       </div>
 
       <div className="mt-auto space-y-4">
-        <a href="#" className="w-full bg-black text-white p-6 rounded-2xl flex justify-center items-center gap-4 font-black uppercase italic text-2xl shadow-xl hover:bg-red-600 transition-colors">
-          <ShoppingBag size={28} /> Order Food
+        <a href="#" className="w-full bg-black text-[#FFE974] p-6 rounded-2xl flex justify-center items-center gap-4 font-bold uppercase italic text-2xl shadow-xl">
+          <ShoppingBag size={28} /> Order Online
         </a>
 
         {user ? (
-          <button onClick={handleSignOut} className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-30 hover:opacity-100 transition-opacity text-black">
+          <button onClick={handleSignOut} className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-40 text-white hover:opacity-100 transition-opacity">
             <LogOut size={14} /> Sign Out
           </button>
         ) : (
-          <Link href="/login" className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-60 hover:opacity-100 transition-opacity text-black">
+          <Link href="/login" className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-80 text-white underline underline-offset-4 hover:opacity-100 transition-opacity">
             <User size={14} /> Sign In to Save Progress
           </Link>
         )}
 
-        {/* ADMIN SHORTCUT (Visible only to you) */}
+        {/* ADMIN SHORTCUT (Visible only to admins) */}
         {profile?.is_admin && (
-          <Link href="/admin/super" className="w-full border-2 border-dashed border-black/20 p-2 text-center text-[8px] uppercase font-black opacity-20 hover:opacity-100 transition-opacity text-black">
+          <Link href="/admin/super" className="w-full border-2 border-dashed border-white/20 p-2 text-center text-[8px] uppercase font-black opacity-20 hover:opacity-100 transition-opacity text-white">
             Access Admin Panel
           </Link>
         )}
