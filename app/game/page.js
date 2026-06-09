@@ -98,10 +98,17 @@ export default function BurgerGame() {
         </div>
       </div>
 
-      {/* STAGE */}
+    {/* STAGE */}
       <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden">
-        <img src="/images/bbqbackground.jpeg" alt="" className="absolute inset-0 w-full h-full object-cover z-0" />
+        
+        {/* Background Image */}
+        <img 
+          src="/images/bbqbackground.jpg" 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        />
 
+        {/* Burger Stack */}
         <AnimatePresence>
           {!isExiting && (
             <motion.div
@@ -110,13 +117,15 @@ export default function BurgerGame() {
               animate={{ x: "-50%", opacity: 1 }}
               exit={{ x: "250%", transition: { duration: 0.4, ease: "expoIn" } }}
               transition={{ x: { type: "tween", ease: "circOut", duration: 0.5 } }}
-              className="absolute bottom-[20%] left-1/2 w-80 h-[350px] z-30 pointer-events-none"
+              /* Width reduced to w-64 for better mobile fit */
+              className="absolute bottom-[18%] left-1/2 w-64 h-[250px] z-30 pointer-events-none"
             >
               {stack.map((item, i) => {
+                // ADJUSTED ELEVATION FOR SMALLER SCALE
                 let elev = 0;
-                if (i === 1) elev = 42; 
-                if (i === 2) elev = 66;
-                if (i === 3) elev = 92;
+                if (i === 1) elev = 30; // Patty
+                if (i === 2) elev = 48; // Cheese
+                if (i === 3) elev = 68; // Top Bun
 
                 return (
                   <motion.div
@@ -128,7 +137,12 @@ export default function BurgerGame() {
                     className="absolute bottom-0 left-0 w-full flex justify-center"
                     style={{ zIndex: i }}
                   >
-                    <img src={`/images/${item.type}.svg`} alt="" className="w-72 h-auto block" />
+                    {/* Width reduced to w-48 to stop it looking massive */}
+                    <img 
+                      src={`/images/${item.type}.svg`} 
+                      alt="" 
+                      className="w-48 h-auto block" 
+                    />
                   </motion.div>
                 );
               })}
@@ -136,8 +150,8 @@ export default function BurgerGame() {
           )}
         </AnimatePresence>
 
-        {/* COUNTER */}
-        <div className="w-full z-10 relative pointer-events-none mb-[-10px]">
+        {/* Counter */}
+        <div className="w-full z-10 relative pointer-events-none mb-[-5px]">
           <img src="/images/counter.svg" alt="" className="w-full h-auto block" />
         </div>
       </div>
