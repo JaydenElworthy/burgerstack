@@ -83,7 +83,7 @@ export default function Home() {
         </Link>
         <Link href="/scratch" className="bg-white border-4 border-black p-6 rounded-[2.5rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all">
           <Ticket size={40} className="text-[#E55937]" />
-          <span className="font-bold uppercase text-xs text-[#E55937]">Scratch 2 Win</span>
+          <span className="font-bold uppercase text-xs text-[#E55937]">Scratch To Win</span>
         </Link>
       </div>
 
@@ -109,7 +109,7 @@ export default function Home() {
           </button>
         ) : (
           <Link href="/login" className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-80 text-white underline underline-offset-4 hover:opacity-100 transition-opacity">
-            <User size={14} /> Sign In to Save Progress
+            <User size={14} /> Sign In to Win Prizes
           </Link>
         )}
 
