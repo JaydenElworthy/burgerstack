@@ -100,7 +100,7 @@ export default function BurgerGame() {
 
       {/* STAGE */}
       <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden">
-        <img src="/images/bbqbackground.jpg" alt="" className="absolute inset-0 w-full h-full object-cover z-0" />
+        <img src="/images/bbqbackground.jpeg" alt="" className="absolute inset-0 w-full h-full object-cover z-0" />
 
         <AnimatePresence>
           {!isExiting && (
