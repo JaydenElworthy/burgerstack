@@ -16,7 +16,6 @@ export default function BurgerGame() {
   const [isProcessing, setIsProcessing] = useState(false); 
   const [baseCount, setBaseCount] = useState(0);
 
-  // --- TIMER LOGIC ---
   useEffect(() => {
     if (gameState === 'playing' && timeLeft > 0) {
       const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
@@ -28,7 +27,6 @@ export default function BurgerGame() {
     }
   }, [gameState, timeLeft, score]);
 
-  // --- DATABASE SAVING ---
   const saveHighScore = async (finalScore) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -40,42 +38,41 @@ export default function BurgerGame() {
     } catch (err) { console.error(err); }
   };
 
-  // --- SPAWNING ---
   const spawnBurger = () => {
     setIsExiting(false);
     setIsProcessing(false);
+    
     const startLevel = Math.floor(Math.random() * 4); 
     let initialStack = [];
     if (startLevel >= 1) initialStack.push({ type: 'bottom-bun', id: `b0-${Date.now()}` });
     if (startLevel >= 2) initialStack.push({ type: 'patty', id: `b1-${Date.now()}` });
     if (startLevel >= 3) initialStack.push({ type: 'cheese', id: `b2-${Date.now()}` });
+    
     setStack(initialStack);
     setBaseCount(initialStack.length); 
   };
 
-  // --- INPUT HANDLING ---
   const handleInput = (inputType) => {
     if (gameState !== 'playing' || isExiting || isProcessing) return;
     const len = stack.length;
-    let pieceToDrop = "";
+    let nextPiece = "";
 
-    if (len === 0 && inputType === 'bun') pieceToDrop = 'bottom-bun';
-    else if (len === 1 && inputType === 'patty') pieceToDrop = 'patty';
-    else if (len === 2 && inputType === 'cheese') pieceToDrop = 'cheese';
-    else if (len === 3 && inputType === 'bun') pieceToDrop = 'top-bun';
+    if (len === 0 && inputType === 'bun') nextPiece = 'bottom-bun';
+    else if (len === 1 && inputType === 'patty') nextPiece = 'patty';
+    else if (len === 2 && inputType === 'cheese') nextPiece = 'cheese';
+    else if (len === 3 && inputType === 'bun') nextPiece = 'top-bun';
 
-    if (pieceToDrop === "") {
+    if (nextPiece === "") {
       setGameState('lost');
       saveHighScore(score);
       return;
     }
 
     setIsProcessing(true);
-    setStack(prev => [...prev, { type: pieceToDrop, id: `d-${Date.now()}` }]);
+    setStack(prev => [...prev, { type: nextPiece, id: `d-${Date.now()}` }]);
 
-    if (pieceToDrop === 'top-bun') {
-      const nextScore = score + 1;
-      setScore(nextScore);
+    if (nextPiece === 'top-bun') {
+      setScore(s => s + 1);
       setTimeout(() => setIsExiting(true), 600);
       setTimeout(() => {
         setBurgerId(prev => prev + 1);
@@ -98,17 +95,11 @@ export default function BurgerGame() {
         </div>
       </div>
 
-    {/* STAGE */}
+      {/* STAGE AREA */}
       <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden">
-        
-        {/* Background Image */}
-        <img 
-          src="/images/bbqbackground.jpeg" 
-          alt="" 
-          className="absolute inset-0 w-full h-full object-cover z-0"
-        />
+        <img src="/images/bbqbackground.jpg" alt="" className="absolute inset-0 w-full h-full object-cover z-0" />
 
-        {/* Burger Stack */}
+        {/* BURGER STACK */}
         <AnimatePresence>
           {!isExiting && (
             <motion.div
@@ -117,32 +108,28 @@ export default function BurgerGame() {
               animate={{ x: "-50%", opacity: 1 }}
               exit={{ x: "250%", transition: { duration: 0.4, ease: "expoIn" } }}
               transition={{ x: { type: "tween", ease: "circOut", duration: 0.5 } }}
-              /* Width reduced to w-64 for better mobile fit */
-              className="absolute bottom-[18%] left-1/2 w-64 h-[250px] z-30 pointer-events-none"
+              // Lowered bottom to 5% to sit on the counter
+              className="absolute bottom-[5.5%] left-1/2 w-64 h-[300px] z-30 pointer-events-none"
             >
               {stack.map((item, i) => {
-                // ADJUSTED ELEVATION FOR SMALLER SCALE
                 let elev = 0;
-                if (i === 1) elev = 30; // Patty
-                if (i === 2) elev = 48; // Cheese
-                if (i === 3) elev = 68; // Top Bun
+                if (i === 1) elev = 28; 
+                if (i === 2) elev = 46;
+                if (i === 3) elev = 66;
 
                 return (
                   <motion.div
                     key={item.id}
                     layout
-                    initial={i < baseCount ? { x: 0 } : { y: -1000 }}
+                    // Logic: If the item was part of the spawn, it slides in. If not, it falls from top.
+                    initial={i < baseCount ? false : { y: -1000 }}
                     animate={{ y: -elev }}
                     transition={{ y: { type: "tween", ease: "circIn", duration: 0.25 } }}
                     className="absolute bottom-0 left-0 w-full flex justify-center"
                     style={{ zIndex: i }}
                   >
-                    {/* Width reduced to w-48 to stop it looking massive */}
-                    <img 
-                      src={`/images/${item.type}.svg`} 
-                      alt="" 
-                      className="w-48 h-auto block" 
-                    />
+                    {/* Smaller burger width: w-44 */}
+                    <img src={`/images/${item.type}.svg`} alt="" className="w-44 h-auto block" />
                   </motion.div>
                 );
               })}
@@ -150,17 +137,17 @@ export default function BurgerGame() {
           )}
         </AnimatePresence>
 
-        {/* Counter */}
-        <div className="w-full z-10 relative pointer-events-none mb-[-5px]">
-          <img src="/images/counter.svg" alt="" className="w-full h-auto block" />
+        {/* BIG COUNTER (Overflowing and anchored to the bottom border) */}
+        <div className="w-[140%] z-10 relative pointer-events-none mb-[-8px]">
+          <img src="/images/counter.svg" alt="" className="w-full h-auto block scale-110" />
         </div>
       </div>
 
-      {/* CONTROLS */}
+      {/* CONTROLS (Anchored to the bottom) */}
       <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-50 shadow-2xl">
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-lg uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">PATTY</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-lg uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">CHEESE</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-lg uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">BUN</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">PATTY</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">CHEESE</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">BUN</button>
       </div>
 
       {/* OVERLAYS */}
@@ -176,7 +163,7 @@ export default function BurgerGame() {
             ) : gameState === 'lost' ? (
               <div className="mb-8">
                 <AlertCircle size={80} className="text-[#E55937] mx-auto mb-4" />
-                <h2 className="text-6xl font-bold uppercase text-[#FFE974] tracking-tighter leading-none">GAME OVER</h2>
+                <h2 className="text-6xl font-bold uppercase text-[#FFE974] tracking-tighter">GAME OVER</h2>
                 <p className="text-lg font-bold uppercase text-white opacity-80 uppercase">Kitchen Exploded!</p>
               </div>
             ) : (
@@ -184,7 +171,7 @@ export default function BurgerGame() {
             )}
 
             <div className="mb-10">
-              <p className="text-white/60 font-bold uppercase text-xs mb-1 tracking-widest italic">Total Burgers</p>
+              <p className="text-white/60 font-bold uppercase text-xs mb-1 tracking-widest italic text-center w-full">Total Burgers</p>
               <p className="text-9xl font-bold text-[#FFE974] leading-none tracking-tighter">{score}</p>
             </div>
 
