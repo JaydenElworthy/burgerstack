@@ -14,10 +14,8 @@ export default function BurgerGame() {
   const [gameState, setGameState] = useState('start'); 
   const [isExiting, setIsExiting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false); 
-  const [feedback, setFeedback] = useState(null);
   const [baseCount, setBaseCount] = useState(0);
 
-  // --- TIMER LOGIC ---
   useEffect(() => {
     if (gameState === 'playing' && timeLeft > 0) {
       const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
@@ -29,7 +27,6 @@ export default function BurgerGame() {
     }
   }, [gameState, timeLeft, score]);
 
-  // --- DATABASE SAVING LOGIC ---
   const saveHighScore = async (finalScore) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -38,196 +35,153 @@ export default function BurgerGame() {
       if (finalScore > (profile?.high_score || 0)) {
         await supabase.from('profiles').update({ high_score: finalScore }).eq('id', user.id);
       }
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  // --- SPAWN LOGIC ---
   const spawnBurger = () => {
-    setFeedback(null);
     setIsExiting(false);
     setIsProcessing(false);
-    
     const startLevel = Math.floor(Math.random() * 4); 
     let initialStack = [];
-    if (startLevel >= 1) initialStack.push({ type: 'bottom-bun', id: `base-0-${Date.now()}` });
-    if (startLevel >= 2) initialStack.push({ type: 'patty', id: `base-1-${Date.now()}` });
-    if (startLevel >= 3) initialStack.push({ type: 'cheese', id: `base-2-${Date.now()}` });
-    
+    if (startLevel >= 1) initialStack.push({ type: 'bottom-bun', id: `b-${Date.now()}-0` });
+    if (startLevel >= 2) initialStack.push({ type: 'patty', id: `p-${Date.now()}-1` });
+    if (startLevel >= 3) initialStack.push({ type: 'cheese', id: `c-${Date.now()}-2` });
     setStack(initialStack);
     setBaseCount(initialStack.length); 
   };
 
-  // --- INPUT LOGIC (REWRITTEN TO FIX ERROR) ---
   const handleInput = (inputType) => {
     if (gameState !== 'playing' || isExiting || isProcessing) return;
+    const len = stack.length;
+    let nextPiece = "";
 
-    const currentHeight = stack.length;
-    let isCorrect = false;
-    let pieceToDrop = "";
+    if (len === 0 && inputType === 'bun') nextPiece = 'bottom-bun';
+    else if (len === 1 && inputType === 'patty') nextPiece = 'patty';
+    else if (len === 2 && inputType === 'cheese') nextPiece = 'cheese';
+    else if (len === 3 && inputType === 'bun') nextPiece = 'top-bun';
 
-    if (currentHeight === 0 && inputType === 'bun') { isCorrect = true; pieceToDrop = 'bottom-bun'; } 
-    else if (currentHeight === 1 && inputType === 'patty') { isCorrect = true; pieceToDrop = 'patty'; } 
-    else if (currentHeight === 2 && inputType === 'cheese') { isCorrect = true; pieceToDrop = 'cheese'; } 
-    else if (currentHeight === 3 && inputType === 'bun') { isCorrect = true; pieceToDrop = 'top-bun'; }
-    // Determine if input is correct
-    if (currentHeight === 0 && inputType === 'bun') pieceToDrop = 'bottom-bun';
-    else if (currentHeight === 1 && inputType === 'patty') pieceToDrop = 'patty';
-    else if (currentHeight === 2 && inputType === 'cheese') pieceToDrop = 'cheese';
-    else if (currentHeight === 3 && inputType === 'bun') pieceToDrop = 'top-bun';
-
-    if (pieceToDrop !== "") {
-      // CORRECT MOVE
-      setIsProcessing(true);
-      setStack(prev => [...prev, { type: pieceToDrop, id: `drop-${Date.now()}` }]);
-
-    if (isCorrect) {
-      setIsProcessing(true); 
-      const nextType = (inputType === 'patty') ? 'patty' : (inputType === 'cheese') ? 'cheese' : 'top-bun';
-      setStack(prev => [...prev, { type: nextType, id: `drop-${Date.now()}` }]);
-      if (nextType === 'top-bun') {
-      if (pieceToDrop === 'top-bun') {
-        const newScore = score + 1;
-        setScore(newScore);
-        setTimeout(() => setIsExiting(true), 600);
-        setTimeout(() => { setIsExiting(true); }, 600);
-        setTimeout(() => { setBurgerId(prev => prev + 1); spawnBurger(); }, 1100);
-      } else {
-        setTimeout(() => setIsProcessing(false), 250);
-        setTimeout(() => { setIsProcessing(false); }, 250);
-      }
-    } else {
-      // WRONG MOVE
-      setFeedback('wrong');
+    if (nextPiece === "") {
       setGameState('lost');
       saveHighScore(score);
-@@ -87,7 +94,7 @@
-  return (
-    <div className={`h-screen flex flex-col overflow-hidden select-none font-sans transition-colors duration-300 ${feedback === 'wrong' ? 'bg-red-500' : 'bg-[#E55937]'}`}>
+      return;
+    }
 
-      {/* HUD (Picnic Yellow) */}
-      {/* HUD */}
-      <div className="p-6 flex justify-between items-center bg-[#FFE974] border-b-8 border-black z-30 shadow-lg">
-        <Link href="/"><ArrowLeft size={32} className="text-[#E55937]" /></Link>
-        <div className="flex gap-4 font-bold uppercase tracking-tighter">
-@@ -98,10 +105,8 @@
-        </div>
-      </div>
+    setIsProcessing(true);
+    setStack(prev => [...prev, { type: nextPiece, id: `d-${Date.now()}` }]);
 
-      {/* STAGE (BBQ Background) */}
-      {/* STAGE */}
-      <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden bg-[url('/images/bbqbackground.jpg')] bg-cover bg-center">
-        
-        {/* Burger Stacking Logic */}
-        <AnimatePresence>
-          {!isExiting && (
-            <motion.div
-@@ -135,23 +140,23 @@
-          )}
-        </AnimatePresence>
-
-        {/* The Wooden Counter Image */}
-        {/* Counter */}
-        <div className="w-full z-20 relative pointer-events-none">
-            <img src="/images/counter.svg" alt="counter" className="w-full h-auto block translate-y-2" />
-        </div>
-      </div>
-
-      {/* CONTROLS (Picnic Yellow) */}
-      {/* CONTROLS */}
-      <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-30 shadow-2xl">
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-lg uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none">PATTY</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-lg uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none">CHEESE</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-lg uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none">BUN</button>
-      </div>
-
-      {/* OVERLAYS (WIN / LOSS) */}
-      {/* OVERLAYS */}
-      {gameState !== 'playing' && (
-        <div className="absolute inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-10 text-center">
-          <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="w-full max-w-sm">
-          <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="w-full max-w-sm font-sans">
-
-            {gameState === 'won' ? (
-              <>
-@@ -177,9 +182,9 @@
-            <div className="space-y-4">
-              <button 
-                onClick={() => { setGameState('playing'); setScore(0); setBurgerId(0); setTimeLeft(60); spawnBurger(); }}
-                className="w-full bg-[#FFE974] border-4 border-black text-black py-5 rounded-full font-bold text-2xl uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
-                className="w-full bg-[#FFE974] border-4 border-black text-black py-5 rounded-full font-bold text-2xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
-              >
-                {gameState === 'start' ? 'START GAME' : 'TRY AGAIN'}
-                {gameState === 'start' ? 'START GAME' : 'PLAY AGAIN'}
-              </button>
-
-              {gameState !== 'start' && (
-@@ -196,149 +201,4 @@
-      )}
-    </div>
-  );
-}      setStack(prev => [...prev, { type: pieceToDrop, id: `drop-${Date.now()}` }]);
-      if (pieceToDrop === 'top-bun') {
-        const newScore = score + 1;
-        setScore(newScore);
-        setTimeout(() => { setIsExiting(true); }, 600);
-        setTimeout(() => { setBurgerId(prev => prev + 1); spawnBurger(); }, 1100);
-      } else {
-        setTimeout(() => { setIsProcessing(false); }, 250);
-      }
+    if (nextPiece === 'top-bun') {
+      setScore(s => s + 1);
+      setTimeout(() => setIsExiting(true), 600);
+      setTimeout(() => {
+        setBurgerId(prev => prev + 1);
+        spawnBurger();
+      }, 1100);
     } else {
-      // FAILURE CONDITION: Wrong move
-      setFeedback('wrong');
-      setGameState('lost');
-      saveHighScore(score);
+      setTimeout(() => setIsProcessing(false), 250);
     }
   };
 
   return (
-    <div className={`h-screen flex flex-col overflow-hidden select-none font-sans transition-colors duration-300 ${feedback === 'wrong' ? 'bg-red-500' : 'bg-[#FDFCF8]'}`}>
-
-      {/* very back background image */}
-      <div className="absolute inset-0 -z-20 bg-[url('/images/bbqbackground.jpg')] bg-cover bg-center" />
-
-      {/* HUD */}
-      <div className="p-6 flex justify-between items-center bg-[#FFE974] border-b-8 border-black z-30 shadow-lg">
+    <div className="h-screen w-full flex flex-col overflow-hidden select-none font-sans bg-[#E55937] relative">
+      
+      <div className="p-6 flex justify-between items-center bg-[#FFE974] border-b-8 border-black z-50 shadow-lg">
         <Link href="/"><ArrowLeft size={32} className="text-[#E55937]" /></Link>
-        <div className="flex gap-4 font-black uppercase tracking-tighter">
-          <div className="bg-[#E55937] text-[#FFE974] px-5 py-2 rounded-xl text-2xl border-2 border-black">{timeLeft}s</div>
-          <div className="bg-white text-[#E55937] px-5 py-2 rounded-xl text-2xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            {score}
-          </div>
+        <div className="flex gap-4 font-bold uppercase">
+          <div className="bg-[#E55937] text-[#FFE974] px-5 py-2 rounded-xl text-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] tracking-tighter">{timeLeft}s</div>
+          <div className="bg-white text-[#E55937] px-5 py-2 rounded-xl text-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] tracking-tighter">{score}</div>
         </div>
       </div>
 
-      {/* STAGE */}
-      <div className="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
+      <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden">
+        <img src="/images/bbqbackground.jpg" alt="" className="absolute inset-0 w-full h-full object-cover z-0" />
+
         <AnimatePresence>
           {!isExiting && (
             <motion.div
               key={`burger-${burgerId}`}
-              initial={{ x: -1200 }} animate={{ x: 0 }}
-              exit={{ x: 2500, transition: { duration: 0.4, ease: "expoIn" } }}
-              transition={{ x: { type: "tween", ease: "circOut", duration: 0.4 } }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[320px] z-10" 
+              initial={{ x: "-150%", opacity: 1 }}
+              animate={{ x: "-50%", opacity: 1 }}
+              exit={{ x: "250%", transition: { duration: 0.4, ease: "expoIn" } }}
+              transition={{ x: { type: "tween", ease: "circOut", duration: 0.5 } }}
+              className="absolute bottom-[18%] left-1/2 w-80 h-[350px] z-30 pointer-events-none"
             >
               {stack.map((item, i) => {
-                let elevation = 0;
-                if (i === 1) elevation = 38; 
-                if (i === 2) elevation = 62;
-                if (i === 3) elevation = 84;
+                let elev = 0;
+                if (i === 1) elev = 42; 
+                if (i === 2) elev = 66;
+                if (i === 3) elev = 92;
+
                 return (
                   <motion.div
                     key={item.id}
                     layout
-                    initial={i < baseCount ? { x: "-50%" } : { y: -1000, x: "-50%" }}
-                    animate={{ y: -elevation, x: "-50%" }}
+                    initial={i < baseCount ? { x: 0 } : { y: -1000 }}
+                    animate={{ y: -elev }}
                     transition={{ y: { type: "tween", ease: "circIn", duration: 0.25 } }}
+                    className="absolute bottom-0 left-0 w-full flex justify-center"
                     style={{ zIndex: i }}
-                    className="absolute bottom-1/2 left-1/2"
                   >
-                    <img src={`/images/${item.type}.svg`} alt={item.type} className="w-80 h-auto block max-w-none" />
+                    <img src={`/images/${item.type}.svg`} alt="" className="w-72 h-auto block" />
                   </motion.div>
                 );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="w-full z-10 relative pointer-events-none mb-[-10px]">
+          <img src="/images/counter.svg" alt="" className="w-full h-auto block" />
+        </div>
+      </div>
+
+      <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-50 shadow-2xl">
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">PATTY</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">CHEESE</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">BUN</button>
+      </div>
+
+      {gameState !== 'playing' && (
+        <div className="absolute inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center p-10 text-center">
+          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-sm">
+            {gameState === 'won' ? (
+              <div className="mb-8">
+                <Trophy size={80} className="text-[#FFE974] mx-auto mb-4" />
+                <h1 className="text-6xl font-bold uppercase text-[#FFE974] tracking-tighter">YOU WIN!</h1>
+                <p className="text-lg font-bold uppercase text-white">Picnic Ready!</p>
+              </div>
+            ) : gameState === 'lost' ? (
+              <div className="mb-8">
+                <AlertCircle size={80} className="text-[#E55937] mx-auto mb-4" />
+                <h1 className="text-6xl font-bold uppercase text-[#FFE974] tracking-tighter leading-none">GAME OVER</h1>
+                <p className="text-lg font-bold uppercase text-white opacity-80">Kitchen Exploded!</p>
+              </div>
+            ) : (
+              <h1 className="text-7xl font-bold uppercase text-[#FFE974] tracking-tighter mb-10 leading-[0.85]">PICNIC<br/>STACKER</h1>
+            )}
+
+            <div className="mb-10">
+              <p className="text-white/60 font-bold uppercase text-xs mb-1 tracking-widest">Total Burgers</p>
+              <p className="text-9xl font-bold text-[#FFE974] leading-none tracking-tighter">{score}</p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <button onClick={() => { setGameState('playing'); setScore(0); setBurgerId(0); setTimeLeft(60); spawnBurger(); }} className="w-full bg-[#FFE974] border-4 border-black text-black py-5 rounded-full font-bold text-2xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">
+                {gameState === 'start' ? 'START SHIFT' : 'TRY AGAIN'}
+              </button>
+              {gameState !== 'start' && (
+                <Link href="/" className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <Home size={16} /> Exit to Menu
+                </Link>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </div>
+  );
+}                );
               })}
             </motion.div>
           )}
