@@ -251,7 +251,7 @@ export default function BurgerGame() {
                 </Link>
               )}
             </div>
-          </motion.div>
+          </motion>
         </div>
       )}
     </div>
