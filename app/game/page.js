@@ -16,6 +16,23 @@ export default function BurgerGame() {
   const [isProcessing, setIsProcessing] = useState(false); 
   const [baseCount, setBaseCount] = useState(0);
 
+    // 1. Define the save function first so useEffect can use it safely
+  const saveHighScore = async (finalScore) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data: profile } = await supabase.from('profiles').select('high_score').eq('id', user.id).single();
+      
+      if (finalScore > (profile?.high_score || 0)) {
+        await supabase.from('profiles').update({ high_score: finalScore }).eq('id', user.id);
+      }
+    } catch (err) { 
+      console.error(err); 
+    }
+  };
+
+  // 2. Put the useEffect next, closing properly before the JSX return
   useEffect(() => {
     if (gameState === 'playing' && timeLeft > 0) {
       const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
@@ -27,16 +44,14 @@ export default function BurgerGame() {
     }
   }, [gameState, timeLeft, score]);
 
-  const saveHighScore = async (finalScore) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: profile } = await supabase.from('profiles').select('high_score').eq('id', user.id).single();
-      if (finalScore > (profile?.high_score || 0)) {
-        await supabase.from('profiles').update({ high_score: finalScore }).eq('id', user.id);
-      }
-    } catch (err) { console.error(err); }
-  };
+  // 3. Your return statement and final closing component bracket go here
+  return (
+    <div>
+      {/* Your JSX game UI elements go here */}
+    </div>
+  );
+} // This closing bracket ends your Game component function
+
 
   const spawnBurger = () => {
     setIsExiting(false);
@@ -193,7 +208,7 @@ export default function BurgerGame() {
       )}
     </div>
   );
-}  [gameState, timeLeft, score]);}, 
+}  }, [gameState, timeLeft, score]);
 
   const saveHighScore = async (finalScore) => {
     try {
