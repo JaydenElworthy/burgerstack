@@ -186,7 +186,7 @@ export default function BurgerGame() {
             </div>
           </motion.div>
         </div>
-      )}
+      
     </div>
   );
 }      setTimeout(() => {
