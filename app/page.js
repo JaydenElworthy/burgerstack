@@ -65,7 +65,7 @@ export default function Home() {
       {/* Points Card */}
       <div className="bg-[#FFE974] text-[#E55937] p-6 rounded-[2.5rem] mb-6 shadow-2xl flex justify-between items-center border-4 border-black">
         <div>
-          <p className="text-[10px] uppercase font-black opacity-60 tracking-widest text-[#E55937]">Best Effort</p>
+          <p className="text-[10px] uppercase font-black opacity-60 tracking-widest text-[#E55937]">High Score</p>
           <p className="text-6xl font-bold italic tracking-tighter leading-none">
             {profile ? profile.high_score : '0'}
           </p>
@@ -79,21 +79,21 @@ export default function Home() {
       <div className="grid grid-cols-2 gap-4 mb-6">
         <Link href="/game" className="bg-[#FFE974] border-4 border-black p-6 rounded-[2.5rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all">
           <Gamepad2 size={40} className="text-[#E55937]" />
-          <span className="font-bold uppercase text-xs text-[#E55937]">The Stacker</span>
+          <span className="font-bold uppercase text-xs text-[#E55937]">Play To Win</span>
         </Link>
         <Link href="/scratch" className="bg-white border-4 border-black p-6 rounded-[2.5rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all">
           <Ticket size={40} className="text-[#E55937]" />
-          <span className="font-bold uppercase text-xs text-[#E55937]">Daily Drop</span>
+          <span className="font-bold uppercase text-xs text-[#E55937]">Scratch 2 Win</span>
         </Link>
       </div>
 
       <div className="space-y-4 mb-10">
         <Link href="/wallet" className="w-full bg-[#FFE974] border-4 border-black p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
-          <span className="flex items-center gap-3"><Wallet size={24}/> My Basket</span>
+          <span className="flex items-center gap-3"><Wallet size={24}/> My Wallet</span>
           <span>→</span>
         </Link>
         <Link href="/leaderboard" className="w-full bg-[#FFE974] border-4 border-black p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
-          <span className="flex items-center gap-3"><Trophy size={24}/> Leaders</span>
+          <span className="flex items-center gap-3"><Trophy size={24}/> Leaderboard</span>
           <span>→</span>
         </Link>
       </div>
