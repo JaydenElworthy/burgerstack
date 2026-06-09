@@ -193,7 +193,7 @@ export default function BurgerGame() {
       )}
     </div>
   );
-}  }, [gameState, timeLeft, score]);
+}  [gameState, timeLeft, score]);}, 
 
   const saveHighScore = async (finalScore) => {
     try {
