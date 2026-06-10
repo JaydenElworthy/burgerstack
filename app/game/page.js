@@ -195,7 +195,7 @@ export default function BurgerGame() {
             <h3 className="text-s font-white w-full text-center text-xs font-medium uppercase text-white opacity-80 tracking-wider mb-4 leading-relaxed block px-2">
   Add your Bun &rarr; Add your Patty &rarr; Add your Cheese &rarr; Add your Bun </h3>
 
-<br><h4 className="text-xl font-white uppercase text-[#FFE974] mt-6 mb-1'> 35 Points To Win A Scratchcard!  <br> Only 1 Extra Scratchcard to be won a week </h4>
+
             {gameState !== 'start' && (
               <Link href="/" className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#ff6e4a] transition-colors">
                 <Home size={16} /> Exit to Menu
