@@ -191,7 +191,7 @@ export default function BurgerGame() {
             </button>
             
             <h2 className="text-xl font-black uppercase text-[#FFE974] mt-6 mb-2">How To Play</h2>
-            <h3 className="text-xs font-medium uppercase text-white opacity-80 tracking-wider mb-4 leading-relaxed whitespace-nowrap">
+            <h3 className="text-xs font-medium uppercase text-white opacity-80 tracking-wider mb-4 leading-relaxed whitespace-nowrap text-center">
   Add your Bun &rarr; Add your Patty &rarr; Add your Cheese &rarr; Add your Bun
 </h3>
             {gameState !== 'start' && (
