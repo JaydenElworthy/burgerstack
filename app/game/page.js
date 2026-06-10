@@ -177,6 +177,8 @@ export default function BurgerGame() {
               <button onClick={() => { setGameState('playing'); setScore(0); setBurgerId(0); setTimeLeft(60); spawnBurger(); }} className="w-full bg-[#FFE974] border-4 border-black text-black py-5 rounded-full font-bold text-2xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">
                 {gameState === 'start' ? 'START SHIFT' : 'TRY AGAIN'}
               </button>
+              <h3> How To Play <h3/>
+              <h2> Add your Bun > Add your Patty > add your Cheese > Add your Bun <h2/>
               {gameState !== 'start' && (
                 <Link href="/" className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                   <Home size={16} /> Exit to Menu
