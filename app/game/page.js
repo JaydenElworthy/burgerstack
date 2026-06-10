@@ -193,7 +193,7 @@ export default function BurgerGame() {
             <h2 className="text-xl font-black uppercase text-[#FFE974] mt-6 mb-2">How To Play</h2>
                 
             <h3 className="text-s font-white w-full text-center text-xs font-medium uppercase text-white opacity-80 tracking-wider mb-4 leading-relaxed block px-2">
-  Add your Bun &rarr; Add your Patty &rarr; Add your Cheese &rarr; Add your Bun
+  Add your Bun &rarr; Add your Patty &rarr; Add your Cheese &rarr; Add your Bun </h3>
 
 <br><h4 className="text-xl font-white uppercase text-[#FFE974] mt-6 mb-1'> 35 Points To Win A Scratchcard!  <br> Only 1 Extra Scratchcard to be won a week </h4>
             {gameState !== 'start' && (
