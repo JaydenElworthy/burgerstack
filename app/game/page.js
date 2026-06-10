@@ -192,8 +192,9 @@ export default function BurgerGame() {
             
             <h2 className="text-xl font-black uppercase text-[#FFE974] mt-6 mb-2">How To Play</h2>
                 
-            <h3 className="w-full text-center mx-auto text-xs font-medium uppercase text-white opacity-80 tracking-wider mb-4 leading-relaxed sm:whitespace-nowrap whitespace-normal px-4">
-  Add your Bun &rarr; Add your Patty &rarr; Add your Cheese &rarr; Add your Bun</h3>
+            <h3 className="w-full text-center text-xs font-medium uppercase text-white opacity-80 tracking-wider mb-4 leading-relaxed block px-2">
+  Add your Bun &rarr; Add your Patty &rarr; Add your Cheese &rarr; Add your Bun
+</h3>
 
             {gameState !== 'start' && (
               <Link href="/" className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#ff6e4a] transition-colors">
