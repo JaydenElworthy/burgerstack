@@ -58,14 +58,14 @@ export default function Home() {
     Picnic At Home
   </h2>
   <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white opacity-80 mt-3">
-    Weekly Prizes & Perks
+    Scratch To Win Weekly Prizes <br> Play & Score 25 Points To Win A Second Scratch Card
   </p>
 </header>
 
       {/* Points Card */}
       <div className="bg-[#FFE974] text-[#E55937] p-6 rounded-[2.5rem] mb-6 shadow-2xl flex justify-between items-center border-4 border-black">
         <div>
-          <p className="text-[10px] uppercase font-black opacity-60 tracking-widest text-[#E55937]">High Score</p>
+          <p className="text-[10px] uppercase font-black opacity-60 tracking-widest text-[#E55937]"> All Time High Score</p>
           <p className="text-6xl font-bold italic tracking-tighter leading-none">
             {profile ? profile.high_score : '0'}
           </p>
@@ -79,17 +79,17 @@ export default function Home() {
       <div className="grid grid-cols-2 gap-4 mb-6">
         <Link href="/game" className="bg-[#FFE974] border-4 border-black p-6 rounded-[2.5rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all">
           <Gamepad2 size={40} className="text-[#E55937]" />
-          <span className="font-bold uppercase text-xs text-[#E55937]">Play To Win</span>
+          <span className="font-bold uppercase text-xs text-[#E55937]"> Play To Win</span>
         </Link>
         <Link href="/scratch" className="bg-white border-4 border-black p-6 rounded-[2.5rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all">
           <Ticket size={40} className="text-[#E55937]" />
-          <span className="font-bold uppercase text-xs text-[#E55937]">Scratch To Win</span>
+          <span className="font-bold uppercase text-xs text-[#E55937]"> Scratch To Win</span>
         </Link>
       </div>
 
       <div className="space-y-4 mb-10">
         <Link href="/wallet" className="w-full bg-[#FFE974] border-4 border-black p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
-          <span className="flex items-center gap-3"><Wallet size={24}/> My Wallet</span>
+          <span className="flex items-center gap-3"><Wallet size={24}/> Wallet</span>
           <span>→</span>
         </Link>
         <Link href="/leaderboard" className="w-full bg-[#FFE974] border-4 border-black p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
@@ -99,7 +99,7 @@ export default function Home() {
       </div>
 
       <div className="mt-auto space-y-4">
-        <a href="#" className="w-full bg-black text-[#FFE974] p-6 rounded-2xl flex justify-center items-center gap-4 font-bold uppercase italic text-2xl shadow-xl">
+        <a href="https://picnicathome.com" className="w-full bg-black text-[#FFE974] p-6 rounded-2xl flex justify-center items-center gap-4 font-bold uppercase italic text-2xl shadow-xl">
           <ShoppingBag size={28} /> Order Online
         </a>
 
@@ -109,7 +109,7 @@ export default function Home() {
           </button>
         ) : (
           <Link href="/login" className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-80 text-white underline underline-offset-4 hover:opacity-100 transition-opacity">
-            <User size={14} /> Sign In to Win Prizes
+            <User size={14} /> Sign In To Save Your Wallet
           </Link>
         )}
 
