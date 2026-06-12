@@ -118,7 +118,7 @@ export default function BurgerGame() {
                 animate={{ x: "-50%", opacity: 1 }}
                 exit={{ x: "250%", transition: { duration: 0.4, ease: "expoIn" } }}
                 transition={{ x: { type: "tween", ease: "circOut", duration: 0.5 } }}
-                className="absolute bottom-[80px] md:bottom-[100px] left-1/2 w-64 md:w-80 h-[300px] z-30 pointer-events-none"
+                className="absolute bottom-[40px] md:bottom-[60px] left-1/2 w-64 md:w-80 h-[300px] z-30 pointer-events-none"
               >
                 {stack.map((item, i) => {
                   let elev = 0;
@@ -144,9 +144,7 @@ export default function BurgerGame() {
             )}
           </AnimatePresence>
 
-          <div className="w-[140%] md:w-full z-10 relative pointer-events-none mb-[-5px]">
-            <img src="/images/counter.svg" alt="" className="w-full h-auto block scale-110 md:scale-100 mx-auto" />
-          </div>
+          {/* counter.svg removed. Stage layout adjusted so burger rests properly without it. */}
         </div>
       </div>
 
@@ -154,8 +152,12 @@ export default function BurgerGame() {
       <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-50 shadow-2xl">
         <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">PATTY</button>
         <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">CHEESE</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-bold text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">BUN</button>
-      </div>
+<button
+  style={{ fontWeight: 900 }}
+  className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+>
+  BUN
+</button>      </div>
 
       {/* OVERLAYS */}
       {gameState !== 'playing' && (
@@ -177,8 +179,8 @@ export default function BurgerGame() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-2">
-                  <h1 className="text-5xl font-black tracking-widest text-[#FFE974] mb-2">BURGER DASH</h1>
-                  <p className="text-sm max-w-xs opacity-70">Assemble burgers perfectly in sequential order before your shift timer runs dry!</p>
+                  <h1 className="text-5xl font-black tracking-widest text-[#FFE974] mb-2">BURGER SLINGER</h1>
+                  <p className="text-sm max-w-xs opacity-70">STACK 25 BURGERS IN THE CORRECT ORDER TO WIN A BONUS SCRATCH CARD</p>
                 </div>
               )}
             </div>
@@ -190,10 +192,10 @@ export default function BurgerGame() {
               {gameState === 'start' ? 'START SHIFT' : 'TRY AGAIN'}
             </button>
             
-            <h2 className="text-xl font-black uppercase text-[#FFE974] mt-6 mb-2">How To Play</h2>
+            <h2 className="text-xl font-black uppercase text-[#FFE974] mt-6 mb-2">STACK IN ORDER</h2>
                 
             <h3 className="text-s font-white w-full text-center text-xs font-medium uppercase text-white opacity-80 tracking-wider mb-4 leading-relaxed block px-2">
-  Add your Bun &rarr; Add your Patty &rarr; Add your Cheese &rarr; Add your Bun </h3>
+Bun &rarr; Patty &rarr; Cheese &rarr; Bun </h3>
 
 
             {gameState !== 'start' && (
