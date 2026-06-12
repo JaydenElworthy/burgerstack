@@ -157,7 +157,11 @@ export default function BurgerGame() {
 >
   CHEESE
 </button>       
-    <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-white text-[#E55937] border-4 border-black py-8 rounded-2xl font-gopher text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">BUN</button>
+    <button 
+  onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} 
+  className="bg-[#E55937] text-white border-4 border-black py-8 rounded-2xl font-gopher font-black text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1"> 
+    BUN
+    </button>
         </div> 
 
       {/* OVERLAYS */}
