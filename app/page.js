@@ -58,7 +58,7 @@ export default function Home() {
     Picnic At Home
   </h2>
   <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white opacity-80 mt-3">
-    Scratch To Win Weekly Prizes <br> Play & Score 25 Points To Win A Second Scratch Card
+    Scratch To Win Weekly Prizes <br /> Play & Score 25 Points To Win A Second Scratch Card
   </p>
 </header>
 
