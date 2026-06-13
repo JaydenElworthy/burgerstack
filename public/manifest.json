@@ -1,0 +1,21 @@
+{
+  "name": "Picnic At Home",
+  "short_name": "Picnic",
+  "description": "Daily food drops and burger stacking fun.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E55937",
+  "theme_color": "#E55937",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
