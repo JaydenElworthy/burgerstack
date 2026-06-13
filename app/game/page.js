@@ -18,17 +18,22 @@ export default function BurgerGame() {
 
   // 1. Database operations
   const saveHighScore = async (finalScore) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: profile } = await supabase.from('profiles').select('high_score').eq('id', user.id).single();
-      if (finalScore > (profile?.high_score || 0)) {
-        await supabase.from('profiles').update({ high_score: finalScore }).eq('id', user.id);
-      }
-    } catch (err) { 
-      console.error(err); 
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // --- NEW: UNLOCK SCRATCH CARD ---
+    if (finalScore >= 25) {
+      await supabase.from('profiles').update({ bonus_unlocked: true }).eq('id', user.id);
     }
-  };
+    // --------------------------------
+
+    const { data: profile } = await supabase.from('profiles').select('high_score').eq('id', user.id).single();
+    if (finalScore > (profile?.high_score || 0)) {
+      await supabase.from('profiles').update({ high_score: finalScore }).eq('id', user.id);
+    }
+  } catch (err) { console.error(err); }
+};
 
   // 2. Game initialization
   const spawnBurger = () => {
