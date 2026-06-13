@@ -99,10 +99,14 @@ export default function Home() {
         </Link>
       </div>
 
-      <div className="mt-auto space-y-4">
-        <a href="https://picnicathome.com" className="w-full bg-black text-[#FFE974] p-6 rounded-2xl flex justify-center items-center gap-4 font-bold uppercase italic text-2xl shadow-xl">
-          <ShoppingBag size={28} /> Order Online
-        </a>
+      {/* Dynamic Order Button */}
+<a 
+  href="https://picnicathome.com/shop" 
+  className="w-full bg-black text-[#FFE974] p-6 rounded-3xl flex justify-center items-center gap-4 font-bold uppercase italic text-2xl shadow-xl hover:bg-white hover:text-black transition-all border-4 border-black"
+>
+  <ShoppingBag size={28} /> 
+  {profile?.total_winnings > 0 ? "Claim My Burger" : "Order Online"}
+</a>
 
         {user ? (
           <button onClick={handleSignOut} className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-40 text-white hover:opacity-100 transition-opacity">
