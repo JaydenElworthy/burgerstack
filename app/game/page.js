@@ -106,7 +106,7 @@ export default function BurgerGame() {
     {/* Inline logo (won't increase header height) */}
     <span
       aria-hidden
-      className="text-#E55937 text-lg md:text-2xl tracking-tight whitespace-nowrap select-none"
+      className="text-[#E55937] text-lg md:text-2xl tracking-tight whitespace-nowrap select-none"
       style={{ fontFamily: "'Gopher', system-ui, -apple-system, 'Segoe UI', Roboto", fontWeight: 700 }}
     >
       Picnic At Home
