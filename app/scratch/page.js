@@ -35,7 +35,7 @@ export default function ScratchCard() {
       ctx.font = 'bold 18px sans-serif';
       ctx.fillStyle = '#444';
       for(let i=0; i<6; i++) {
-          ctx.fillText('PICNIC • PICNIC • PICNIC', -20, 40 + (i*60));
+          ctx.fillText('PICNIC • PICNIC • PICNIC', 20, 40 + (i*60));
       }
       setIsInitialized(true);
     }
@@ -108,9 +108,9 @@ export default function ScratchCard() {
         {/* Under Layer (Prize) */}
         <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none">
             <Ticket size={64} className="mb-4 text-[#E55937]" />
-            <p className="text-[10px] font-black uppercase opacity-60 tracking-widest text-[#E55937]">Prize Unlocked</p>
-            <h3 className="text-3xl font-bold uppercase leading-tight mb-4 text-[#E55937]">Check the Leaders page</h3>
-            <p className="text-white bg-[#E55937] px-4 py-1 rounded-full text-[10px] font-bold uppercase">Come back tomorrow</p>
+            <p className="text-[10px] font-black uppercase opacity-60 tracking-widest text-[#E55937]">Picnic At Home</p>
+            <h3 className="text-3xl font-bold uppercase leading-tight mb-4 text-[#E55937]">Play Burger Slinger To Win Another Scratch Card</h3>
+            <p className="text-white bg-[#E55937] px-4 py-1 rounded-full text-[10px] font-bold uppercase">Refreshes Every Sunday</p>
         </div>
 
         {/* Scratch Layer */}
@@ -129,8 +129,8 @@ export default function ScratchCard() {
               animate={{ y: 0, opacity: 1 }} 
               className="mt-10 text-center w-full px-4"
             >
-                <Link href="/" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-2xl shadow-xl hover:bg-[#E55937] transition-colors">
-                    Keep Playing
+                <Link href="https://burgerstack-five.vercel.app/game" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-2xl shadow-xl hover:bg-[#E55937] transition-colors">
+                    Win Another Scratch Card
                 </Link>
             </motion.div>
         )}
