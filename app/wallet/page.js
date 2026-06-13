@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 import { Ticket, ArrowLeft, Clock, Info } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion';
+
 
 export default function Wallet() {
   const [rewards, setRewards] = useState([])
