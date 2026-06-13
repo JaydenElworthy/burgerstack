@@ -99,7 +99,6 @@ export default function ScratchCard() {
 
       {/* Hero Text */}
       <div className="text-center mb-8 px-4">
-        <p className="font-bold uppercase text-[10px] tracking-widest text-white mb-1 leading-none">PLAY BURGER SLINGER TO WIN ANOTHER SCRATCH CARD</p>
         <h2 className="text-[12vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">Scratch<br/>to Win</h2>
       </div>
 
@@ -142,7 +141,7 @@ export default function ScratchCard() {
         <div className="mt-12 p-5 bg-[#FFE974] border-4 border-black rounded-3xl flex gap-4 items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mx-4">
             <Trophy size={28} className="shrink-0 text-[#E55937]" />
             <p className="text-[10px] font-bold uppercase tracking-tight leading-tight text-left text-[#E55937]">
-                Scratch the card to reveal your daily prize!
+                PLAY BURGER SLINGER TO WIN ANOTHER SCRATCH CARD
             </p>
         </div>
       )}
