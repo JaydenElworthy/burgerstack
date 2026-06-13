@@ -95,13 +95,25 @@ export default function BurgerGame() {
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden select-none font-sans bg-[#E55937] relative text-[#FFE974]">
       
-     {/* HUD */}
-<div className="p-6 flex justify-between items-center bg-[#FFE974] border-b-8 border-black z-50 shadow-lg font-bold relative">
-  {/* main left flow: keep the arrow (still clickable) */}
-  <Link href="/" className="z-20">
-    <ArrowLeft size={32} className="text-[#E55937]" />
-  </Link>
+ {/* HUD */}
+<div className="p-6 flex items-center justify-between bg-[#FFE974] border-b-8 border-black z-50 shadow-lg font-bold">
+  {/* left group: arrow + inline logo */}
+  <div className="flex items-center gap-3">
+    <Link href="/" className="z-20">
+      <ArrowLeft size={32} className="text-[#E55937]" />
+    </Link>
 
+    {/* Inline logo (won't increase header height) */}
+    <span
+      aria-hidden
+      className="text-white text-lg md:text-2xl tracking-tight whitespace-nowrap select-none"
+      style={{ fontFamily: "'Gopher', system-ui, -apple-system, 'Segoe UI', Roboto", fontWeight: 700 }}
+    >
+      Picnic At Home
+    </span>
+  </div>
+
+  {/* right group: time and score */}
   <div className="flex gap-4 uppercase tracking-tighter">
     <div className="bg-[#E55937] text-[#FFE974] px-5 py-2 rounded-xl text-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
       {timeLeft}s
@@ -109,16 +121,6 @@ export default function BurgerGame() {
     <div className="bg-white text-[#E55937] px-5 py-2 rounded-xl text-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
       {score}
     </div>
-  </div>
-
-  {/* Top-left logo: absolute so it sits above/left of the flow.
-      Use inline fontFamily to guarantee usage of the local file. */}
-  <div
-    aria-label="Picnic At Home"
-    className="absolute left-20 top-4 text-white text-lg md:text-2xl tracking-tight pointer-events-none select-none"
-    style={{ fontFamily: "'Gopher', system-ui, -apple-system, 'Segoe UI', Roboto", fontWeight: 700 }}
-  >
-    Picnic At Home
   </div>
 </div>
 
