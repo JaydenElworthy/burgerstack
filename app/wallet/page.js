@@ -2,13 +2,13 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import { Ticket, ArrowLeft, Clock, Info } from 'lucide-react'
+import { Ticket, ArrowLeft, ShoppingBag, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion';
 
 
 export default function Wallet() {
   const [rewards, setRewards] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [copied, setCopied] = useState(null)
 
   useEffect(() => {
     async function getRewards() {
@@ -17,50 +17,54 @@ export default function Wallet() {
         const { data } = await supabase.from('rewards').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
         setRewards(data || [])
       }
-      setLoading(false)
     }
     getRewards()
   }, [])
 
+  const handleOrderNow = (code) => {
+    // 1. Copy the code to the user's clipboard
+    navigator.clipboard.writeText(code);
+    setCopied(code);
+    
+    // 2. Alert the user
+    setTimeout(() => {
+      // 3. Redirect to your Squarespace Store
+      // Replace with your actual Squarespace product page URL
+      window.location.href = `https://picnicathome.com/shop?promo=${code}`;
+    }, 800);
+  };
+
   return (
-    <div className="min-h-screen p-6 max-w-md mx-auto bg-[#E55937] font-sans">
+    <div className="min-h-screen p-6 bg-[#E55937] font-sans">
       <div className="flex items-center gap-4 mb-10">
-        <Link href="/"><ArrowLeft size={30} className="text-[#FFE974]"/></Link>
-        <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#FFE974]">My Wallet</h1>
+        <Link href="/"><ArrowLeft className="text-[#FFE974]" size={32}/></Link>
+        <h1 className="text-4xl font-bold uppercase tracking-tighter text-[#FFE974]">My Basket</h1>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         {rewards.map((r, i) => (
-          <div key={i} className="bg-[#FFE974] border-4 border-black p-6 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
-            <div className="flex justify-between items-start mb-6">
-              <Ticket size={40} className="text-[#E55937]" />
-              <span className="flex items-center gap-1 text-[10px] font-black bg-black/10 px-3 py-1 rounded-full uppercase tracking-widest text-black"><Clock size={12}/> {r.expiry || 'No expiry'}</span>
+          <div key={i} className="bg-[#FFE974] border-4 border-black p-6 rounded-[2.5rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden text-[#E55937]">
+            <Ticket size={40} className="mb-4" />
+            <h2 className="text-3xl font-bold uppercase leading-tight mb-1">{r.prize_title}</h2>
+            <p className="text-[10px] font-bold opacity-60 mb-6 uppercase tracking-widest italic text-[#E55937]">One-time use champion code</p>
+            
+            <div className="bg-white border-2 border-black p-5 rounded-2xl text-center mb-6">
+               <span className="font-mono text-3xl font-black tracking-widest">{r.prize_code}</span>
             </div>
-            <h2 className="text-3xl font-black mb-2 italic uppercase leading-none tracking-tighter text-[#E55937]">{r.prize_title}</h2>
-            <p className="text-[10px] uppercase tracking-widest opacity-70 mb-8 font-bold text-black">Redeem at counter</p>
-            <div className="bg-black text-[#FFE974] p-5 rounded-2xl text-center font-mono text-3xl font-bold tracking-[0.2em]">{r.prize_code}</div>
+
+            <button 
+              onClick={() => handleOrderNow(r.prize_code)}
+              className="w-full bg-black text-[#FFE974] py-5 rounded-2xl font-bold uppercase italic text-xl flex items-center justify-center gap-3 active:scale-95 transition-transform"
+            >
+              {copied === r.prize_code ? <Check size={24} /> : <ShoppingBag size={24} />}
+              {copied === r.prize_code ? "Code Copied!" : "Copy & Order"}
+            </button>
+
             <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-[#E55937] border-r-4 border-black rounded-full" />
             <div className="absolute -right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-[#E55937] border-l-4 border-black rounded-full" />
           </div>
         ))}
-        
-        {rewards.length === 0 && !loading && (
-          <div className="text-center py-20">
-            <p className="text-[#FFE974] font-bold uppercase opacity-80 italic">Your wallet is empty...</p>
-          </div>
-        )}
-
-        {loading && (
-          <div className="text-center py-20">
-            <p className="text-[#FFE974] font-bold uppercase opacity-80 italic">Loading rewards...</p>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-12 p-6 bg-black/20 rounded-3xl border-2 border-dashed border-[#FFE974] flex gap-4 items-center">
-        <Info className="text-[#FFE974] shrink-0" size={20} />
-        <p className="text-[10px] font-bold uppercase tracking-wide text-[#FFE974] leading-relaxed">Prizes expire weekly. Use them or lose them! New drops every Monday morning.</p>
       </div>
     </div>
-  );
+  )
 }
