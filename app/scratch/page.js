@@ -93,13 +93,13 @@ export default function ScratchCard() {
       {/* Header */}
       <div className="w-full flex justify-between items-center mb-10 pt-4 px-2">
         <Link href="/"><ArrowLeft size={32} className="text-[#FFE974]" /></Link>
-        <h1 className="text-2xl font-bold uppercase tracking-tighter text-[#FFE974]">Daily Drop</h1>
+        <h1 className="text-2xl font-bold uppercase text-[#FFE974]">Picnic At Home</h1>
         <div className="w-8" />
       </div>
 
       {/* Hero Text */}
       <div className="text-center mb-8 px-4">
-        <p className="font-bold uppercase text-[10px] tracking-widest text-white mb-1 leading-none">One go per day</p>
+        <p className="font-bold uppercase text-[10px] tracking-widest text-white mb-1 leading-none">PLAY BURGER SLINGER TO WIN ANOTHER SCRATCH CARD</p>
         <h2 className="text-[12vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">Scratch<br/>to Win</h2>
       </div>
 
