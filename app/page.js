@@ -93,20 +93,17 @@ export default function Home() {
           <span className="flex items-center gap-3"><Wallet size={24}/> Wallet</span>
           <span>→</span>
         </Link>
+        
         <Link href="/leaderboard" className="w-full bg-[#FFE974] border-4 border-black p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
           <span className="flex items-center gap-3"><Trophy size={24}/> Leaderboard</span>
           <span>→</span>
         </Link>
       </div>
 
-      {/* Dynamic Order Button */}
-<a 
-  href="https://picnicathome.com/shop" 
-  className="w-full bg-black text-[#FFE974] p-6 rounded-3xl flex justify-center items-center gap-4 font-bold uppercase italic text-2xl shadow-xl hover:bg-white hover:text-black transition-all border-4 border-black"
->
-  <ShoppingBag size={28} /> 
-  {profile?.total_winnings > 0 ? "Claim My Burger" : "Order Online"}
-</a>
+     <div className="mt-auto space-y-4">
+        <a href="https://picnicathome.com" className="w-full bg-black text-[#FFE974] p-6 rounded-2xl flex justify-center items-center gap-4 font-bold uppercase italic text-2xl shadow-xl">
+          <ShoppingBag size={28} /> Order Online
+        </a>
 
         {user ? (
           <button onClick={handleSignOut} className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-40 text-white hover:opacity-100 transition-opacity">
