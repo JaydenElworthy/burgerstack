@@ -143,7 +143,7 @@ export default function ScratchCard() {
       {/* Hero Text */}
       <div className="text-center mb-8 px-4">
         <h2 className="text-[12vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">
-          {status === 'locked_need_points' ? 'BONUS LOCKED' : 'Scratch <br> to Win'}
+          {status === 'locked_need_points' ? 'BONUS LOCKED' : 'Scratch to Win'}
         </h2>
       </div>
 
