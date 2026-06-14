@@ -113,7 +113,7 @@ export default function BurgerGame() {
       className="text-[#E55937] text-lg md:text-2xl tracking-tight whitespace-nowrap select-none"
       style={{ fontFamily: "'Gopher', system-ui, -apple-system, 'Segoe UI', Roboto", fontWeight: 700 }}
     >
-      PICNIC AT HOME
+      PICNIC<br/>AT HOME
     </span>
   </div>
 
