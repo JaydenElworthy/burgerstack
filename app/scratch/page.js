@@ -67,18 +67,36 @@ export default function ScratchCard() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
-    if (!isInitialized) {
-      canvas.width = 320;
-      canvas.height = 320;
-      ctx.fillStyle = '#222'; 
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.font = 'bold 18px sans-serif';
-      ctx.fillStyle = '#444';
-      for(let i=0; i<6; i++) {
-          ctx.fillText('PICNIC • PICNIC • PICNIC', 20, 40 + (i*60));
-      }
-      setIsInitialized(true);
-    }
+    // inside your useEffect that runs when status === 'can_scratch'
+if (!isInitialized) {
+  canvas.width = 320;
+  canvas.height = 320;
+
+  // background scratch layer
+  ctx.fillStyle = '#222';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // text setup: center horizontally and vertically
+  const line = 'PICNIC • PICNIC • PICNIC';
+  const lines = 3;                // number of repeated lines
+  const fontSize = 20;            // px (tweak as needed)
+  const lineHeight = fontSize * 1.6;
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#444';
+
+  // compute starting Y so block of lines is vertically centered
+  const totalHeight = (lines - 1) * lineHeight;
+  const startY = canvas.height / 2 - totalHeight / 2;
+
+  for (let i = 0; i < lines; i++) {
+    const y = startY + i * lineHeight;
+    ctx.fillText(line, canvas.width / 2, y);
+  }
+
+  setIsInitialized(true);
+}
 
     const scratch = (x, y) => {
       ctx.globalCompositeOperation = 'destination-out';
@@ -141,11 +159,14 @@ export default function ScratchCard() {
       </div>
 
       {/* Hero Text */}
-      <div className="text-center mb-8 px-4">
-        <h2 className="text-[12vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">
-          {status === 'locked_need_points' ? 'BONUS LOCKED' : 'Scratch to Win'}
-        </h2>
-      </div>
+<div className="text-center mb-8 px-4">
+  <h2 className="text-[12vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">
+    {status === 'loading' && 'Loading...'}
+    {status === 'can_scratch' && 'Scratch to Win'}
+    {status === 'locked_need_points' && 'BONUS LOCKED'}
+    {status === 'locked_until_sunday' && 'No Scratches Left — Reset Sunday'}
+  </h2>
+</div>
 
       {/* Card Container */}
       <div className="relative w-80 h-80 bg-[#FFE974] border-8 border-black rounded-[2.5rem] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
