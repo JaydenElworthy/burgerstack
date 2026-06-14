@@ -111,7 +111,7 @@ export default function BurgerGame() {
   <div className="flex justify-center">
     <span
       className="text-[#E55937] text-lg md:text-2xl tracking-tight whitespace-nowrap select-none"
-      style={{ fontFamily: "'Gopher', system-ui, -apple-system, 'Segoe UI', Roboto", fontWeight: 900 }}
+      style={{ fontFamily: "'Gopher', system-ui, -apple-system, 'Segoe UI', Roboto", fontWeight: 900, textAlign: "centre" }}
     >
       PICNIC<br/>AT HOME
     </span>
