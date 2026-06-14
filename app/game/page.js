@@ -175,21 +175,21 @@ export default function BurgerGame() {
       <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-50 shadow-2xl">
   <button
     onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }}
-    className="bg-[#4B2C20] text-white border-4 border-black py-6 px-6 md:py-8 md:px-8 rounded-2xl font-gopher font-black text-lg md:text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 min-h-[64px]"
+    className="flex items-center justify-center bg-[#4B2C20] text-white border-4 border-black h-16 md:h-20 px-6 rounded-2xl font-gopher font-black text-base md:text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 leading-none text-center"
   >
     PATTY
   </button>
 
   <button
     onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }}
-    className="bg-[#FFD700] text-black border-4 border-black py-6 px-6 md:py-8 md:px-8 rounded-2xl font-gopher font-black text-lg md:text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 min-h-[64px]"
+    className="flex items-center justify-center bg-[#FFD700] text-black border-4 border-black h-16 md:h-20 px-6 rounded-2xl font-gopher font-black text-base md:text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 leading-none text-center"
   >
     CHEESE
   </button>
 
   <button
     onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }}
-    className="bg-[#E55937] text-white border-4 border-black py-6 px-6 md:py-8 md:px-8 rounded-2xl font-gopher font-black text-lg md:text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 min-h-[64px]"
+    className="flex items-center justify-center bg-[#E55937] text-white border-4 border-black h-16 md:h-20 px-6 rounded-2xl font-gopher font-black text-base md:text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 leading-none text-center"
   >
     BUN
   </button>
