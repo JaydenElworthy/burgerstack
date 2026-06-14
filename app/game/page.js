@@ -210,8 +210,8 @@ export default function BurgerGame() {
               ) : gameState === 'lost' ? (
                 <div className="flex flex-col items-center gap-2">
                   <AlertCircle size={64} className="text-[#E55937]" />
-                  <h1 className="text-4xl font-black tracking-wider text-[#E55937]">RUINED ORDER!</h1>
-                  <p className="text-xl">You messed up the recipe stack.</p>
+                  <h1 className="text-4xl font-black tracking-wider text-[#E55937]">86 That!</h1>
+                  <p className="text-xl">The Customer Wants A Refund</p>
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-2">
