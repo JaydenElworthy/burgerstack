@@ -43,7 +43,7 @@ export default function Leaderboard() {
       <div className="flex items-center gap-4 mb-12 pt-4">
         <Link href="/"><ArrowLeft className="text-[#FFE974]" size={32} /></Link>
         <h1 className="text-[10vw] sm:text-5xl font-bold uppercase tracking-tighter text-[#FFE974] leading-none">
-          Hall of <br/> Fame
+          Leaderboard
         </h1>
       </div>
 
@@ -65,6 +65,15 @@ export default function Leaderboard() {
           The player in the #1 spot this Sunday at 12:01 AM wins the drop.
         </p>
       </div>
+  {/* Prize Banner */}
+      <div className="bg-white/10 p-6 rounded-2xl mb-10 border-2 border-dashed border-white/20">
+        <div className="flex items-center gap-3 mb-2">
+          <Flame className="text-[#FFE974]" size={28} />
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#FFE974]">Weekly Prize</p>
+   </div>
+        <h2 className="text-xl font-bold uppercase tracking-tight">Top Score Wins £50 TAB</h2>
+        <p className="text-xs text-white/80 mt-2 font-semibold">Winner Selected Every Sunday at Midnight</p>
+    </div>
 
       {/* Leaderboard */}
       {loading ? (
