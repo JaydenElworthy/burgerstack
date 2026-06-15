@@ -71,7 +71,7 @@ export default function Leaderboard() {
           <Flame className="text-[#FFE974]" size={28} />
           <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#FFE974]">Weekly Prize</p>
    </div>
-        <h2 className="text-xl font-bold uppercase tracking-tight">Top Score Wins £50 TAB</h2>
+        <h2 className="text-xl font-bold uppercase tracking-tight">Top Score Wins {prize} </h2>
         <p className="text-xs text-white/80 mt-2 font-semibold">Winner Selected Every Sunday at Midnight</p>
     </div>
 
