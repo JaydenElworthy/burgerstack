@@ -121,25 +121,27 @@ if (!isInitialized) {
   setIsRevealed(true);
   confetti();
 
-  // Define 3 random prize options
-  const prizes = [
-    { title: "10% Off Your Next Picnic", code: "PICNIC10" },
-    { title: "Free Soft Drink", code: "SIPSIP" },
-    { title: "Gourmet Topping Unlock", code: "SECRET-TOP" }
+  // 1. Define your pool of random prizes
+  const prizePool = [
+    { title: "10% Off Picnic", code: "PICNIC10" },
+    { title: "Free Coffee Upgrade", code: "SIPSIP" },
+    { title: "Free Extra Patty", code: "MEATY" },
+    { title: "Gourmet Sauce Unlock", code: "SECRET-SAUCE" }
   ];
 
-  // Pick one at random
-  const win = prizes[Math.floor(Math.random() * prizes.length)];
+  // 2. Pick one randomly
+  const winningPrize = prizePool[Math.floor(Math.random() * prizePool.length)];
 
+  // 3. Save it to the user's wallet in Supabase
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
     await supabase.from('rewards').insert({
       user_id: user.id,
-      prize_title: win.title,
-      prize_code: win.code
+      prize_title: winningPrize.title,
+      prize_code: winningPrize.code
     });
-
-    // Mark as scratched
+    
+    // 4. Update the user's scratch count so they can't scratch again immediately
     const { data: prof } = await supabase.from('profiles').select('scratch_count').eq('id', user.id).single();
     await supabase.from('profiles').update({ 
       scratch_count: (prof.scratch_count || 0) + 1,
