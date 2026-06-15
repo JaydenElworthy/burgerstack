@@ -47,24 +47,7 @@ export default function Leaderboard() {
         </h1>
       </div>
 
-      {/* DYNAMIC PRIZE BANNER */}
-      <div className="bg-[#FFE974] p-8 rounded-[2.5rem] mb-10 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
-        <div className="flex items-center gap-2 mb-2">
-          <Star fill="#E55937" size={20} />
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70">Weekly Reward</p>
-        </div>
-        
-        {/* This header is now weighted 700 Gopher and dynamic */}
-        <h2 className="text-3xl font-bold uppercase leading-none tracking-tighter mb-4">
-          WIN {prize}
-        </h2>
-        
-        <div className="bg-[#E55937] h-1 w-12 rounded-full mb-4" />
-        
-        <p className="text-[10px] text-[#E55937] font-bold uppercase tracking-widest leading-relaxed">
-          The player in the #1 spot this Sunday at 12:01 AM wins the drop.
-        </p>
-      </div>
+      
   {/* Prize Banner */}
       <div className="bg-white/10 p-6 rounded-2xl mb-10 border-2 border-dashed border-white/20">
         <div className="flex items-center gap-3 mb-2">
