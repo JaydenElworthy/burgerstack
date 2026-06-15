@@ -229,5 +229,6 @@ if (!isInitialized) {
     </div>
   </Link>
 )}
+  </div>
   ); 
 }
