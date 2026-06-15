@@ -118,15 +118,35 @@ if (!isInitialized) {
     };
 
     const handleReveal = async () => {
-        setIsRevealed(true);
-        confetti();
-        // UPDATE DB: Record that they scratched and the time
-        const nextCount = (userProfile?.scratch_count || 0) + 1;
-        await supabase.from('profiles').update({ 
-            scratch_count: nextCount,
-            last_scratch_date: new Date().toISOString()
-        }).eq('id', userProfile.id);
-    };
+  setIsRevealed(true);
+  confetti();
+
+  // Define 3 random prize options
+  const prizes = [
+    { title: "10% Off Your Next Picnic", code: "PICNIC10" },
+    { title: "Free Soft Drink", code: "SIPSIP" },
+    { title: "Gourmet Topping Unlock", code: "SECRET-TOP" }
+  ];
+
+  // Pick one at random
+  const win = prizes[Math.floor(Math.random() * prizes.length)];
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    await supabase.from('rewards').insert({
+      user_id: user.id,
+      prize_title: win.title,
+      prize_code: win.code
+    });
+
+    // Mark as scratched
+    const { data: prof } = await supabase.from('profiles').select('scratch_count').eq('id', user.id).single();
+    await supabase.from('profiles').update({ 
+      scratch_count: (prof.scratch_count || 0) + 1,
+      last_scratch_date: new Date().toISOString()
+    }).eq('id', user.id);
+  }
+};
 
     const handleMove = (e) => {
       if (e.cancelable) e.preventDefault();
