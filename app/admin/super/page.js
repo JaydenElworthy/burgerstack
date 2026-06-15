@@ -57,6 +57,8 @@ export default function SuperAdmin() {
     }).eq('id', 1);
 
     if (!error) alert("Settings Saved!");
+    if (loading) return <div>Loading...</div>;
+
   };
 
  const finalizeWeek = async () => {
