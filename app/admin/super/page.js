@@ -59,23 +59,19 @@ export default function SuperAdmin() {
     if (!error) alert("Settings Saved!");
   };
 
-  const finalizeWeek = async () => {
-    if (!currentTopScorer || currentTopScorer.high_score === 0) {
-      alert("No winner found.");
-      return;
-    }
-    if (!confirm(`Award prize to ${currentTopScorer.email}?`)) return;
+ const finalizeWeek = async () => {
+  if (!confirm("This will award the prize to the #1 player and RESET all scores. Proceed?")) return;
 
-    const res = await fetch('/api/admin/finalize-week', {
-      method: 'POST',
-      body: JSON.stringify({ winnerId: currentTopScorer.id, winnerEmail: currentTopScorer.email })
-    });
+  const res = await fetch('/api/admin/finalize-week', { method: 'POST' });
+  const result = await res.json();
 
-    if (res.ok) {
-      alert("WEEK FINALIZED!");
-      window.location.reload();
-    }
-  };
+  if (res.ok) {
+    alert(`VICTORY! Prize awarded to ${result.winner}. The board is now fresh.`);
+    window.location.reload();
+  } else {
+    alert(`ERROR: ${result.error}`);
+  }
+};
 
   if (loading) return <div className="min-h-screen flex items-center justify-center font-black uppercase italic">Verifying Admin...</div>;
 
