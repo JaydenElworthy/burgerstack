@@ -55,7 +55,7 @@ export default function Leaderboard() {
           <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#FFE974]">Weekly Prize</p>
    </div>
         <h2 className="text-xl font-bold uppercase tracking-tight">Top Score Wins {prize} </h2>
-        <p className="text-xs text-white/80 mt-2 font-semibold">Winner Selected Every Sunday at Midnight</p>
+        <p className="text-xs text-white/80 mt-2 font-semibold">Winner Selected Each Week</p>
     </div>
 
       {/* Leaderboard */}
@@ -92,7 +92,6 @@ export default function Leaderboard() {
         <Link href="/game" className="block w-full py-6 bg-black text-[#FFE974] font-bold uppercase italic text-xl rounded-2xl shadow-xl border-4 border-black active:scale-95 transition-transform">
           Beat the High Score
         </Link>
-        <p className="mt-4 text-[10px] font-bold uppercase opacity-40 tracking-widest text-white">Only top score builds are eligible</p>
       </div>
     </div>
   )
