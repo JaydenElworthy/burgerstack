@@ -223,7 +223,7 @@ if (!isInitialized) {
   <Link href={status === 'locked_need_points' ? '/game' : '/game'} className="mt-12 block mx-4">
     <div className="p-5 bg-[#FFE974] border-4 border-black rounded-3xl flex gap-4 items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFE974]">
       {status === 'locked_need_points' ? <Lock size={28} className="text-[#E55937]" /> : <Trophy size={28} className="shrink-0 text-[#E55937]" />}
-      <p className="text-[10px] font-bold uppercase tracking-tight leading-tight text-left text-[#E55937]">
+      <p className="text-[10px] font-bold uppercase tracking-tight leading-tight text-center text-[#E55937]">
         {status === 'locked_need_points' ? 'GET 25 POINTS IN THE GAME TO UNLOCK' : 'PLAY BURGER SLINGER TO WIN ANOTHER SCRATCH CARD'}
       </p>
     </div>
