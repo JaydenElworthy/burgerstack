@@ -179,7 +179,33 @@ export default function SuperAdmin() {
                   ))}
                 </select>
               </div>
-
+                    
+              <div>
+                <label className="block font-black uppercase text-[10px] opacity-40 mb-2">Grand Prize Type</label>
+                <select 
+                  value={method} 
+                  onChange={(e) => setMethod(e.target.value)}
+                  className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs mb-4"
+                >
+                  <option value="FREE_PRODUCT">Specific Product (Free)</option>
+                  <option value="RATE">Percentage Discount (%)</option>
+                  <option value="AMOUNT">Fixed Amount Discount (£)</option>
+                </select>
+              
+                {/* Only show product picker if FREE_PRODUCT is selected */}
+                {method === 'FREE_PRODUCT' ? (
+                  <select value={selectedProduct} onChange={(e) => setSelectedItem(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs">
+                     {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                ) : (
+                  <input 
+                    type="number" placeholder="Enter Value (e.g. 20)" 
+                    className="w-full border-4 border-black p-3 rounded-xl font-bold"
+                    onChange={(e) => setWinnerLimit(e.target.value)} // Reusing winnerLimit state for simplicity
+                  />
+                )}
+              </div>
+                      
               <div>
                 <label className="block font-black uppercase text-[10px] tracking-widest opacity-40 mb-2">Winners Per Week</label>
                 <input 
