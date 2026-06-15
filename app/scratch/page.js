@@ -77,8 +77,8 @@ if (!isInitialized) {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // text setup: center horizontally and vertically
-  const line = 'PICNIC • PICNIC • PICNIC';
-  const lines = 3;                // number of repeated lines
+  const line = 'PICNIC • PICNIC • PICNIC • PICNIC • PICNIC';
+  const lines = 9;                // number of repeated lines
   const fontSize = 20;            // px (tweak as needed)
   const lineHeight = fontSize * 1.6;
   ctx.font = `bold ${fontSize}px sans-serif`;
