@@ -121,33 +121,29 @@ if (!isInitialized) {
   setIsRevealed(true);
   confetti();
 
-  // 1. Define your pool of random prizes
-  const prizePool = [
-    { title: "10% Off Picnic", code: "PICNIC10" },
-    { title: "Free Coffee Upgrade", code: "SIPSIP" },
-    { title: "Free Extra Patty", code: "MEATY" },
-    { title: "Gourmet Sauce Unlock", code: "SECRET-SAUCE" }
-  ];
-
-  // 2. Pick one randomly
-  const winningPrize = prizePool[Math.floor(Math.random() * prizePool.length)];
-
-  // 3. Save it to the user's wallet in Supabase
   const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
+  if (!user) return;
+
+  // 1. Pick a random active prize type
+  const { data: prizes } = await supabase.from('scratch_prizes').select('*').eq('is_active', true);
+  const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
+
+  // 2. Grab an unused code for THAT prize
+  const { data: codeRow } = await supabase.from('manual_code_bank')
+    .select('*').eq('prize_type', randomPrize.id).eq('is_claimed', false).limit(1).single();
+
+  if (codeRow) {
+    // 3. Award the prize
+    await supabase.from('manual_code_bank').update({ is_claimed: true, claimed_by: user.id }).eq('id', codeRow.id);
     await supabase.from('rewards').insert({
       user_id: user.id,
-      prize_title: winningPrize.title,
-      prize_code: winningPrize.code
+      prize_title: randomPrize.title,
+      prize_code: codeRow.code
     });
-    
-    // 4. Update the user's scratch count so they can't scratch again immediately
-    const { data: prof } = await supabase.from('profiles').select('scratch_count').eq('id', user.id).single();
-    await supabase.from('profiles').update({ 
-      scratch_count: (prof.scratch_count || 0) + 1,
-      last_scratch_date: new Date().toISOString()
-    }).eq('id', user.id);
   }
+
+  // 4. Increment scratch count
+  await supabase.from('profiles').update({ scratch_count: (userProfile?.scratch_count || 0) + 1, last_scratch_date: new Date().toISOString() }).eq('id', user.id);
 };
 
     const handleMove = (e) => {
