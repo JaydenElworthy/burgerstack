@@ -161,7 +161,33 @@ const refreshProducts = async () => {
     setIsRefreshing(false);
   }
 };
+const handleBulkUpload = async () => {
+  const codeList = rawCodes.split(/[\n,]+/).map(c => c.trim()).filter(c => c !== '');
+  
+  // 1. Get all existing codes from your DB first
+  const { data: existing } = await supabase.from('prize_pool').select('code');
+  const existingCodes = existing?.map(item => item.code) || [];
 
+  // 2. Filter out codes that are already in the DB
+  const newCodes = codeList.filter(code => !existingCodes.includes(code));
+
+  if (newCodes.length === 0) {
+    alert("All of these codes already exist in the app.");
+    return;
+  }
+
+  // 3. Insert only the new ones
+  const { error } = await supabase.from('prize_pool').insert(
+    newCodes.map(code => ({ code, is_claimed: false }))
+  );
+
+  if (error) {
+    alert("Error uploading: " + error.message);
+  } else {
+    alert(`Added ${newCodes.length} new codes! (${codeList.length - newCodes.length} duplicates skipped)`);
+    setRawCodes('');
+  }
+};
 
 // ... In your return JSX ...
 <div className="bg-white p-8 rounded-[2.5rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-10">
