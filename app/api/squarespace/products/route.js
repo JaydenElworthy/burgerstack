@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'; // This stops the caching
+
 export async function GET() {
   const apiKey = process.env.SQUARESPACE_API_KEY;
   
