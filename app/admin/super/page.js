@@ -162,21 +162,7 @@ const refreshProducts = async () => {
   }
 };
 
-// --- In your JSX (next to the Product Dropdown) ---
-<div className="flex gap-2 items-end">
-  <div className="flex-1">
-    <label className="text-[10px] font-black uppercase opacity-40">Weekly Prize Product</label>
-    <select value={pId} onChange={(e) => setPId(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs">
-       {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-    </select>
-  </div>
-  <button 
-    onClick={refreshProducts} 
-    className={`p-3 border-4 border-black rounded-xl bg-white text-black hover:bg-[#FFE974] ${isRefreshing ? 'animate-spin' : ''}`}
-  >
-    <RefreshCw size={20} />
-  </button>
-</div>
+
 // ... In your return JSX ...
 <div className="bg-white p-8 rounded-[2.5rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-10">
   <h2 className="text-xl font-bold uppercase italic mb-4">1. Load Squarespace Codes</h2>
@@ -320,6 +306,23 @@ const refreshProducts = async () => {
               </button>
             </div>
           </div>
+
+                // --- In your JSX (next to the Product Dropdown) ---
+<div className="flex gap-2 items-end">
+  <div className="flex-1">
+    <label className="text-[10px] font-black uppercase opacity-40">Weekly Prize Product</label>
+    <select value={pId} onChange={(e) => setPId(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs">
+       {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+    </select>
+  </div>
+  <button 
+    onClick={refreshProducts} 
+    className={`p-3 border-4 border-black rounded-xl bg-white text-black hover:bg-[#FFE974] ${isRefreshing ? 'animate-spin' : ''}`}
+  >
+    <RefreshCw size={20} />
+  </button>
+</div>
+                
           <div className="bg-white p-6 rounded-[2rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-8">
   <h2 className="font-black uppercase text-sm mb-4">Manual Code Pool</h2>
   <textarea 
