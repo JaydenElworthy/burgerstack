@@ -2,228 +2,156 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Settings, Users, Star, Crown, Loader2 } from 'lucide-react';
+import { ArrowLeft, Settings, Trophy, Trash2, Plus, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SuperAdmin() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [products, setProducts] = useState([]);
-  
-  // Separate states to prevent collisions
-  const [redemptionMethod, setRedemptionMethod] = useState('manual');
-  const [prizeType, setPrizeType] = useState('FREE_PRODUCT');
-  const [prizeValue, setPrizeValue] = useState(10);
-  const [selectedProduct, setSelectedProduct] = useState('');
-  const [winnerCount, setWinnerCount] = useState(10);
-  
-  const [currentTopScorer, setCurrentTopScorer] = useState(null);
   const [allUsers, setUsers] = useState([]);
-  const router = useRouter();
+  const [scratchPrizes, setScratchPrizes] = useState([]);
+  
+  // App Settings State
+  const [strategy, setStrategy] = useState('manual');
+  const [pType, setPType] = useState('FREE_PRODUCT');
+  const [pScope, setPScope] = useState('PRODUCT');
+  const [pValue, setPValue] = useState(100);
+  const [pId, setPId] = useState('');
+  const [pTitle, setPTitle] = useState('Weekly Prize');
 
   useEffect(() => {
-    async function initAdmin() {
+    async function loadData() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push('/login'); return; }
+      const { data: prof } = await supabase.from('profiles').select('is_admin').eq('id', user?.id).single();
+      if (!prof?.is_admin) { window.location.href = "/"; return; }
 
-      const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
-      if (!profile || !profile.is_admin) { router.push('/'); return; }
+      const prodRes = await fetch('/api/squarespace/products');
+      const prodData = await prodRes.json();
+      setProducts(prodData || []);
 
-      try {
-        const prodRes = await fetch('/api/squarespace/products');
-        const prodData = await prodRes.json();
-        setProducts(prodData || []);
-      } catch (e) { console.error("Could not load products"); }
-
-      const { data: settings } = await supabase.from('app_settings').select('*').eq('id', 1).single();
-      if (settings) {
-        setRedemptionMethod(settings.redemption_strategy || 'manual');
-        setPrizeType(settings.weekly_prize_type || 'FREE_PRODUCT');
-        setPrizeValue(settings.weekly_prize_value || 10);
-        setSelectedProduct(settings.active_item_id || '');
-        setWinnerCount(settings.weekly_winner_limit || 1);
+      const { data: sett } = await supabase.from('app_settings').select('*').eq('id', 1).single();
+      if (sett) {
+        setStrategy(sett.redemption_strategy); setPType(sett.weekly_prize_type);
+        setPScope(sett.weekly_prize_scope); setPValue(sett.weekly_prize_value);
+        setPId(sett.active_item_id); setPTitle(sett.prize_title);
       }
 
-      const { data: usersData } = await supabase.from('profiles').select('*').order('high_score', { ascending: false });
-      setUsers(usersData || []);
-      if (usersData && usersData.length > 0) setCurrentTopScorer(usersData[0]);
+      const { data: u } = await supabase.from('profiles').select('*').order('high_score', { ascending: false });
+      setUsers(u || []);
 
+      const { data: sp } = await supabase.from('scratch_prizes').select('*');
+      setScratchPrizes(sp || []);
+      
       setLoading(false);
     }
-    initAdmin();
-  }, [router]);
+    loadData();
+  }, []);
 
-  const saveSettings = async () => {
+  const saveGlobalSettings = async () => {
     setIsSaving(true);
-    const item = products.find(p => p.id === selectedProduct);
-    
-    const { error } = await supabase.from('app_settings').update({
-      redemption_strategy: redemptionMethod,
-      weekly_prize_type: prizeType,
-      weekly_prize_value: prizeValue,
-      active_item_id: selectedProduct,
-      prize_title: item?.name || (prizeType === 'RATE' ? `${prizeValue}% Off` : 'Weekly Prize'),
-      weekly_winner_limit: winnerCount
+    await supabase.from('app_settings').update({
+      redemption_strategy: strategy,
+      weekly_prize_type: pType,
+      weekly_prize_scope: pScope,
+      weekly_prize_value: pValue,
+      active_item_id: pId,
+      prize_title: pTitle
     }).eq('id', 1);
-
     setIsSaving(false);
-    if (!error) alert("Settings Saved!");
-    else alert("Error saving: " + error.message);
+    alert("Weekly Prize Updated!");
   };
 
-  const finalizeWeek = async () => {
-    if (!currentTopScorer || currentTopScorer.high_score === 0) {
-      alert("No valid winner with a score > 0.");
-      return;
-    }
-    if (!confirm(`Award prize to ${currentTopScorer.email} and RESET all scores?`)) return;
-
-    try {
-      const res = await fetch('/api/admin/finalize-week', { method: 'POST' });
-      const result = await res.json();
-
-      if (res.ok) {
-        alert("SUCCESS: Week finalized and board reset.");
-        window.location.reload();
-      } else {
-        alert("ERROR: " + result.error);
-      }
-    } catch (e) {
-      alert("Critical Connection Error");
+  const addScratchPrize = async () => {
+    const title = prompt("Prize Title (e.g. 20% Off Fries)");
+    const val = prompt("Discount Value (e.g. 20)");
+    if (title && val) {
+      await supabase.from('scratch_prizes').insert({ title, discount_type: 'RATE', discount_value: parseFloat(val) });
+      window.location.reload();
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-black uppercase italic bg-[#E55937] text-[#FFE974]">Verifying Admin...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#E55937] text-[#FFE974] font-bold italic">LOADING...</div>;
 
   return (
     <div className="p-6 max-w-6xl mx-auto min-h-screen bg-gray-50 text-black font-sans pb-20">
-      
-      <div className="flex justify-between items-center mb-10">
-        <Link href="/" className="flex items-center gap-2 font-bold uppercase text-xs opacity-50 hover:opacity-100 transition-opacity">
-          <ArrowLeft size={16} /> Dashboard
-        </Link>
-        <h1 className="text-4xl font-black italic uppercase tracking-tighter">Super <span className="text-red-600">Admin</span></h1>
-        <div className="w-20" />
+      <div className="flex justify-between items-center mb-10 text-black">
+        <Link href="/" className="flex items-center gap-2 font-bold uppercase text-xs opacity-50"><ArrowLeft size={16} /> Back</Link>
+        <h1 className="text-4xl font-bold uppercase italic">Super Admin</h1>
+        <div className="w-10" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        {/* COLUMN 1: THE WEEKLY CHAMPION */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="bg-black text-white p-8 rounded-[2.5rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(229,255,68,1)] relative overflow-hidden">
-            <Crown className="absolute -right-4 -top-4 text-white/10 w-40 h-40 rotate-12" />
-            <h2 className="text-[#E5FF44] font-black uppercase italic text-2xl mb-6">Weekly Champion</h2>
-            
-            {currentTopScorer && currentTopScorer.high_score > 0 ? (
-              <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                <div>
-                  <p className="text-xs uppercase font-black opacity-50 mb-1">Current #1 Seed</p>
-                  <p className="text-2xl font-bold mb-1">{currentTopScorer.email}</p>
-                  <p className="text-6xl font-black text-[#E5FF44] italic tracking-tighter">{currentTopScorer.high_score} <span className="text-sm not-italic uppercase">Burgers</span></p>
-                </div>
-                <button 
-                  onClick={finalizeWeek}
-                  className="bg-[#E5FF44] text-black px-10 py-6 rounded-2xl font-black uppercase italic text-xl shadow-lg hover:scale-105 transition-transform"
-                >
-                  End Week & Award
-                </button>
-              </div>
-            ) : (
-              <p className="opacity-50 font-bold uppercase">No qualified players yet.</p>
-            )}
-          </div>
+        {/* LEFT COLUMN: WEEKLY CHAMPION SETTINGS */}
+        <div className="bg-white p-8 rounded-[2.5rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <h2 className="text-2xl font-bold uppercase italic mb-6 text-red-600">Weekly Champion Prize</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] font-black uppercase opacity-40">Prize Display Name</label>
+              <input value={pTitle} onChange={(e) => setPTitle(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase" />
+            </div>
 
-          {/* USER TABLE */}
-          <div className="bg-white border-4 border-black rounded-[2rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <div className="bg-black p-4 text-white font-black uppercase text-xs italic">User Rankings</div>
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-gray-100 text-[10px] uppercase font-black border-b-2 border-black">
-                  <th className="p-4">Customer</th>
-                  <th className="p-4 text-center">Best Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allUsers.map((u) => (
-                  <tr key={u.id} className="border-b-2 border-gray-100">
-                    <td className="p-4 font-bold text-sm">{u.email}</td>
-                    <td className="p-4 text-center font-black text-red-600 italic text-xl">{u.high_score}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* COLUMN 2: CONFIGURATION */}
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-[2rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <h2 className="font-black uppercase text-sm mb-6 flex items-center gap-2">
-              <Settings size={16} /> Global Config
-            </h2>
-            
-            <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block font-black uppercase text-[10px] opacity-40 mb-2">Redemption Method</label>
-                <select 
-                  value={redemptionMethod} 
-                  onChange={(e) => setRedemptionMethod(e.target.value)}
-                  className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs"
-                >
-                  <option value="manual">Manual Pool</option>
-                  <option value="api">Automated API</option>
-                  <option value="in-app">Staff Check</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-black uppercase text-[10px] opacity-40 mb-2">Prize Type</label>
-                <select 
-                  value={prizeType} 
-                  onChange={(e) => setPrizeType(e.target.value)}
-                  className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs"
-                >
-                  <option value="FREE_PRODUCT">Free Specific Product</option>
+                <label className="text-[10px] font-black uppercase opacity-40">Discount Type</label>
+                <select value={pType} onChange={(e) => setPType(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs">
+                  <option value="FREE_PRODUCT">Free Product</option>
                   <option value="RATE">% Discount</option>
                   <option value="AMOUNT">Fixed £ Discount</option>
                 </select>
               </div>
-
-              {prizeType === 'FREE_PRODUCT' ? (
-                <div>
-                  <label className="block font-black uppercase text-[10px] opacity-40 mb-2">Select Product</label>
-                  <select 
-                    value={selectedProduct} 
-                    onChange={(e) => setSelectedProduct(e.target.value)}
-                    className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs"
-                  >
-                    <option value="">-- Choose Burger --</option>
-                    {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                </div>
-              ) : (
-                <div>
-                  <label className="block font-black uppercase text-[10px] opacity-40 mb-2">Discount Value</label>
-                  <input 
-                    type="number" 
-                    value={prizeValue}
-                    onChange={(e) => setPrizeValue(parseFloat(e.target.value))}
-                    className="w-full border-4 border-black p-3 rounded-xl font-bold"
-                  />
-                </div>
-              )}
-
-              <button 
-                onClick={saveSettings}
-                disabled={isSaving}
-                className="w-full bg-black text-white py-4 rounded-xl font-black uppercase italic hover:bg-green-600 transition-colors flex justify-center items-center gap-2"
-              >
-                {isSaving && <Loader2 className="animate-spin" size={18} />}
-                {isSaving ? "Saving..." : "Save Settings"}
-              </button>
+              <div>
+                <label className="text-[10px] font-black uppercase opacity-40">Apply To...</label>
+                <select value={pScope} onChange={(e) => setPScope(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs">
+                  <option value="PRODUCT">Single Product</option>
+                  <option value="ORDER">Entire Order</option>
+                </select>
+              </div>
             </div>
+
+            {pScope === 'PRODUCT' && (
+              <div>
+                <label className="text-[10px] font-black uppercase opacity-40">Select Product</label>
+                <select value={pId} onChange={(e) => setPId(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs">
+                  <option value="">-- Choose Item --</option>
+                  {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+            )}
+
+            {pType !== 'FREE_PRODUCT' && (
+              <div>
+                <label className="text-[10px] font-black uppercase opacity-40">Discount Value</label>
+                <input type="number" value={pValue} onChange={(e) => setPValue(parseFloat(e.target.value))} className="w-full border-4 border-black p-3 rounded-xl font-bold" />
+              </div>
+            )}
+
+            <button onClick={saveGlobalSettings} className="w-full bg-black text-[#FFE974] py-4 rounded-xl font-black uppercase italic shadow-lg">Save Weekly Configuration</button>
           </div>
         </div>
+
+        {/* RIGHT COLUMN: SCRATCH PRIZE POOL */}
+        <div className="bg-white p-8 rounded-[2.5rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex justify-between items-center mb-6">
+             <h2 className="text-2xl font-bold uppercase italic text-blue-600">Scratch Prize Pool</h2>
+             <button onClick={addScratchPrize} className="bg-blue-600 text-white p-2 rounded-full"><Plus size={20}/></button>
+          </div>
+
+          <div className="space-y-3">
+            {scratchPrizes.map((p) => (
+              <div key={p.id} className="flex justify-between items-center p-4 border-2 border-black rounded-xl">
+                <div>
+                  <p className="font-bold uppercase text-sm">{p.title}</p>
+                  <p className="text-[10px] opacity-50 uppercase font-black">{p.discount_value}% Off</p>
+                </div>
+                <button className="text-red-500 opacity-30 hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );
