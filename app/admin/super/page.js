@@ -20,6 +20,23 @@ export default function SuperAdmin() {
   const [pId, setPId] = useState('');
   const [pTitle, setPTitle] = useState('Weekly Prize');
 
+  // 1. Add this state at the top of SuperAdmin
+const [manualCodes, setManualCodes] = useState('');
+
+// 2. Add this function to handle the upload
+const uploadCodes = async () => {
+  const codeArray = manualCodes.split('\n').filter(c => c.trim() !== '');
+  const formatted = codeArray.map(c => ({ code: c.trim(), is_claimed: false }));
+  
+  const { error } = await supabase.from('prize_pool').insert(formatted);
+  if (!error) {
+    alert(`Successfully added ${codeArray.length} codes!`);
+    setManualCodes('');
+  } else {
+    alert("Error: Duplicate codes found.");
+  }
+};
+
  useEffect(() => {
     async function loadData() {
       const { data: { user } } = await supabase.auth.getUser();
