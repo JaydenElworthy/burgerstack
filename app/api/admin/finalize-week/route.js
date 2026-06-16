@@ -35,7 +35,19 @@ export async function POST(request) {
         enabled: true
       })
     });
+    const payload = {
+  // ...
+  discountRule: {
+    type: settings.weekly_prize_type || 'FREE_PRODUCT',
+  }
+};
 
+if (payload.discountRule.type === 'FREE_PRODUCT') {
+  payload.discountRule.productIds = [settings.active_item_id];
+} else {
+  // Squarespace needs a string like "20.0"
+  payload.discountRule.value = settings.weekly_prize_value?.toFixed(1) || "10.0";
+}
     if (sqRes.ok) {
       // 5. Add to Wallet & Reset Board
       await supabase.from('rewards').insert({ user_id: winner.id, prize_title: `GRAND PRIZE: ${s.prize_title}`, prize_code: promoCode });
