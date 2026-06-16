@@ -256,7 +256,18 @@ const uploadCodes = async () => {
               </button>
             </div>
           </div>
-
+          <div className="bg-white p-6 rounded-[2rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-8">
+  <h2 className="font-black uppercase text-sm mb-4">Manual Code Pool</h2>
+  <textarea 
+    placeholder="Paste codes here (one per line)..."
+    value={manualCodes}
+    onChange={(e) => setManualCodes(e.target.value)}
+    className="w-full h-32 border-4 border-black p-3 rounded-xl font-mono text-xs mb-4"
+  />
+  <button onClick={uploadCodes} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase italic">
+    Inject Codes into App
+  </button>
+</div>
           <div className="bg-white border-4 border-black rounded-[2rem] overflow-hidden shadow-lg">
              <div className="bg-black text-white p-4 font-black uppercase text-[10px] tracking-[0.2em] text-center">Live Rankings</div>
              {allUsers.slice(0, 5).map(u => (
