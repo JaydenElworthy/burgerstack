@@ -1,73 +1,60 @@
 import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request) {
-  // 1. Validate Environment Variables
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
   const sqKey = process.env.SQUARESPACE_API_KEY;
 
-  if (!serviceKey) return Response.json({ error: "Missing SUPABASE_SERVICE_ROLE_KEY in Vercel" }, { status: 500 });
-
-  const supabase = createClient(supabaseUrl, serviceKey);
-
   try {
-    // 2. Get the #1 Player
-    const { data: winner, error: winnerError } = await supabase
-      .from('profiles')
-      .select('id, email, high_score')
-      .gt('high_score', 0)
-      .order('high_score', { ascending: false })
-      .limit(1)
-      .single();
+    const { data: winner } = await supabase.from('profiles').select('*').gt('high_score', 0).order('high_score', { ascending: false }).limit(1).single();
+    if (!winner) return Response.json({ error: "No player with score > 0 found." }, { status: 400 });
 
-    if (winnerError || !winner) {
-      return Response.json({ error: "No players found with a score > 0. Cannot end week." }, { status: 400 });
-    }
-
-    // 3. Get Prize Settings
     const { data: s } = await supabase.from('app_settings').select('*').eq('id', 1).single();
-    if (!s || !s.active_item_id) {
-      return Response.json({ error: "No product selected in Admin Settings." }, { status: 400 });
-    }
+    if (!s || !s.active_item_id) return Response.json({ error: "Product not selected in Admin." }, { status: 400 });
 
-    // 4. Call Squarespace
     const promoCode = `WIN-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+    // --- NEW: DATES FOR SQUARESPACE ---
+    const now = new Date();
+    const start = now.toISOString(); // Current time
+    const expiry = new Date(now.setMonth(now.getMonth() + 1)).toISOString(); // 1 month from now
+
+    const payload = {
+      name: `Champ: ${winner.email}`,
+      promoCode: promoCode,
+      enabled: true,
+      startDateTime: start, // REQUIRED
+      expirationDateTime: expiry, // RECOMMENDED
+      usageLimit: 1,
+      discountRule: {
+        type: s.weekly_prize_type || 'FREE_PRODUCT',
+        productIds: [s.active_item_id]
+      }
+    };
+
     const sqRes = await fetch('https://api.squarespace.com/1.0/commerce/discounts', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${sqKey}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': 'PicnicApp/1.0'
       },
-      body: JSON.stringify({
-        name: `Champ: ${winner.email}`,
-        promoCode: promoCode,
-        discountRule: {
-          type: s.weekly_prize_type || 'FREE_PRODUCT',
-          productIds: [s.active_item_id]
-        },
-        usageLimit: 1,
-        enabled: true
-      })
+      body: JSON.stringify(payload)
     });
 
     if (!sqRes.ok) {
-      const detail = await sqRes.text();
-      return Response.json({ error: `Squarespace rejected request: ${detail}` }, { status: 500 });
+      const err = await sqRes.json();
+      // If Squarespace still fails, we now catch the specific JSON error
+      return Response.json({ error: `Squarespace Logic Error: ${JSON.stringify(err)}` }, { status: 500 });
     }
 
-    // 5. Award Prize
+    // AWARD AND RESET
     await supabase.from('rewards').insert({
       user_id: winner.id,
       prize_title: `GRAND PRIZE: ${s.prize_title}`,
       prize_code: promoCode
     });
 
-    // 6. RESET BOARD
-    // This resets high_score, scratch count and bonus for EVERYONE
-    await supabase
-      .from('profiles')
-      .update({ high_score: 0, scratch_count: 0, bonus_unlocked: false })
-      .neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('profiles').update({ high_score: 0, scratch_count: 0, bonus_unlocked: false }).not('id', 'is', null);
 
     return Response.json({ success: true, winner: winner.email });
 
