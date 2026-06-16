@@ -20,23 +20,34 @@ export default function SuperAdmin() {
   const [pId, setPId] = useState('');
   const [pTitle, setPTitle] = useState('Weekly Prize');
 
-  useEffect(() => {
+ useEffect(() => {
     async function loadData() {
       const { data: { user } } = await supabase.auth.getUser();
       const { data: prof } = await supabase.from('profiles').select('is_admin').eq('id', user?.id).single();
-      if (!prof?.is_admin) { window.location.href = "/"; return; }
+      
+      if (!prof?.is_admin) { 
+        window.location.href = "/"; 
+        return; 
+      }
 
       // Fetch Squarespace Products
-      const prodRes = await fetch('/api/squarespace/products');
-      const prodData = await prodRes.json();
-      setProducts(prodData || []);
+      try {
+        const prodRes = await fetch('/api/squarespace/products');
+        const prodData = await prodRes.json();
+        setProducts(prodData || []);
+      } catch (e) {
+        console.error("Product fetch failed");
+      }
 
       // Load App Settings
       const { data: sett } = await supabase.from('app_settings').select('*').eq('id', 1).single();
       if (sett) {
-        setStrategy(sett.redemption_strategy); setPType(sett.weekly_prize_type);
-        setPScope(sett.weekly_prize_scope); setPValue(sett.weekly_prize_value);
-        setPId(sett.active_item_id); setPTitle(sett.prize_title);
+        setStrategy(sett.redemption_strategy); 
+        setPType(sett.weekly_prize_type);
+        setPScope(sett.weekly_prize_scope); 
+        setPValue(sett.weekly_prize_value);
+        setPId(sett.active_item_id); 
+        setPTitle(sett.prize_title);
       }
 
       // Load Rankings
@@ -44,9 +55,22 @@ export default function SuperAdmin() {
       setUsers(u || []);
       if (u && u.length > 0) setCurrentTopScorer(u[0]);
 
-      // Load Scratch Pool
-      const { data: sp } = await supabase.from('scratch_prizes').select('*').order('created_at', { ascending: false });
-      setScratchPrizes(sp || []);
+      // --- FIXED SCRATCH POOL LOGIC ---
+      const { data: sp, error: spError } = await supabase
+        .from('scratch_prizes')
+        .select('*');
+
+      if (spError) {
+        console.error("Scratch Prizes load error:", spError.message);
+        setScratchPrizes([]);
+      } else if (sp) {
+        // Sort in Javascript to prevent the 400 DB error
+        const sortedPrizes = [...sp].sort((a, b) => 
+          new Date(b.created_at || 0) - new Date(a.created_at || 0)
+        );
+        setScratchPrizes(sortedPrizes);
+      }
+      // -------------------------------
       
       setLoading(false);
     }
