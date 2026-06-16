@@ -92,16 +92,29 @@ export default function SuperAdmin() {
   };
 
   const finalizeWeek = async () => {
-    if (!currentTopScorer || currentTopScorer.high_score === 0) return alert("No valid winner.");
-    if (!confirm(`Award prize to ${currentTopScorer.email} and reset board?`)) return;
+    if (!currentTopScorer || currentTopScorer.high_score === 0) {
+      alert("No one has a score yet!");
+      return;
+    }
+    
+    if (!confirm(`Award prize to ${currentTopScorer.email}?`)) return;
 
-    const res = await fetch('/api/admin/finalize-week', { method: 'POST' });
-    if (res.ok) {
-      alert("WEEK FINALIZED!");
-      window.location.reload();
+    try {
+      const res = await fetch('/api/admin/finalize-week', { method: 'POST' });
+      const result = await res.json();
+
+      if (res.ok) {
+        alert("WEEK FINALIZED: Winner awarded and scores reset!");
+        window.location.reload();
+      } else {
+        // This will now show the REAL error (e.g. Squarespace permissions)
+        alert("FAILED: " + result.error);
+      }
+    } catch (err) {
+      alert("Critical Error: Connection lost.");
     }
   };
-
+  
   const addScratchPrize = async () => {
     const title = prompt("Prize Name (e.g. 50% Off Chips)");
     const value = prompt("Value (e.g. 50)");
