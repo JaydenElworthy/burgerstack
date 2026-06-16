@@ -189,25 +189,6 @@ const handleBulkUpload = async () => {
   }
 };
 
-// ... In your return JSX ...
-<div className="bg-white p-8 rounded-[2.5rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-10">
-  <h2 className="text-xl font-bold uppercase italic mb-4">1. Load Squarespace Codes</h2>
-  <p className="text-[10px] uppercase font-bold opacity-40 mb-4">Paste the codes you created in Squarespace (One per line)</p>
-  
-  <textarea 
-    value={rawCodes}
-    onChange={(e) => setRawCodes(e.target.value)}
-    className="w-full h-40 border-4 border-black p-4 rounded-2xl font-mono text-sm mb-4"
-    placeholder="CHAMP-001&#10;CHAMP-002&#10;CHAMP-003"
-  />
-  
-  <button 
-    onClick={handleBulkUpload}
-    className="w-full bg-blue-500 text-white py-4 rounded-xl font-black uppercase italic shadow-lg active:translate-y-1 transition-all"
-  >
-    Inject Codes into App
-  </button>
-</div>
   const addScratchPrize = async () => {
     const title = prompt("Prize Name (e.g. 50% Off Chips)");
     const value = prompt("Value (e.g. 50)");
