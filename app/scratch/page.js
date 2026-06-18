@@ -13,8 +13,7 @@ export default function ScratchCard() {
   const [isRevealed, setIsRevealed] = useState(false); 
   const [isInitialized, setIsInitialized] = useState(false);
   
-  // NEW: State for locking logic
-  const [status, setStatus] = useState('loading'); // 'can_scratch', 'locked_need_points', 'locked_until_sunday'
+  const [status, setStatus] = useState('loading'); 
   const [userProfile, setProfile] = useState(null);
 
   useEffect(() => { setMounted(true); }, []);
@@ -34,69 +33,99 @@ export default function ScratchCard() {
       const now = new Date();
       const lastScratch = prof.last_scratch_date ? new Date(prof.last_scratch_date) : new Date(0);
       const lastSunday = new Date();
-      lastSunday.setDate(now.getDate() - now.getDay()); // Go to this past Sunday
-      lastSunday.setHours(0, 1, 0, 0); // 12:01 AM
+      lastSunday.setDate(now.getDate() - now.getDay()); 
+      lastSunday.setHours(0, 1, 0, 0); 
 
       if (lastScratch < lastSunday) {
-        // It is a new week! Reset their counts in the database
         await supabase.from('profiles').update({ scratch_count: 0, bonus_unlocked: false }).eq('id', user.id);
         setStatus('can_scratch');
+        setIsRevealed(false); // Make sure gray layer shows on new week
         return;
       }
 
-      // --- SCRATCH LIMIT LOGIC ---
+      // --- SCRATCH LIMIT LOGIC (FIXED FOR PERSISTENCE) ---
       if (prof.scratch_count === 0) {
         setStatus('can_scratch');
+        setIsRevealed(false); // Show the gray card
       } else if (prof.scratch_count === 1) {
         if (prof.bonus_unlocked) {
           setStatus('can_scratch');
+          setIsRevealed(false); // Show the gray card for the bonus
         } else {
           setStatus('locked_need_points');
+          setIsRevealed(true); // HIDE gray card so they see the Lock icon
         }
       } else {
         setStatus('locked_until_sunday');
+        setIsRevealed(true); // HIDE gray card so they see the Sunday message
       }
     }
     checkStatus();
   }, [mounted]);
 
+  // Moved handleReveal outside to prevent stale state issues
+  const handleReveal = async () => {
+    setIsRevealed(true);
+    confetti();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: prizes } = await supabase.from('scratch_prizes').select('*').eq('is_active', true);
+    if (!prizes || prizes.length === 0) return;
+    
+    const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
+
+    const { data: codeRow } = await supabase.from('manual_code_bank')
+      .select('*').eq('prize_type', randomPrize.id).eq('is_claimed', false).limit(1).single();
+
+    if (codeRow) {
+      await supabase.from('manual_code_bank').update({ is_claimed: true, claimed_by: user.id }).eq('id', codeRow.id);
+      await supabase.from('rewards').insert({
+        user_id: user.id,
+        prize_title: randomPrize.title,
+        prize_code: codeRow.code
+      });
+    }
+
+    const nextCount = (userProfile?.scratch_count || 0) + 1;
+    await supabase.from('profiles').update({ 
+      scratch_count: nextCount, 
+      last_scratch_date: new Date().toISOString() 
+    }).eq('id', user.id);
+  };
+
   // 3. CANVAS LOGIC
   useEffect(() => {
-    if (!mounted || !canvasRef.current || status !== 'can_scratch') return;
+    if (!mounted || !canvasRef.current || status !== 'can_scratch' || isRevealed) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
-    // inside your useEffect that runs when status === 'can_scratch'
-if (!isInitialized) {
-  canvas.width = 320;
-  canvas.height = 320;
+    if (!isInitialized) {
+      canvas.width = 320;
+      canvas.height = 320;
+      ctx.fillStyle = '#222';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // background scratch layer
-  ctx.fillStyle = '#222';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const line = 'PICNIC • PICNIC • PICNIC • PICNIC • PICNIC';
+      const lines = 9;                
+      const fontSize = 20;            
+      const lineHeight = fontSize * 1.6;
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#444';
 
-  // text setup: center horizontally and vertically
-  const line = 'PICNIC • PICNIC • PICNIC • PICNIC • PICNIC';
-  const lines = 9;                // number of repeated lines
-  const fontSize = 20;            // px (tweak as needed)
-  const lineHeight = fontSize * 1.6;
-  ctx.font = `bold ${fontSize}px sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#444';
+      const totalHeight = (lines - 1) * lineHeight;
+      const startY = canvas.height / 2 - totalHeight / 2;
 
-  // compute starting Y so block of lines is vertically centered
-  const totalHeight = (lines - 1) * lineHeight;
-  const startY = canvas.height / 2 - totalHeight / 2;
-
-  for (let i = 0; i < lines; i++) {
-    const y = startY + i * lineHeight;
-    ctx.fillText(line, canvas.width / 2, y);
-  }
-
-  setIsInitialized(true);
-}
+      for (let i = 0; i < lines; i++) {
+        const y = startY + i * lineHeight;
+        ctx.fillText(line, canvas.width / 2, y);
+      }
+      setIsInitialized(true);
+    }
 
     const scratch = (x, y) => {
       ctx.globalCompositeOperation = 'destination-out';
@@ -107,8 +136,8 @@ if (!isInitialized) {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const pixels = imageData.data;
       let clearPixels = 0;
-      for (let i = 3; i < pixels.length; i += 4) {
-        if (pixels[i] === 0) clearPixels++;
+      for (let i = 0; i < pixels.length; i += 4) {
+        if (pixels[i + 3] === 0) clearPixels++;
       }
       if (clearPixels > (pixels.length / 4) * 0.5) {
         if (!isRevealed) {
@@ -117,43 +146,12 @@ if (!isInitialized) {
       }
     };
 
-    const handleReveal = async () => {
-  setIsRevealed(true);
-  confetti();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-
-  // 1. Pick a random active prize type
-  const { data: prizes } = await supabase.from('scratch_prizes').select('*').eq('is_active', true);
-  const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
-
-  // 2. Grab an unused code for THAT prize
-  const { data: codeRow } = await supabase.from('manual_code_bank')
-    .select('*').eq('prize_type', randomPrize.id).eq('is_claimed', false).limit(1).single();
-
-  if (codeRow) {
-    // 3. Award the prize
-    await supabase.from('manual_code_bank').update({ is_claimed: true, claimed_by: user.id }).eq('id', codeRow.id);
-    await supabase.from('rewards').insert({
-      user_id: user.id,
-      prize_title: randomPrize.title,
-      prize_code: codeRow.code
-    });
-  }
-
-  // 4. Increment scratch count
-  await supabase.from('profiles').update({ scratch_count: (userProfile?.scratch_count || 0) + 1, last_scratch_date: new Date().toISOString() }).eq('id', user.id);
-};
-
     const handleMove = (e) => {
       if (e.cancelable) e.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      const x = clientX - rect.left;
-      const y = clientY - rect.top;
-      if (e.buttons === 1 || e.touches) scratch(x, y);
+      if (e.buttons === 1 || e.touches) scratch(clientX - rect.left, clientY - rect.top);
     };
 
     canvas.addEventListener('mousemove', handleMove);
@@ -169,27 +167,23 @@ if (!isInitialized) {
 
   return (
     <div className="min-h-screen bg-[#E55937] flex flex-col items-center p-6 font-sans overflow-hidden">
-      {/* Header */}
       <div className="w-full flex justify-between items-center mb-10 pt-4 px-2">
         <Link href="/"><ArrowLeft size={32} className="text-[#FFE974]" /></Link>
         <h1 className="text-2xl font-bold uppercase text-[#FFE974]">Picnic At Home</h1>
         <div className="w-8" />
       </div>
 
-      {/* Hero Text */}
-<div className="text-center mb-8 px-4">
-  <h2 className="text-[12vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">
-    {status === 'loading' && 'Loading...'}
-    {status === 'can_scratch' && 'Scratch to Win'}
-    {status === 'locked_need_points' && 'BONUS LOCKED'}
-    {status === 'locked_until_sunday' && 'No Scratches Left — Reset Sunday'}
-  </h2>
-</div>
+      <div className="text-center mb-8 px-4">
+        <h2 className="text-[12vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">
+          {status === 'loading' && 'Loading...'}
+          {status === 'can_scratch' && 'Scratch to Win'}
+          {status === 'locked_need_points' && 'BONUS LOCKED'}
+          {status === 'locked_until_sunday' && 'No Scratches Left'}
+        </h2>
+      </div>
 
-      {/* Card Container */}
       <div className="relative w-80 h-80 bg-[#FFE974] border-8 border-black rounded-[2.5rem] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
         
-        {/* Under Layer (The content changes based on status) */}
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center select-none">
             {status === 'locked_need_points' ? (
               <>
@@ -205,13 +199,12 @@ if (!isInitialized) {
               <>
                 <Ticket size={64} className="mb-4 text-[#E55937]" />
                 <p className="text-[10px] font-black uppercase opacity-60 tracking-widest text-[#E55937]">Picnic At Home</p>
-                <h3 className="text-3xl font-bold uppercase textAlign-center leading-tight mb-4 text-[#E55937]">Play Burger Slinger To Win Another Scratch Card</h3>
+                <h3 className="text-3xl font-bold uppercase text-center leading-tight mb-4 text-[#E55937]">Play Burger Slinger To Win Another Scratch Card</h3>
                 <p className="text-white bg-[#E55937] px-4 py-1 rounded-full text-[10px] font-bold uppercase">Refreshes Every Sunday</p>
               </>
             )}
         </div>
 
-        {/* Scratch Layer - Only render if they are allowed to scratch */}
         {status === 'can_scratch' && (
           <canvas 
             ref={canvasRef} 
@@ -221,14 +214,9 @@ if (!isInitialized) {
         )}
       </div>
 
-      {/* Reveal Actions */}
       <AnimatePresence>
         {isRevealed && (
-            <motion.div 
-              initial={{ y: 50, opacity: 0 }} 
-              animate={{ y: 0, opacity: 1 }} 
-              className="mt-10 text-center w-full px-4"
-            >
+            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mt-10 text-center w-full px-4">
                 <Link href="/game" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-2xl shadow-xl hover:bg-[#E55937] transition-colors">
                     Win Another Scratch Card
                 </Link>
@@ -236,17 +224,16 @@ if (!isInitialized) {
         )}
       </AnimatePresence>
 
-     {/* Instruction Tip (dynamic link) */}
-{!isRevealed && (
-  <Link href={status === 'locked_need_points' ? '/game' : '/game'} className="mt-12 block mx-4">
-    <div className="p-5 bg-[#FFE974] border-4 border-black rounded-3xl flex gap-4 items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFE974]">
-      {status === 'locked_need_points' ? <Lock size={28} className="text-[#E55937]" /> : <Trophy size={28} className="shrink-0 text-[#E55937]" />}
-      <p className="text-[10px] font-bold uppercase tracking-tight leading-tight text-center text-[#E55937]">
-        {status === 'locked_need_points' ? 'GET 25 POINTS IN THE GAME TO UNLOCK' : 'PLAY BURGER SLINGER TO WIN ANOTHER SCRATCH CARD'}
-      </p>
+      {!isRevealed && (
+        <Link href="/game" className="mt-12 block mx-4">
+          <div className="p-5 bg-[#FFE974] border-4 border-black rounded-3xl flex gap-4 items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer">
+            {status === 'locked_need_points' ? <Lock size={28} className="text-[#E55937]" /> : <Trophy size={28} className="shrink-0 text-[#E55937]" />}
+            <p className="text-[10px] font-bold uppercase tracking-tight leading-tight text-left text-[#E55937]">
+              {status === 'locked_need_points' ? 'GET 25 POINTS IN THE GAME TO UNLOCK' : 'PLAY BURGER SLINGER TO WIN ANOTHER SCRATCH CARD'}
+            </p>
+          </div>
+        </Link>
+      )}
     </div>
-  </Link>
-)}
-  </div>
   ); 
 }
