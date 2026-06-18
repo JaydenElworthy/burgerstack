@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'; 
 import Link from 'next/link'; 
-import { ArrowLeft, Ticket, Trophy, Lock, Clock, CheckCircle2, Sparkles, UserCircle2 } from 'lucide-react';
+import { ArrowLeft, Ticket, Trophy, Lock, Clock, CheckCircle2, Sparkles, UserCircle2, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { supabase } from '../../lib/supabase';
@@ -13,27 +13,27 @@ export default function ScratchCard() {
   const [isRevealed, setIsRevealed] = useState(false); 
   const [isInitialized, setIsInitialized] = useState(false);
   
-  // ADDED: 'no_auth' to status types
-  const [status, setStatus] = useState('loading'); 
+  const [status, setStatus] = useState('loading'); // can_scratch, locked_points, bonus_used
+  const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [prizeResult, setPrizeResult] = useState(null); // { title, code } or null
 
   useEffect(() => { setMounted(true); }, []);
 
-  // 1. GATEKEEPER LOGIC
+  // 1. AUTH & ELIGIBILITY LOGIC
   useEffect(() => {
     if (!mounted) return;
 
-    async function checkEligibility() {
-      const { data: { user } } = await supabase.auth.getUser();
+    async function checkStatus() {
+      const { data: { user: activeUser } } = await supabase.auth.getUser();
+      setUser(activeUser);
       
-      // FIX: Handle Guest User
-      if (!user) {
-        setStatus('no_auth');
-        setIsRevealed(true); // Hide gray card for guests
+      if (!activeUser) {
+        setStatus('can_scratch'); // Guests can always scratch (but not save)
         return;
       }
 
-      const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data: prof } = await supabase.from('profiles').select('*').eq('id', activeUser.id).single();
       setProfile(prof);
 
       // --- SUNDAY RESET ---
@@ -44,9 +44,8 @@ export default function ScratchCard() {
       const lastScratch = prof?.last_scratch_date ? new Date(prof.last_scratch_date) : new Date(0);
 
       if (lastScratch < lastSunday && prof?.scratch_count > 0) {
-        await supabase.from('profiles').update({ scratch_count: 0, bonus_unlocked: false }).eq('id', user.id);
+        await supabase.from('profiles').update({ scratch_count: 0, bonus_unlocked: false }).eq('id', activeUser.id);
         setStatus('can_scratch');
-        setIsRevealed(false);
         return;
       }
 
@@ -65,26 +64,55 @@ export default function ScratchCard() {
         setIsRevealed(true);
       }
     }
-    checkEligibility();
+    checkStatus();
   }, [mounted]);
 
+  // 2. REVEAL LOGIC
   const handleReveal = async () => {
     if (isRevealed) return;
     setIsRevealed(true);
-    confetti();
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    // Randomize Win/Loss (80% win chance for demo)
+    const winRoll = Math.random() > 0.2;
 
-    // Pick Prize Logic (Keep your existing random code pool logic here)
-    const nextCount = (profile?.scratch_count || 0) + 1;
-    await supabase.from('profiles').update({ 
-        scratch_count: nextCount,
-        last_scratch_date: new Date().toISOString()
-    }).eq('id', user.id);
+    if (winRoll) {
+      // 1. Pick a random prize category
+      const { data: prizes } = await supabase.from('scratch_prizes').select('*').eq('is_active', true);
+      const randomCat = prizes?.[Math.floor(Math.random() * prizes.length)];
+
+      if (randomCat) {
+        // 2. Grab a real code from the bank
+        const { data: codeRow } = await supabase.from('manual_code_bank')
+          .select('*').eq('prize_type', randomCat.id).eq('is_claimed', false).limit(1).single();
+
+        if (codeRow) {
+          setPrizeResult({ title: randomCat.title, code: codeRow.code });
+          confetti();
+          
+          // 3. Save to DB if Logged In
+          if (user) {
+            await supabase.from('manual_code_bank').update({ is_claimed: true, claimed_by: user.id }).eq('id', codeRow.id);
+            await supabase.from('rewards').insert({
+              user_id: user.id,
+              prize_title: randomCat.title,
+              prize_code: codeRow.code
+            });
+          }
+        } else { setPrizeResult(null); } // No codes left = Loss
+      }
+    } else { setPrizeResult(null); } // Explicit Loss
+
+    // 4. Update Profile if Logged In
+    if (user) {
+      const nextCount = (profile?.scratch_count || 0) + 1;
+      await supabase.from('profiles').update({ 
+          scratch_count: nextCount,
+          last_scratch_date: new Date().toISOString()
+      }).eq('id', user.id);
+    }
   };
 
-  // 3. CANVAS ENGINE (Only if can_scratch)
+  // 3. CANVAS ENGINE
   useEffect(() => {
     if (!mounted || !canvasRef.current || status !== 'can_scratch' || isRevealed) return;
     const canvas = canvasRef.current;
@@ -130,21 +158,15 @@ export default function ScratchCard() {
 
       <div className="text-center mb-8 px-4">
         <h2 className="text-[10vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter">
-            {status === 'no_auth' ? 'Join the Club' : status === 'locked_points' ? 'Bonus Locked' : status === 'bonus_used' ? 'All Done' : 'Daily Drop'}
+            {status === 'locked_points' ? 'BONUS LOCKED' : status === 'bonus_used' ? 'ALL DONE' : 'Daily Drop'}
         </h2>
       </div>
 
-      {/* THE TICKET DESIGN */}
+      {/* TICKET DESIGN */}
       <div className="relative w-80 h-80 bg-[#FFE974] border-8 border-black rounded-[2.5rem] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
         
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center select-none text-[#E55937]">
-            {/* GUEST VIEW */}
-            {status === 'no_auth' ? (
-              <>
-                <UserCircle2 size={64} className="mb-4 opacity-40" />
-                <h3 className="text-xl font-bold uppercase italic leading-tight">Please sign in to scratch your daily card and win prizes!</h3>
-              </>
-            ) : status === 'locked_points' ? (
+            {status === 'locked_points' ? (
               <>
                 <Lock size={64} className="mb-4 animate-bounce" />
                 <h3 className="text-xl font-bold uppercase italic leading-tight">Score 25 points in the game to unlock your next scratch!</h3>
@@ -154,11 +176,18 @@ export default function ScratchCard() {
                 <CheckCircle2 size={64} className="mb-4" />
                 <h3 className="text-xl font-bold uppercase italic leading-tight">Weekly bonus used!<br/>Resetting Sunday.</h3>
               </>
-            ) : (
+            ) : prizeResult ? (
               <div className="flex flex-col items-center">
                 <Ticket size={64} className="mb-2 rotate-[-10deg]" />
                 <h3 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2">WINNER!</h3>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">Check your wallet</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60 mb-2">{prizeResult.title}</p>
+                {!user && <p className="text-[8px] bg-[#E55937] text-white px-2 py-1 rounded-full font-bold uppercase">Sign in to save this reward!</p>}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <XCircle size={64} className="mb-4 opacity-20" />
+                <h3 className="text-2xl font-black uppercase tracking-tighter leading-none mb-2 opacity-40">NOT THIS TIME!</h3>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-30">Play Burger Slinger for more chances</p>
               </div>
             )}
 
@@ -167,21 +196,21 @@ export default function ScratchCard() {
             <div className="absolute -right-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#E55937] border-l-8 border-black rounded-full" />
         </div>
 
-        {/* SCRATCH LAYER (Only for users who haven't scratched) */}
+        {/* SCRATCH LAYER */}
         {status === 'can_scratch' && !isRevealed && (
           <canvas ref={canvasRef} style={{ touchAction: 'none' }} className="absolute inset-0 cursor-crosshair z-20" />
         )}
       </div>
 
-      {/* ACTION BUTTONS */}
+      {/* DYNAMIC ACTION BUTTONS */}
       <div className="mt-10 w-full px-4">
-        {status === 'no_auth' ? (
+        {!user && isRevealed ? (
             <Link href="/login" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-xl shadow-xl text-center border-4 border-black">
-                Sign In to Play
+                Sign In to Save Reward
             </Link>
         ) : (isRevealed || status !== 'can_scratch') ? (
-            <Link href={status === 'locked_points' ? "/game" : "/"} className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-xl shadow-xl text-center border-4 border-black active:translate-y-1 transition-all">
-                {status === 'locked_points' ? "Play Game (Need 25pts)" : "Back to Dashboard"}
+            <Link href="/game" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-xl shadow-xl text-center border-4 border-black active:translate-y-1 transition-all">
+                Play Burger Slinger To Win Another Scratch Card
             </Link>
         ) : (
             <div className="p-5 bg-[#FFE974]/20 border-4 border-black border-dashed rounded-3xl flex gap-4 items-center">
