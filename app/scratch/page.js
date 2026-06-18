@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'; 
 import Link from 'next/link'; 
-import { ArrowLeft, Ticket, Trophy, Lock, Clock, Sparkles } from 'lucide-react';
+import { ArrowLeft, Ticket, Trophy, Lock, Clock, CheckCircle2, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { supabase } from '../../lib/supabase';
@@ -12,12 +12,12 @@ export default function ScratchCard() {
   const [mounted, setMounted] = useState(false); 
   const [isRevealed, setIsRevealed] = useState(false); 
   const [isInitialized, setIsInitialized] = useState(false);
-  const [status, setStatus] = useState('loading'); // loading, can_scratch, locked_points, locked_sunday
+  const [status, setStatus] = useState('loading'); 
   const [profile, setProfile] = useState(null);
 
   useEffect(() => { setMounted(true); }, []);
 
-  // 1. GATEKEEPER LOGIC: Checks if the user is actually allowed to see the gray layer
+  // 1. GATEKEEPER LOGIC
   useEffect(() => {
     if (!mounted) return;
 
@@ -33,7 +33,6 @@ export default function ScratchCard() {
       const lastSunday = new Date();
       lastSunday.setDate(now.getDate() - now.getDay());
       lastSunday.setHours(0, 1, 0, 0);
-
       const lastScratch = prof.last_scratch_date ? new Date(prof.last_scratch_date) : new Date(0);
 
       if (lastScratch < lastSunday && prof.scratch_count > 0) {
@@ -42,29 +41,29 @@ export default function ScratchCard() {
         return;
       }
 
-      // --- THE 5-SCENARIO LOGIC ---
+      // --- STATUS BRANCHING ---
       if (prof.scratch_count === 0) {
-        setStatus('can_scratch'); // Show gray layer
+        setStatus('can_scratch');
       } else if (prof.scratch_count === 1) {
         if (prof.bonus_unlocked) {
-          setStatus('can_scratch'); // Unlocked via game! Show gray layer again
+          setStatus('can_scratch'); // Allowed to scratch the bonus!
         } else {
-          setStatus('locked_points'); // HIDE gray layer, show Lock
+          setStatus('locked_points'); // Need 25 points
         }
       } else {
-        setStatus('locked_sunday'); // HIDE gray layer, show Sunday message
+        setStatus('bonus_used'); // Both scratches done for the week
       }
     }
     checkEligibility();
   }, [mounted]);
 
-  // 2. SCRATCH FINISHED LOGIC
+  // 2. REVEAL LOGIC
   const handleReveal = async () => {
     if (isRevealed) return;
     setIsRevealed(true);
     confetti();
 
-    // Update database immediately so refresh doesn't reset it
+    // Increment count in DB immediately
     const nextCount = (profile?.scratch_count || 0) + 1;
     await supabase.from('profiles').update({ 
         scratch_count: nextCount,
@@ -75,7 +74,6 @@ export default function ScratchCard() {
   // 3. CANVAS ENGINE
   useEffect(() => {
     if (!mounted || !canvasRef.current || status !== 'can_scratch') return;
-
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
@@ -118,44 +116,50 @@ export default function ScratchCard() {
       {/* HEADER */}
       <div className="w-full flex justify-between items-center mb-10 pt-4 px-2">
         <Link href="/"><ArrowLeft size={32} /></Link>
-        <h1 className="text-2xl font-bold uppercase tracking-tighter italic">Picnic At Home</h1>
+        <h1 className="text-2xl font-bold uppercase tracking-tighter italic text-[#FFE974]">Picnic At Home</h1>
         <div className="w-8" />
       </div>
 
       <div className="text-center mb-8 px-4">
         <h2 className="text-[10vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter">
-            {status === 'locked_points' ? 'Bonus Locked' : 'Daily Drop'}
+            {status === 'locked_points' ? 'BONUS LOCKED' : status === 'bonus_used' ? 'ALL DONE' : 'Daily Drop'}
         </h2>
       </div>
 
-      {/* THE CARD DESIGN */}
+      {/* THE TICKET DESIGN */}
       <div className="relative w-80 h-80 bg-[#FFE974] border-8 border-black rounded-[2.5rem] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
         
-        {/* UNDER-LAYER DESIGN (Restored Winnings Design) */}
+        {/* Ticket Content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center select-none text-[#E55937]">
             {status === 'locked_points' ? (
               <>
                 <Lock size={64} className="mb-4 animate-bounce" />
                 <h3 className="text-xl font-bold uppercase italic leading-tight">Score 25 points in the game to unlock your next scratch!</h3>
               </>
-            ) : status === 'locked_sunday' ? (
+            ) : status === 'bonus_used' ? (
               <>
-                <Clock size={64} className="mb-4" />
-                <h3 className="text-xl font-bold uppercase italic leading-tight">No Scratches Left!<br/>Resetting Sunday at 12:01AM</h3>
+                <CheckCircle2 size={64} className="mb-4 text-[#E55937]" />
+                <h3 className="text-xl font-bold uppercase italic leading-tight px-4">Weekly bonus already used!<br/>Come back Sunday.</h3>
               </>
             ) : (
-              <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}>
-                <Ticket size={64} className="mb-4 mx-auto rotate-[-10deg]" />
-                <h3 className="text-3xl font-bold uppercase tracking-tighter leading-none mb-2">Winner!</h3>
-                <p className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-4 text-black">Weekly Prize Slot Secured</p>
-                <div className="bg-[#E55937] text-white px-4 py-2 rounded-xl font-black uppercase text-xs shadow-lg">
-                    Logged to Leaderboard
-                </div>
-              </motion.div>
+              <div className="flex flex-col items-center">
+                <Ticket size={64} className="mb-2 rotate-[-10deg]" />
+                <div className="w-16 h-1 bg-[#E55937]/20 rounded-full mb-4" />
+                <h3 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2">WINNER!</h3>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">Prize logged to basket</p>
+              </div>
             )}
+
+            {/* Old Ticket Cutouts (The half circles on sides) */}
+            <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#E55937] border-r-8 border-black rounded-full" />
+            <div className="absolute -right-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#E55937] border-l-8 border-black rounded-full" />
+            
+            {/* Dashed line effect */}
+            <div className="absolute top-[20%] left-0 w-full border-t-4 border-dashed border-black/10" />
+            <div className="absolute bottom-[20%] left-0 w-full border-t-4 border-dashed border-black/10" />
         </div>
 
-        {/* SCRATCH LAYER: Only exists if they have a turn and haven't revealed yet */}
+        {/* SCRATCH LAYER */}
         {status === 'can_scratch' && !isRevealed && (
           <canvas 
             ref={canvasRef} 
@@ -168,7 +172,7 @@ export default function ScratchCard() {
       {/* BOTTOM ACTIONS */}
       <div className="mt-10 w-full px-4">
         <AnimatePresence>
-            {isRevealed || status !== 'can_scratch' ? (
+            {(isRevealed || status !== 'can_scratch') ? (
                 <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
                     <Link href={status === 'locked_points' ? "/game" : "/"} className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-xl shadow-xl text-center border-4 border-black active:translate-y-1 transition-all">
                         {status === 'locked_points' ? "Play Game (Need 25pts)" : "Back to Dashboard"}
@@ -177,7 +181,7 @@ export default function ScratchCard() {
             ) : (
                 <div className="p-5 bg-[#FFE974]/20 border-4 border-black border-dashed rounded-3xl flex gap-4 items-center">
                     <Sparkles size={28} className="text-[#FFE974]" />
-                    <p className="text-[10px] font-bold uppercase text-white tracking-widest">Scratch the card with your finger to reveal the prize!</p>
+                    <p className="text-[10px] font-bold uppercase text-white tracking-widest">Scratch the card to reveal your picnic prize!</p>
                 </div>
             )}
         </AnimatePresence>
