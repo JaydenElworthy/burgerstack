@@ -1,8 +1,8 @@
 'use client'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowLeft, AlertCircle, Trophy, Home, Lock, CheckCircle2, Ticket } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Trophy, Home, Lock, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { supabase } from '../../lib/supabase';
 
@@ -15,9 +15,50 @@ export default function BurgerGame() {
   const [isExiting, setIsExiting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false); 
   const [baseCount, setBaseCount] = useState(0);
-  
-  // NEW: State to handle the 5 dynamic result scenarios
   const [bonusResult, setBonusResult] = useState(""); 
+
+  // --- AUDIO REFS ---
+  const musicRef = useRef(null);
+  const currentSong = useRef(1); // Track which song is playing
+  const sfxPlace = useRef(null);
+  const sfxWrong = useRef(null);
+  const sfxWin = useRef(null);
+
+  // Initialize Audio Objects
+  useEffect(() => {
+    sfxPlace.current = new Audio('/sounds/place.mp3');
+    sfxWrong.current = new Audio('/sounds/wrong.mp3');
+    sfxWin.current = new Audio('/sounds/win.mp3');
+    
+    // Set volumes
+    sfxPlace.current.volume = 0.6;
+    sfxWrong.current.volume = 0.5;
+    sfxWin.current.volume = 0.8;
+  }, []);
+
+  // --- MUSIC ROTATION ENGINE ---
+  const startMusic = () => {
+    if (musicRef.current) musicRef.current.pause();
+    
+    const songPath = `/sounds/song${currentSong.current}.mp3`;
+    musicRef.current = new Audio(songPath);
+    musicRef.current.volume = 0.3; // Background music lower
+    musicRef.current.loop = false;
+    
+    musicRef.current.onended = () => {
+      currentSong.current = currentSong.current === 1 ? 2 : 1; // Switch 1 <-> 2
+      startMusic();
+    };
+    
+    musicRef.current.play().catch(e => console.log("Audio block:", e));
+  };
+
+  const stopMusic = () => {
+    if (musicRef.current) {
+      musicRef.current.pause();
+      musicRef.current = null;
+    }
+  };
 
   // --- TIMER LOGIC ---
   useEffect(() => {
@@ -29,48 +70,48 @@ export default function BurgerGame() {
     }
   }, [gameState, timeLeft]);
 
-  // --- UNIFIED END GAME LOGIC ---
+  const saveHighScore = async (finalScore) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      if (finalScore >= 25) {
+        await supabase.from('profiles').update({ bonus_unlocked: true }).eq('id', user.id);
+      }
+      const { data: profile } = await supabase.from('profiles').select('high_score').eq('id', user.id).single();
+      if (finalScore > (profile?.high_score || 0)) {
+        await supabase.from('profiles').update({ high_score: finalScore }).eq('id', user.id);
+      }
+    } catch (err) { console.error(err); }
+  };
+
   const endGame = async (status) => {
+    stopMusic(); // Stop BG music on end
     setGameState(status);
-    const finalScore = score;
+    
+    if (status === 'won') {
+      sfxWin.current?.play();
+      confetti();
+    } else {
+      sfxWrong.current?.play();
+    }
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Fetch current profile status
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
     const hadBonus = profile?.bonus_unlocked || false;
 
     if (status === 'lost') {
-      // SCENARIO 1: LOST
       setBonusResult("lost");
     } else {
-      // SCENARIO 2-5: WON (COMPLETED TIME)
-      confetti();
-      if (finalScore >= 25) {
-        if (!hadBonus) {
-          // SCENARIO 3: WIN + NEW UNLOCK
-          setBonusResult("new_unlock");
-          await supabase.from('profiles').update({ bonus_unlocked: true }).eq('id', user.id);
-        } else {
-          // SCENARIO 5: WIN + ALREADY HAD
-          setBonusResult("already_had_high");
-        }
+      if (score >= 25) {
+        setBonusResult(hadBonus ? "already_had_high" : "new_unlock");
+        if (!hadBonus) await supabase.from('profiles').update({ bonus_unlocked: true }).eq('id', user.id);
       } else {
-        if (!hadBonus) {
-          // SCENARIO 2: WIN + UNDER 25
-          setBonusResult("missed_bonus");
-        } else {
-          // SCENARIO 4: WIN + UNDER 25 + ALREADY HAD
-          setBonusResult("already_had_low");
-        }
+        setBonusResult(hadBonus ? "already_had_low" : "missed_bonus");
       }
     }
-
-    // Always save high score if it's a PB
-    if (finalScore > (profile?.high_score || 0)) {
-      await supabase.from('profiles').update({ high_score: finalScore }).eq('id', user.id);
-    }
+    saveHighScore(score);
   };
 
   const spawnBurger = () => {
@@ -100,18 +141,21 @@ export default function BurgerGame() {
       return;
     }
 
+    // Play Placement Sound
+    sfxPlace.current?.cloneNode(true).play(); 
+
     setIsProcessing(true);
     setStack(prev => [...prev, { type: nextPiece, id: `d-${Date.now()}` }]);
 
     if (nextPiece === 'top-bun') {
       setScore(prev => prev + 1);
-      setTimeout(() => setIsExiting(true), 600);
+      setTimeout(() => { setIsExiting(true); }, 600);
       setTimeout(() => {
         setBurgerId(prev => prev + 1);
         spawnBurger();
       }, 1100);
     } else {
-      setTimeout(() => setIsProcessing(false), 250);
+      setTimeout(() => { setIsProcessing(false); }, 250);
     }
   };
 
@@ -158,7 +202,7 @@ export default function BurgerGame() {
       </div>
 
       {/* CONTROLS */}
-      <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-50">
+      <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-50 shadow-2xl">
         <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">PATTY</button>
         <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">CHEESE</button>
         <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-[#E55937] text-white border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">BUN</button>
@@ -167,7 +211,7 @@ export default function BurgerGame() {
       {/* DYNAMIC RESULTS OVERLAY */}
       {gameState !== 'playing' && (
         <div className="absolute inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center p-8 text-center text-white">
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-sm">
+          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-sm font-sans">
             
             <div className="mb-6 flex flex-col items-center">
               {bonusResult === "lost" && (
@@ -182,8 +226,8 @@ export default function BurgerGame() {
                 <>
                   <Trophy size={80} className="text-[#FFE974] mb-4" />
                   <h1 className="text-5xl font-black tracking-tighter text-[#FFE974]">BONUS UNLOCKED!</h1>
-                  <p className="text-lg font-bold uppercase mb-4 bg-white text-black px-4 py-1 rounded-full">Score: {score}</p>
-                  <p className="text-sm opacity-80 uppercase">You've earned a bonus Scratch Card. Claim it in your wallet!</p>
+                  <p className="text-lg font-bold uppercase mb-4 bg-white text-black px-4 py-1 rounded-full text-center">Score: {score}</p>
+                  <p className="text-sm opacity-80 uppercase">Check your wallet for the extra card!</p>
                 </>
               )}
 
@@ -191,25 +235,25 @@ export default function BurgerGame() {
                 <>
                   <Trophy size={80} className="text-white/20 mb-4" />
                   <h1 className="text-5xl font-black tracking-tighter text-[#FFE974]">SHIFT COMPLETE!</h1>
-                  <p className="text-xl font-bold uppercase mb-4">Score: {score}</p>
-                  <div className="flex items-center gap-2 text-xs uppercase bg-white/10 px-4 py-2 rounded-xl border border-white/20">
+                  <p className="text-xl font-bold uppercase mb-4 text-center">Score: {score}</p>
+                  <div className="flex items-center justify-center gap-2 text-xs uppercase bg-white/10 px-4 py-2 rounded-xl border border-white/20">
                     <Lock size={14}/> Need 25+ for Bonus Scratch
                   </div>
                 </>
               )}
 
-              {(bonusResult === "already_had_high" || bonusResult === "already_had_low") && (
+              {(bonusResult.includes("already_had")) && (
                 <>
                   <CheckCircle2 size={80} className="text-[#FFE974] mb-4" />
                   <h1 className="text-5xl font-black tracking-tighter text-[#FFE974]">SHIFT COMPLETE!</h1>
-                  <p className="text-xl font-bold uppercase mb-4">Score: {score}</p>
+                  <p className="text-xl font-bold uppercase mb-4 text-center">Score: {score}</p>
                   <p className="text-xs opacity-60 uppercase italic">Weekly bonus already claimed!</p>
                 </>
               )}
 
               {gameState === 'start' && (
                 <>
-                  <h1 className="text-6xl font-black tracking-tighter text-[#FFE974] mb-4">BURGER SLINGER</h1>
+                  <h1 className="text-6xl font-black tracking-tighter text-[#FFE974] mb-4 leading-none">BURGER SLINGER</h1>
                   <p className="text-sm opacity-70 uppercase tracking-widest leading-relaxed">Stack 25 burgers in order to win a weekly bonus scratch card</p>
                 </>
               )}
@@ -217,7 +261,10 @@ export default function BurgerGame() {
 
             <div className="space-y-4 w-full">
               <button 
-                onClick={() => { setScore(0); setTimeLeft(60); setGameState('playing'); spawnBurger(); setBonusResult(""); }} 
+                onClick={() => { 
+                  setScore(0); setTimeLeft(60); setGameState('playing'); spawnBurger(); setBonusResult("");
+                  startMusic(); // Trigger music on user click
+                }} 
                 className="w-full bg-[#FFE974] border-4 border-black text-black py-5 rounded-full font-black text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-all"
               >
                 {gameState === 'start' ? 'START SHIFT' : 'TRY AGAIN'}
@@ -229,12 +276,6 @@ export default function BurgerGame() {
                 </Link>
               )}
             </div>
-
-            <div className="mt-8 border-t border-white/10 pt-6">
-               <h2 className="text-xs font-black uppercase text-[#FFE974] mb-2 tracking-widest">Stack Sequence</h2>
-               <p className="text-[10px] font-medium uppercase opacity-50">Bun &rarr; Patty &rarr; Cheese &rarr; Bun</p>
-            </div>
-
           </motion.div>
         </div>
       )}
