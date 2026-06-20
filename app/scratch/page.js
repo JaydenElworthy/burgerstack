@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'; 
 import Link from 'next/link'; 
-import { ArrowLeft, Ticket, Trophy, Lock, Clock, Sparkles, XCircle } from 'lucide-react';
+import { ArrowLeft, Ticket, Trophy, Lock, Clock, Sparkles, XCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { supabase } from '../../lib/supabase';
