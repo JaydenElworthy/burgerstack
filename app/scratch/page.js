@@ -53,6 +53,8 @@ export default function ScratchCard() {
   const handleReveal = async () => {
     if (isRevealed) return;
     setIsRevealed(true);
+    
+    // Logic: 70% chance to find a prize
     const winRoll = Math.random() > 0.3; 
 
     if (winRoll) {
@@ -113,17 +115,17 @@ export default function ScratchCard() {
   return (
     <div className="min-h-screen bg-[#E55937] flex flex-col items-center p-6 font-sans text-[#FFE974]">
       
-      {/* HEADER */}
+      {/* Header */}
       <div className="w-full flex justify-between items-center mb-10 pt-4">
         <Link href="/"><ArrowLeft size={32} /></Link>
-        <h1 className="text-2xl font-bold uppercase italic tracking-tighter">Picnic At Home</h1>
+        <h1 className="text-2xl font-bold uppercase tracking-tighter italic">Picnic At Home</h1>
         <div className="w-8" />
       </div>
 
-      {/* HERO TEXT */}
+      {/* Hero Text */}
       <div className="text-center mb-8 px-4">
-        <h2 className="text-[12vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter">
-            {status === 'loading' ? 'LOADING...' : status === 'locked_points' ? 'BONUS LOCKED' : status === 'bonus_used' ? 'LIMIT REACHED' : 'Scratch<br/>to Win'}
+        <h2 className="text-[10vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter">
+            {status === 'loading' ? 'LOADING...' : status === 'bonus_used' ? 'No Scratches Left' : 'Scratch<br/>to Win'}
         </h2>
       </div>
 
@@ -133,28 +135,32 @@ export default function ScratchCard() {
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center select-none text-[#E55937]">
             {status === 'loading' ? (
                 <Loader2 className="animate-spin" size={40} />
-            ) : status === 'locked_points' ? (
-              <>
-                <Lock size={64} className="mb-4 animate-bounce" />
-                <h3 className="text-xl font-bold uppercase">Score 25 points in the game to unlock your next scratch!</h3>
-              </>
             ) : status === 'bonus_used' ? (
-              <>
-                <Clock size={64} className="mb-4" />
-                <h3 className="text-xl font-bold uppercase">No Scratches Left!<br/>Resetting Sunday.</h3>
-              </>
+              <h3 className="text-2xl font-bold uppercase tracking-tighter px-4">No More Scratches To Redeem This Week</h3>
             ) : isRevealed && !prizeResult ? (
               <>
                 <XCircle size={64} className="mb-4 opacity-40" />
-                <h3 className="text-2xl font-bold uppercase">Better Luck<br/>Next Time!</h3>
+                <h3 className="text-3xl font-bold uppercase tracking-tighter italic">Better Luck Next Time</h3>
               </>
-            ) : (
+            ) : isRevealed && prizeResult ? (
               <div className="flex flex-col items-center">
-                <Trophy size={64} className="mb-4" />
-                <h3 className="text-3xl font-bold uppercase tracking-tighter leading-none mb-2">WINNER!</h3>
-                <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">
-                   {user ? "Reward Logged to Wallet" : "Sign in to save reward"}
-                </p>
+                <Trophy size={64} className="mb-4 animate-bounce" />
+                <h3 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2">WINNER!</h3>
+                <div className="bg-white border-2 border-black p-3 rounded-xl font-mono text-xl font-black tracking-widest text-black mb-2 shadow-inner uppercase">
+                    {prizeResult.code}
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.1em] opacity-60">Reward added to {user ? 'your basket' : 'local session'}</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center w-full px-4">
+                <Ticket size={64} className="mb-4 opacity-20" />
+                <h3 className="text-xl font-bold uppercase tracking-tight leading-none mb-4 italic">
+                    Play Burger Slinger to win another scratch card
+                </h3>
+                {/* The Orange Div underneath */}
+                <div className="bg-[#E55937] text-white px-6 py-2 rounded-full font-black uppercase text-[10px] tracking-widest shadow-lg">
+                    Renews Every Sunday
+                </div>
               </div>
             )}
         </div>
@@ -178,7 +184,7 @@ export default function ScratchCard() {
         ) : (
             <div className="p-5 bg-black/20 border-4 border-black border-dashed rounded-3xl flex gap-4 items-center">
                 <Sparkles size={28} className="text-[#FFE974]" />
-                <p className="text-[10px] font-bold uppercase text-white tracking-widest leading-tight">Scratch the card to reveal your prize!</p>
+                <p className="text-[10px] font-bold uppercase text-white tracking-widest leading-tight">Use your finger to scratch and reveal your prize!</p>
             </div>
         )}
       </div>
