@@ -12,7 +12,6 @@ export default function ScratchCard() {
   const [mounted, setMounted] = useState(false); 
   const [isRevealed, setIsRevealed] = useState(false); 
   const [isInitialized, setIsInitialized] = useState(false);
-  
   const [status, setStatus] = useState('loading'); 
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -20,7 +19,6 @@ export default function ScratchCard() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  // 1. DATA LOGIC
   useEffect(() => {
     if (!mounted) return;
     async function checkStatus() {
@@ -52,12 +50,9 @@ export default function ScratchCard() {
     checkStatus();
   }, [mounted]);
 
-  // 2. REVEAL ENGINE
   const handleReveal = async () => {
     if (isRevealed) return;
     setIsRevealed(true);
-    
-    // 70% Win Chance
     const winRoll = Math.random() > 0.3; 
 
     if (winRoll) {
@@ -82,7 +77,6 @@ export default function ScratchCard() {
     }
   };
 
-  // 3. CANVAS ENGINE
   useEffect(() => {
     if (!mounted || !canvasRef.current || status !== 'can_scratch' || isRevealed) return;
     const canvas = canvasRef.current;
@@ -120,15 +114,16 @@ export default function ScratchCard() {
     <div className="min-h-screen bg-[#E55937] flex flex-col items-center p-6 font-sans overflow-hidden">
       
       {/* Header */}
-      <div className="w-full flex justify-between items-center mb-10 pt-4 px-2 max-w-sm">
+      <div className="w-full flex justify-between items-center mb-10 pt-4 px-2 max-w-[320px]">
         <Link href="/"><ArrowLeft size={32} className="text-[#FFE974]" /></Link>
         <h1 className="text-2xl font-bold uppercase text-[#FFE974] italic">Picnic At Home</h1>
         <div className="w-8" />
       </div>
 
+      {/* Hero Text */}
       <div className="text-center mb-8 px-4">
         <h2 className="text-[10vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">
-            {status === 'loading' ? 'LOADING...' : status === 'bonus_used' ? 'No Scratches' : 'Scratch<br/>to Win'}
+            {status === 'loading' ? 'LOADING...' : status === 'bonus_used' ? 'All Done' : 'Scratch<br/>to Win'}
         </h2>
       </div>
 
@@ -144,17 +139,23 @@ export default function ScratchCard() {
                 <h3 className="text-xl font-bold uppercase italic leading-tight px-4">Score 25 points in the game to unlock your next scratch!</h3>
               </>
             ) : status === 'bonus_used' ? (
-              <h3 className="text-2xl font-bold uppercase tracking-tighter px-4 leading-none">No More Scratches To Redeem This Week</h3>
+              <div className="flex flex-col items-center w-full px-4">
+                <Ticket size={64} className="mb-4 opacity-20 rotate-[10deg]" />
+                <h3 className="text-xl font-bold uppercase tracking-tighter leading-none mb-4 italic">No More Scratches To Redeem This Week</h3>
+                <div className="bg-[#E55937] text-white px-6 py-2 rounded-full font-black uppercase text-[10px] tracking-widest shadow-lg">
+                    Renews Every Sunday
+                </div>
+              </div>
             ) : isRevealed && !prizeResult ? (
               <>
                 <XCircle size={64} className="mb-4 opacity-40" />
-                <h3 className="text-3xl font-bold uppercase tracking-tighter italic">Better Luck Next Time</h3>
+                <h3 className="text-3xl font-bold uppercase tracking-tighter italic leading-none">Better Luck<br/>Next Time</h3>
               </>
             ) : isRevealed && prizeResult ? (
               <div className="flex flex-col items-center">
                 <Trophy size={64} className="mb-4 animate-bounce" />
                 <h3 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2">WINNER!</h3>
-                <div className="bg-[#E55937] text-white p-3 rounded-xl font-mono text-xl font-black tracking-widest uppercase mb-2">
+                <div className="bg-[#E55937] text-white p-3 rounded-xl font-mono text-xl font-black tracking-widest uppercase mb-2 shadow-lg">
                     {prizeResult.code}
                 </div>
                 <p className="text-[10px] font-bold uppercase opacity-60 italic">{user ? "Reward Logged to Wallet" : "Sign in to save reward"}</p>
@@ -165,7 +166,6 @@ export default function ScratchCard() {
                 <h3 className="text-xl font-bold uppercase tracking-tight leading-none mb-4 italic">
                     Play Burger Slinger to win another scratch card
                 </h3>
-                {/* The Orange Div underneath */}
                 <div className="bg-[#E55937] text-white px-6 py-2 rounded-full font-black uppercase text-[10px] tracking-widest shadow-lg">
                     Renews Every Sunday
                 </div>
@@ -187,15 +187,15 @@ export default function ScratchCard() {
         )}
       </div>
 
-      {/* DYNAMIC ACTION BUTTON - Sized to Ticket Width */}
-      <div className="mt-10 w-full max-w-[320px] px-0">
+      {/* ACTION BUTTON - CONSTRAINED TO TICKET WIDTH */}
+      <div className="mt-10 w-full max-w-[320px]">
         {status === 'loading' ? null : !user && isRevealed ? (
-            <Link href="/login" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-xl text-center border-4 border-black shadow-lg">
+            <Link href="/login" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-xl text-center border-4 border-black shadow-lg active:scale-95 transition-transform">
                 Sign In to Save Reward
             </Link>
         ) : (isRevealed || status !== 'can_scratch') ? (
             <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
-              <Link href="/game" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-center border-4 border-black active:translate-y-1 transition-all leading-tight shadow-lg text-lg">
+              <Link href="/game" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-center border-4 border-black active:translate-y-1 transition-all leading-tight shadow-lg text-lg px-2">
                   Play Burger Slinger To Win Another Scratch Card
               </Link>
             </motion.div>
