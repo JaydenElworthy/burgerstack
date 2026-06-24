@@ -172,7 +172,7 @@ export default function BurgerGame() {
           </button>
         </div>
        <div className="flex justify-center text-center leading-none">
-  <span className="text-[#E55937] font-black text-lg uppercase italic" style="line-height: 1;">PICNIC<br/>AT HOME</span>
+  <span className="text-[#E55937] font-black text-lg uppercase italic">PICNIC<br/>AT HOME</span>
 </div>
         <div className="flex gap-2 md:gap-4">
           <div className="bg-[#E55937] text-[#FFE974] px-3 py-2 rounded-xl text-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">{timeLeft}s</div>
