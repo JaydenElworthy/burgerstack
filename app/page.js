@@ -66,7 +66,7 @@ export default function Home() {
       {/* Points Card */}
       <div className="bg-[#FFE974] text-[#E55937] p-6 rounded-[2.5rem] mb-6 shadow-2xl flex justify-between items-center border-4 border-black">
         <div>
-          <p className="text-[10px] uppercase font-black opacity-60 tracking-widest text-[#E55937]"> My Time High Score</p>
+          <p className="text-[10px] uppercase font-black opacity-60 tracking-widest text-[#E55937]"> All Time High Score</p>
           <p className="text-6xl font-bold italic tracking-tighter leading-none">
             {profile ? profile.high_score : '0'}
           </p>
@@ -90,7 +90,7 @@ export default function Home() {
 
       <div className="space-y-4 mb-10">
         <Link href="/wallet" className="w-full bg-[#FFE974] border-4 border-black p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
-          <span className="flex items-center gap-3"><Wallet size={24}/> Wallet</span>
+          <span className="flex items-center gap-3"><Wallet size={24}/>My Wallet</span>
           <span>→</span>
         </Link>
         
