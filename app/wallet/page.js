@@ -40,7 +40,7 @@ export default function Wallet() {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-[#E55937] font-sans text-[#FFE974]">
+    <div className="h-[100dvh] p-6 bg-[#E55937] font-sans text-[#FFE974] overflow-y-auto overscroll-none">
       {/* Header */}
       <div className="flex items-center gap-4 mb-10 pt-4">
         <Link href="/"><ArrowLeft className="text-[#FFE974]" size={32}/></Link>

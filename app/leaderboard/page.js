@@ -37,7 +37,7 @@ export default function Leaderboard() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#E55937] text-white p-6 font-sans overflow-x-hidden">
+    <div className="h-[100dvh] bg-[#E55937] text-white p-6 font-sans overflow-y-auto overflow-x-hidden overscroll-none">
       
       {/* Header */}
       <div className="flex items-center gap-4 mb-12 pt-4">

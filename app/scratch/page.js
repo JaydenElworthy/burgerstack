@@ -130,7 +130,7 @@ export default function ScratchCard() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-[#E55937] flex flex-col items-center p-6 font-sans overflow-hidden">
+    <div className="h-[100dvh] bg-[#E55937] flex flex-col items-center p-6 font-sans overflow-hidden overscroll-none">
       
       {/* Header */}
       <div className="w-full flex justify-between items-center mb-10 pt-4 px-2 max-w-[320px]">
