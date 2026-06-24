@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'; 
 import Link from 'next/link'; 
-import { ArrowLeft, Ticket, Trophy, Lock, Clock, Sparkles, XCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Ticket, Trophy, Lock, Clock, Sparkles, XCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { supabase } from '../../lib/supabase';
@@ -20,23 +20,17 @@ export default function ScratchCard() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  // 1. ELIGIBILITY & AUTH LOGIC
+  // 1. DATA LOGIC
   useEffect(() => {
     if (!mounted) return;
-
     async function checkStatus() {
       const { data: { user: activeUser } } = await supabase.auth.getUser();
       setUser(activeUser);
-      
-      if (!activeUser) {
-        setStatus('can_scratch'); 
-        return;
-      }
+      if (!activeUser) { setStatus('can_scratch'); return; }
 
       const { data: prof } = await supabase.from('profiles').select('*').eq('id', activeUser.id).single();
       setProfile(prof);
 
-      // Sunday Reset Calculation
       const now = new Date();
       const lastSunday = new Date();
       lastSunday.setDate(now.getDate() - now.getDay());
@@ -46,32 +40,24 @@ export default function ScratchCard() {
       if (lastScratch < lastSunday && prof?.scratch_count > 0) {
         await supabase.from('profiles').update({ scratch_count: 0, bonus_unlocked: false }).eq('id', activeUser.id);
         setStatus('can_scratch');
-        setIsRevealed(false);
         return;
       }
 
-      // Final Status Check
-      if (prof?.scratch_count === 0) {
-        setStatus('can_scratch');
-      } else if (prof?.scratch_count === 1) {
-        if (prof?.bonus_unlocked) {
-          setStatus('can_scratch'); 
-        } else {
-          setStatus('locked_need_points');
-          setIsRevealed(true);
-        }
-      } else {
-        setStatus('bonus_used');
-        setIsRevealed(true);
-      }
+      if (prof?.scratch_count === 0) { setStatus('can_scratch'); } 
+      else if (prof?.scratch_count === 1) {
+        if (prof?.bonus_unlocked) { setStatus('can_scratch'); } 
+        else { setStatus('locked_points'); setIsRevealed(true); }
+      } else { setStatus('bonus_used'); setIsRevealed(true); }
     }
     checkStatus();
   }, [mounted]);
 
-  // 2. REVEAL LOGIC
+  // 2. REVEAL ENGINE
   const handleReveal = async () => {
     if (isRevealed) return;
     setIsRevealed(true);
+    
+    // 70% Win Chance
     const winRoll = Math.random() > 0.3; 
 
     if (winRoll) {
@@ -96,7 +82,7 @@ export default function ScratchCard() {
     }
   };
 
-  // 3. CANVAS LOGIC
+  // 3. CANVAS ENGINE
   useEffect(() => {
     if (!mounted || !canvasRef.current || status !== 'can_scratch' || isRevealed) return;
     const canvas = canvasRef.current;
@@ -134,15 +120,15 @@ export default function ScratchCard() {
     <div className="min-h-screen bg-[#E55937] flex flex-col items-center p-6 font-sans overflow-hidden">
       
       {/* Header */}
-      <div className="w-full flex justify-between items-center mb-10 pt-4 px-2">
+      <div className="w-full flex justify-between items-center mb-10 pt-4 px-2 max-w-sm">
         <Link href="/"><ArrowLeft size={32} className="text-[#FFE974]" /></Link>
-        <h1 className="text-2xl font-bold uppercase text-[#FFE974]">Picnic At Home</h1>
+        <h1 className="text-2xl font-bold uppercase text-[#FFE974] italic">Picnic At Home</h1>
         <div className="w-8" />
       </div>
 
       <div className="text-center mb-8 px-4">
         <h2 className="text-[10vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">
-            {status === 'loading' ? 'LOADING...' : status === 'locked_need_points' ? 'BONUS LOCKED' : status === 'bonus_used' ? 'ALL DONE' : 'Scratch<br/>to Win'}
+            {status === 'loading' ? 'LOADING...' : status === 'bonus_used' ? 'No Scratches' : 'Scratch<br/>to Win'}
         </h2>
       </div>
 
@@ -158,7 +144,7 @@ export default function ScratchCard() {
                 <h3 className="text-xl font-bold uppercase italic leading-tight px-4">Score 25 points in the game to unlock your next scratch!</h3>
               </>
             ) : status === 'bonus_used' ? (
-              <h3 className="text-2xl font-bold uppercase tracking-tighter px-4">No More Scratches To Redeem This Week</h3>
+              <h3 className="text-2xl font-bold uppercase tracking-tighter px-4 leading-none">No More Scratches To Redeem This Week</h3>
             ) : isRevealed && !prizeResult ? (
               <>
                 <XCircle size={64} className="mb-4 opacity-40" />
@@ -167,7 +153,7 @@ export default function ScratchCard() {
             ) : isRevealed && prizeResult ? (
               <div className="flex flex-col items-center">
                 <Trophy size={64} className="mb-4 animate-bounce" />
-                <h3 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2 text-[#E55937]">WINNER!</h3>
+                <h3 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2">WINNER!</h3>
                 <div className="bg-[#E55937] text-white p-3 rounded-xl font-mono text-xl font-black tracking-widest uppercase mb-2">
                     {prizeResult.code}
                 </div>
@@ -179,6 +165,7 @@ export default function ScratchCard() {
                 <h3 className="text-xl font-bold uppercase tracking-tight leading-none mb-4 italic">
                     Play Burger Slinger to win another scratch card
                 </h3>
+                {/* The Orange Div underneath */}
                 <div className="bg-[#E55937] text-white px-6 py-2 rounded-full font-black uppercase text-[10px] tracking-widest shadow-lg">
                     Renews Every Sunday
                 </div>
@@ -200,16 +187,18 @@ export default function ScratchCard() {
         )}
       </div>
 
-      {/* DYNAMIC ACTION BUTTON */}
-      <div className="mt-10 w-full px-4">
+      {/* DYNAMIC ACTION BUTTON - Sized to Ticket Width */}
+      <div className="mt-10 w-full max-w-[320px] px-0">
         {status === 'loading' ? null : !user && isRevealed ? (
             <Link href="/login" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-xl text-center border-4 border-black shadow-lg">
                 Sign In to Save Reward
             </Link>
         ) : (isRevealed || status !== 'can_scratch') ? (
-            <Link href="/game" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-center border-4 border-black active:translate-y-1 transition-all leading-tight shadow-lg text-lg px-2">
-                Play Burger Slinger To Win Another Scratch Card
-            </Link>
+            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+              <Link href="/game" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-center border-4 border-black active:translate-y-1 transition-all leading-tight shadow-lg text-lg">
+                  Play Burger Slinger To Win Another Scratch Card
+              </Link>
+            </motion.div>
         ) : (
             <div className="p-5 bg-black/20 border-4 border-black border-dashed rounded-3xl flex gap-4 items-center">
                 <Sparkles size={28} className="text-[#FFE974]" />
