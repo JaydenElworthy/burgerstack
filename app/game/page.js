@@ -178,7 +178,7 @@ export default function BurgerGame() {
           <div className="bg-[#E55937] text-[#FFE974] px-3 py-2 rounded-xl text-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">{timeLeft}s</div>
           <div className="bg-white text-[#E55937] px-3 py-2 rounded-xl text-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">{score}</div>
         </div>
-
+        </div>
 
       {/* STAGE */}
       <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden">
