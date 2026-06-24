@@ -160,10 +160,10 @@ export default function BurgerGame() {
   };
 
   return (
-    <div className="h-[100dvh] w-full flex flex-col overflow-hidden overscroll-none select-none font-sans bg-[#E55937] relative text-[#FFE974]">
+    <div className="h-[100dvh] w-full flex flex-col overflow-y-auto overflow-x-hidden overscroll-none select-none font-sans bg-[#E55937] relative text-[#FFE974]">
       
       {/* HUD WITH MUTE BUTTON */}
-      <div className="p-6 grid grid-cols-[auto_1fr_auto] items-center bg-[#FFE974] border-b-8 border-black z-50 shadow-lg">
+      <div className="p-4 md:p-6 grid grid-cols-[auto_1fr_auto] items-center bg-[#FFE974] border-b-4 md:border-b-8 border-black z-50 shadow-lg">
         <div className="flex items-center gap-4">
           <Link href="/"><ArrowLeft size={32} className="text-[#E55937]" /></Link>
           {/* MUSIC TOGGLE */}
@@ -207,10 +207,10 @@ export default function BurgerGame() {
       </div>
 
       {/* CONTROLS */}
-      <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-50">
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">PATTY</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">CHEESE</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-[#E55937] text-white border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">BUN</button>
+      <div className="p-4 pb-6 md:p-6 md:pb-12 grid grid-cols-3 gap-2 md:gap-4 bg-[#FFE974] border-t-4 md:border-t-8 border-black z-50 mt-auto">
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-4 md:py-8 rounded-xl md:rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">PATTY</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-4 md:py-8 rounded-xl md:rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">CHEESE</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-[#E55937] text-white border-4 border-black py-4 md:py-8 rounded-xl md:rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">BUN</button>
       </div>
 
       {/* DYNAMIC RESULTS OVERLAY */}

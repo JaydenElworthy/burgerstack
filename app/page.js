@@ -53,7 +53,7 @@ export default function Home() {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto h-[100dvh] flex flex-col bg-[#E55937] text-[#FFE974] font-Gopher-Bold.otf overflow-hidden overscroll-none">
+    <div className="p-6 max-w-md mx-auto h-[100dvh] flex flex-col bg-[#E55937] text-[#FFE974] font-Gopher-Bold.otf overflow-y-auto overflow-x-hidden overscroll-none">
       <header className="py-12 text-center relative px-4">
   <h2 className="text-[12vw] sm:text-6xl leading-none tracking-tighter text-[#FFE974] font-bold">
     Picnic At Home

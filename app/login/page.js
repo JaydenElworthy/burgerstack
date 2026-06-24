@@ -23,7 +23,7 @@ export default function Login() {
   }
 
   return (
-    <div className="h-[100dvh] bg-[#E55937] p-8 flex flex-col justify-center items-center font-sans text-[#FFE974] overflow-hidden overscroll-none">
+    <div className="h-[100dvh] bg-[#E55937] p-8 flex flex-col justify-center items-center font-sans text-[#FFE974] overflow-y-auto overflow-x-hidden overscroll-none">
       
       {/* BRANDING */}
       <header className="mb-12 text-center">
