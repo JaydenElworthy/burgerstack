@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'; 
 import Link from 'next/link'; 
-import { ArrowLeft, Ticket, Trophy, Lock, Clock, Sparkles, XCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Ticket, Trophy, Lock, Clock, Sparkles, XCircle, Loader2, UserCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { supabase } from '../../lib/supabase';
@@ -19,12 +19,19 @@ export default function ScratchCard() {
 
   useEffect(() => { setMounted(true); }, []);
 
+  // 1. AUTH & ELIGIBILITY LOGIC
   useEffect(() => {
     if (!mounted) return;
     async function checkStatus() {
       const { data: { user: activeUser } } = await supabase.auth.getUser();
       setUser(activeUser);
-      if (!activeUser) { setStatus('can_scratch'); return; }
+      
+      // GUEST LOGIC: If no user, show locked state immediately
+      if (!activeUser) {
+        setStatus('no_auth');
+        setIsRevealed(true); // Removes gray layer so it "doesn't scratch"
+        return;
+      }
 
       const { data: prof } = await supabase.from('profiles').select('*').eq('id', activeUser.id).single();
       setProfile(prof);
@@ -38,20 +45,32 @@ export default function ScratchCard() {
       if (lastScratch < lastSunday && prof?.scratch_count > 0) {
         await supabase.from('profiles').update({ scratch_count: 0, bonus_unlocked: false }).eq('id', activeUser.id);
         setStatus('can_scratch');
+        setIsRevealed(false);
         return;
       }
 
-      if (prof?.scratch_count === 0) { setStatus('can_scratch'); } 
-      else if (prof?.scratch_count === 1) {
-        if (prof?.bonus_unlocked) { setStatus('can_scratch'); } 
-        else { setStatus('locked_points'); setIsRevealed(true); }
-      } else { setStatus('bonus_used'); setIsRevealed(true); }
+      if (prof?.scratch_count === 0) { 
+        setStatus('can_scratch'); 
+        setIsRevealed(false);
+      } else if (prof?.scratch_count === 1) {
+        if (prof?.bonus_unlocked) { 
+          setStatus('can_scratch'); 
+          setIsRevealed(false);
+        } else { 
+          setStatus('locked_points'); 
+          setIsRevealed(true); 
+        }
+      } else { 
+        setStatus('bonus_used'); 
+        setIsRevealed(true); 
+      }
     }
     checkStatus();
   }, [mounted]);
 
+  // 2. REVEAL ENGINE (Only for Logged In)
   const handleReveal = async () => {
-    if (isRevealed) return;
+    if (isRevealed || !user) return;
     setIsRevealed(true);
     const winRoll = Math.random() > 0.3; 
 
@@ -63,20 +82,20 @@ export default function ScratchCard() {
         if (codeRow) {
           setPrizeResult({ title: randomCat.title, code: codeRow.code });
           confetti();
-          if (user) {
-            await supabase.from('manual_code_bank').update({ is_claimed: true, claimed_by: user.id }).eq('id', codeRow.id);
-            await supabase.from('rewards').insert({ user_id: user.id, prize_title: randomCat.title, prize_code: codeRow.code });
-          }
+          await supabase.from('manual_code_bank').update({ is_claimed: true, claimed_by: user.id }).eq('id', codeRow.id);
+          await supabase.from('rewards').insert({ user_id: user.id, prize_title: randomCat.title, prize_code: codeRow.code });
         } else { setPrizeResult(null); }
       }
     } else { setPrizeResult(null); }
 
-    if (user) {
-      const nextCount = (profile?.scratch_count || 0) + 1;
-      await supabase.from('profiles').update({ scratch_count: nextCount, last_scratch_date: new Date().toISOString() }).eq('id', user.id);
-    }
+    const nextCount = (profile?.scratch_count || 0) + 1;
+    await supabase.from('profiles').update({ 
+        scratch_count: nextCount,
+        last_scratch_date: new Date().toISOString()
+    }).eq('id', user.id);
   };
 
+  // 3. CANVAS ENGINE
   useEffect(() => {
     if (!mounted || !canvasRef.current || status !== 'can_scratch' || isRevealed) return;
     const canvas = canvasRef.current;
@@ -120,10 +139,9 @@ export default function ScratchCard() {
         <div className="w-8" />
       </div>
 
-      {/* Hero Text */}
       <div className="text-center mb-8 px-4">
         <h2 className="text-[10vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">
-            {status === 'loading' ? 'LOADING...' : status === 'bonus_used' ? 'All Done' : 'Scratch<br/>to Win'}
+            {status === 'loading' ? 'LOADING...' : status === 'no_auth' ? 'Log In' : status === 'bonus_used' ? 'All Done' : 'Daily Drop'}
         </h2>
       </div>
 
@@ -133,6 +151,13 @@ export default function ScratchCard() {
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center select-none text-[#E55937]">
             {status === 'loading' ? (
                 <Loader2 className="animate-spin opacity-20" size={40} />
+            ) : status === 'no_auth' ? (
+              <div className="flex flex-col items-center w-full px-4">
+                <UserCircle2 size={64} className="mb-4 opacity-40" />
+                <h3 className="text-xl font-bold uppercase tracking-tight leading-none italic mb-4">
+                    Sign in to use your daily scratch card
+                </h3>
+              </div>
             ) : status === 'locked_need_points' ? (
               <>
                 <Lock size={64} className="mb-4 animate-bounce" />
@@ -141,24 +166,10 @@ export default function ScratchCard() {
             ) : status === 'bonus_used' ? (
               <div className="flex flex-col items-center w-full px-4">
                 <Ticket size={64} className="mb-4 opacity-20 rotate-[10deg]" />
-                <h3 className="text-xl font-bold uppercase tracking-tighter leading-none mb-4 italic">No More Scratches To Redeem This Week</h3>
+                <h3 className="text-xl font-bold uppercase tracking-tighter leading-none mb-4 italic text-center">No More Scratches To Redeem This Week</h3>
                 <div className="bg-[#E55937] text-white px-6 py-2 rounded-full font-black uppercase text-[10px] tracking-widest shadow-lg">
                     Renews Every Sunday
                 </div>
-              </div>
-            ) : isRevealed && !prizeResult ? (
-              <>
-                <XCircle size={64} className="mb-4 opacity-40" />
-                <h3 className="text-3xl font-bold uppercase tracking-tighter italic leading-none">Better Luck<br/>Next Time</h3>
-              </>
-            ) : isRevealed && prizeResult ? (
-              <div className="flex flex-col items-center">
-                <Trophy size={64} className="mb-4 animate-bounce" />
-                <h3 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2">WINNER!</h3>
-                <div className="bg-[#E55937] text-white p-3 rounded-xl font-mono text-xl font-black tracking-widest uppercase mb-2 shadow-lg">
-                    {prizeResult.code}
-                </div>
-                <p className="text-[10px] font-bold uppercase opacity-60 italic">{user ? "Reward Logged to Wallet" : "Sign in to save reward"}</p>
               </div>
             ) : (
               <div className="flex flex-col items-center w-full px-4">
@@ -175,24 +186,26 @@ export default function ScratchCard() {
             {/* Ticket Cutouts */}
             <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#E55937] border-r-8 border-black rounded-full" />
             <div className="absolute -right-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#E55937] border-l-8 border-black rounded-full" />
-            
-            {/* Perforated lines */}
-            <div className="absolute top-[20%] left-0 w-full border-t-4 border-dashed border-black/10" />
-            <div className="absolute bottom-[20%] left-0 w-full border-t-4 border-dashed border-black/10" />
         </div>
 
-        {/* SCRATCH LAYER */}
+        {/* SCRATCH LAYER - Hidden if no_auth */}
         {status === 'can_scratch' && !isRevealed && (
           <canvas ref={canvasRef} style={{ touchAction: 'none' }} className="absolute inset-0 cursor-crosshair z-20" />
         )}
       </div>
 
-      {/* ACTION BUTTON - CONSTRAINED TO TICKET WIDTH */}
+      {/* DYNAMIC ACTION BUTTON */}
       <div className="mt-10 w-full max-w-[320px]">
-        {status === 'loading' ? null : !user && isRevealed ? (
-            <Link href="/login" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-xl text-center border-4 border-black shadow-lg active:scale-95 transition-transform">
-                Sign In to Save Reward
-            </Link>
+        {status === 'no_auth' ? (
+            <div className="space-y-6">
+                <div className="p-5 bg-black/20 border-4 border-black border-dashed rounded-3xl flex gap-4 items-center">
+                    <UserCircle2 size={28} className="text-[#FFE974]" />
+                    <p className="text-[10px] font-bold uppercase text-white tracking-widest leading-tight">Sign in to save reward</p>
+                </div>
+                <Link href="/login" className="block w-full bg-[#FFE974] text-black p-5 rounded-2xl font-bold uppercase italic text-xl text-center border-4 border-black shadow-lg active:scale-95 transition-all">
+                    Sign In to Play
+                </Link>
+            </div>
         ) : (isRevealed || status !== 'can_scratch') ? (
             <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
               <Link href="/game" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-center border-4 border-black active:translate-y-1 transition-all leading-tight shadow-lg text-lg px-2">
