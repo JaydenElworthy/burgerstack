@@ -160,7 +160,7 @@ export default function BurgerGame() {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col overflow-hidden select-none font-sans bg-[#E55937] relative text-[#FFE974]">
+    <div className="h-[100dvh] w-full flex flex-col overflow-hidden overscroll-none select-none font-sans bg-[#E55937] relative text-[#FFE974]">
       
       {/* HUD WITH MUTE BUTTON */}
       <div className="p-6 grid grid-cols-[auto_1fr_auto] items-center bg-[#FFE974] border-b-8 border-black z-50 shadow-lg">
