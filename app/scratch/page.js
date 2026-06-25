@@ -120,7 +120,13 @@ export default function ScratchCard() {
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      if (e.buttons === 1 || e.touches) scratch(clientX - rect.left, clientY - rect.top);
+      // Calculate scale to properly map mouse coordinates if canvas is resized by CSS
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      
+      if (e.buttons === 1 || e.touches) {
+          scratch((clientX - rect.left) * scaleX, (clientY - rect.top) * scaleY);
+      }
     };
     canvas.addEventListener('mousemove', handleMove);
     canvas.addEventListener('touchmove', handleMove, { passive: false });
@@ -130,92 +136,92 @@ export default function ScratchCard() {
   if (!mounted) return null;
 
   return (
-    <div className="h-[100dvh] bg-[#E55937] flex flex-col items-center p-6 font-sans overflow-y-auto overflow-x-hidden overscroll-none">
+    <div className="h-[100dvh] bg-[#E55937] flex flex-col items-center p-4 sm:p-6 font-sans overflow-hidden overscroll-none justify-between">
       
       {/* Header */}
-      <div className="w-full flex justify-between items-center mb-10 pt-4 px-2 max-w-[320px]">
+      <div className="w-full flex justify-between items-center mb-4 sm:mb-6 pt-2 px-2 max-w-[320px] shrink-0">
         <Link href="/"><ArrowLeft size={32} className="text-[#FFE974]" /></Link>
-        <h1 className="text-2xl font-bold uppercase text-[#FFE974] italic">Picnic At Home</h1>
+        <h1 className="text-xl sm:text-2xl font-bold uppercase text-[#FFE974] italic">Picnic At Home</h1>
         <div className="w-8" />
       </div>
 
-      <div className="text-center mb-8 px-4">
+      <div className="text-center mb-4 sm:mb-6 px-4 shrink-0">
         <h2 className="text-[10vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">
             {status === 'loading' ? 'LOADING...' : status === 'no_auth' ? 'Log In' : status === 'bonus_used' ? 'All Done' : 'Daily Drop'}
         </h2>
       </div>
 
       {/* THE TICKET DESIGN */}
-      <div className="relative w-80 h-80 bg-[#FFE974] border-8 border-black rounded-[2.5rem] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+      <div className="relative w-full max-w-[280px] sm:max-w-[320px] aspect-square bg-[#FFE974] border-[6px] sm:border-8 border-black rounded-[2rem] sm:rounded-[2.5rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden shrink-0">
         
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center select-none text-[#E55937]">
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 sm:p-8 text-center select-none text-[#E55937]">
             {status === 'loading' ? (
                 <Loader2 className="animate-spin opacity-20" size={40} />
             ) : status === 'no_auth' ? (
               <div className="flex flex-col items-center w-full px-4">
-                <UserCircle2 size={64} className="mb-4 opacity-40" />
-                <h3 className="text-xl font-bold uppercase tracking-tight leading-none italic mb-4">
+                <UserCircle2 size={50} className="sm:w-16 sm:h-16 mb-2 sm:mb-4 opacity-40" />
+                <h3 className="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none italic mb-4">
                     Sign in to use your daily scratch card
                 </h3>
               </div>
             ) : status === 'locked_need_points' ? (
               <>
-                <Lock size={64} className="mb-4 animate-bounce" />
-                <h3 className="text-xl font-bold uppercase italic leading-tight px-4">Score 25 points in the game to unlock your next scratch!</h3>
+                <Lock size={50} className="sm:w-16 sm:h-16 mb-2 sm:mb-4 animate-bounce" />
+                <h3 className="text-lg sm:text-xl font-bold uppercase italic leading-tight px-4">Score 25 points in the game to unlock your next scratch!</h3>
               </>
             ) : status === 'bonus_used' ? (
               <div className="flex flex-col items-center w-full px-4">
-                <Ticket size={64} className="mb-4 opacity-20 rotate-[10deg]" />
-                <h3 className="text-xl font-bold uppercase tracking-tighter leading-none mb-4 italic text-center">No More Scratches To Redeem This Week</h3>
-                <div className="bg-[#E55937] text-white px-6 py-2 rounded-full font-black uppercase text-[10px] tracking-widest shadow-lg">
+                <Ticket size={50} className="sm:w-16 sm:h-16 mb-2 sm:mb-4 opacity-20 rotate-[10deg]" />
+                <h3 className="text-lg sm:text-xl font-bold uppercase tracking-tighter leading-none mb-3 sm:mb-4 italic text-center">No More Scratches To Redeem This Week</h3>
+                <div className="bg-[#E55937] text-white px-4 sm:px-6 py-2 rounded-full font-black uppercase text-[8px] sm:text-[10px] tracking-widest shadow-lg">
                     Renews Every Sunday
                 </div>
               </div>
             ) : (
               <div className="flex flex-col items-center w-full px-4">
-                <Ticket size={64} className="mb-4 opacity-20 rotate-[-10deg]" />
-                <h3 className="text-xl font-bold uppercase tracking-tight leading-none mb-4 italic">
+                <Ticket size={50} className="sm:w-16 sm:h-16 mb-2 sm:mb-4 opacity-20 rotate-[-10deg]" />
+                <h3 className="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none mb-3 sm:mb-4 italic">
                     Play Burger Slinger to win another scratch card
                 </h3>
-                <div className="bg-[#E55937] text-white px-6 py-2 rounded-full font-black uppercase text-[10px] tracking-widest shadow-lg">
+                <div className="bg-[#E55937] text-white px-4 sm:px-6 py-2 rounded-full font-black uppercase text-[8px] sm:text-[10px] tracking-widest shadow-lg">
                     Renews Every Sunday
                 </div>
               </div>
             )}
 
             {/* Ticket Cutouts */}
-            <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#E55937] border-r-8 border-black rounded-full" />
-            <div className="absolute -right-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#E55937] border-l-8 border-black rounded-full" />
+            <div className="absolute -left-5 sm:-left-6 top-1/2 -translate-y-1/2 w-8 sm:w-10 h-8 sm:h-10 bg-[#E55937] border-r-4 sm:border-r-8 border-black rounded-full" />
+            <div className="absolute -right-5 sm:-right-6 top-1/2 -translate-y-1/2 w-8 sm:w-10 h-8 sm:h-10 bg-[#E55937] border-l-4 sm:border-l-8 border-black rounded-full" />
         </div>
 
         {/* SCRATCH LAYER - Hidden if no_auth */}
         {status === 'can_scratch' && !isRevealed && (
-          <canvas ref={canvasRef} style={{ touchAction: 'none' }} className="absolute inset-0 cursor-crosshair z-20" />
+          <canvas ref={canvasRef} style={{ touchAction: 'none', width: '100%', height: '100%' }} className="absolute inset-0 cursor-crosshair z-20" />
         )}
       </div>
 
       {/* DYNAMIC ACTION BUTTON */}
-      <div className="mt-10 w-full max-w-[320px]">
+      <div className="mt-4 sm:mt-auto w-full max-w-[320px] pb-2 sm:pb-4 shrink-0">
         {status === 'no_auth' ? (
-            <div className="space-y-6">
-                <div className="p-5 bg-black/20 border-4 border-black border-dashed rounded-3xl flex gap-4 items-center">
-                    <UserCircle2 size={28} className="text-[#FFE974]" />
-                    <p className="text-[10px] font-bold uppercase text-white tracking-widest leading-tight">Sign in to save reward</p>
+            <div className="space-y-4 sm:space-y-6">
+                <div className="p-4 sm:p-5 bg-black/20 border-[3px] sm:border-4 border-black border-dashed rounded-2xl sm:rounded-3xl flex gap-3 sm:gap-4 items-center">
+                    <UserCircle2 size={24} className="sm:w-7 sm:h-7 text-[#FFE974]" />
+                    <p className="text-[9px] sm:text-[10px] font-bold uppercase text-white tracking-widest leading-tight">Sign in to save reward</p>
                 </div>
-                <Link href="/login" className="block w-full bg-[#FFE974] text-black p-5 rounded-2xl font-bold uppercase italic text-xl text-center border-4 border-black shadow-lg active:scale-95 transition-all">
+                <Link href="/login" className="block w-full bg-[#FFE974] text-black p-4 sm:p-5 rounded-2xl font-bold uppercase italic text-lg sm:text-xl text-center border-4 border-black shadow-lg active:scale-95 transition-all">
                     Sign In to Play
                 </Link>
             </div>
         ) : (isRevealed || status !== 'can_scratch') ? (
             <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
-              <Link href="/game" className="block w-full bg-black text-[#FFE974] p-5 rounded-2xl font-bold uppercase italic text-center border-4 border-black active:translate-y-1 transition-all leading-tight shadow-lg text-lg px-2">
+              <Link href="/game" className="block w-full bg-black text-[#FFE974] p-4 sm:p-5 rounded-2xl font-bold uppercase italic text-center border-[3px] sm:border-4 border-black active:translate-y-1 transition-all leading-tight shadow-lg text-sm sm:text-lg px-2">
                   Play Burger Slinger To Win Another Scratch Card
               </Link>
             </motion.div>
         ) : (
-            <div className="p-5 bg-black/20 border-4 border-black border-dashed rounded-3xl flex gap-4 items-center">
-                <Sparkles size={28} className="text-[#FFE974]" />
-                <p className="text-[10px] font-bold uppercase text-white tracking-widest leading-tight">Use your finger to scratch and reveal your prize!</p>
+            <div className="p-4 sm:p-5 bg-black/20 border-[3px] sm:border-4 border-black border-dashed rounded-2xl sm:rounded-3xl flex gap-3 sm:gap-4 items-center">
+                <Sparkles size={24} className="sm:w-7 sm:h-7 text-[#FFE974]" />
+                <p className="text-[9px] sm:text-[10px] font-bold uppercase text-white tracking-widest leading-tight">Use your finger to scratch and reveal your prize!</p>
             </div>
         )}
       </div>

@@ -7,22 +7,22 @@ import confetti from 'canvas-confetti';
 import { supabase } from '../../lib/supabase';
 
 export default function BurgerGame() {
-  const [stack, setStack] = useState([]); 
+  const [stack, setStack] = useState([]);
   const [score, setScore] = useState(0);
   const [burgerId, setBurgerId] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
-  const [gameState, setGameState] = useState('start'); 
+  const [gameState, setGameState] = useState('start');
   const [isExiting, setIsExiting] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false); 
+  const [isProcessing, setIsProcessing] = useState(false);
   const [baseCount, setBaseCount] = useState(0);
-  const [bonusResult, setBonusResult] = useState(""); 
-  
+  const [bonusResult, setBonusResult] = useState("");
+
   // --- NEW: MUTE STATE ---
   const [isMuted, setIsMuted] = useState(false);
 
   // --- AUDIO REFS ---
   const musicRef = useRef(null);
-  const currentSong = useRef(1); 
+  const currentSong = useRef(1);
   const sfxPlace = useRef(null);
   const sfxWrong = useRef(null);
   const sfxWin = useRef(null);
@@ -32,14 +32,14 @@ export default function BurgerGame() {
     sfxPlace.current = new Audio('/sounds/place.mp3');
     sfxWrong.current = new Audio('/sounds/wrong.mp3');
     sfxWin.current = new Audio('/sounds/win.mp3');
-    
+
     sfxPlace.current.volume = 0.6;
     sfxWrong.current.volume = 0.5;
     sfxWin.current.volume = 0.8;
 
     // --- FIX: STOP MUSIC WHEN LEAVING PAGE ---
     return () => {
-        stopMusic();
+      stopMusic();
     };
   }, []);
 
@@ -47,16 +47,16 @@ export default function BurgerGame() {
   const startMusic = () => {
     if (isMuted) return; // Don't play if muted
     if (musicRef.current) musicRef.current.pause();
-    
+
     const songPath = `/sounds/song${currentSong.current}.mp3`;
     musicRef.current = new Audio(songPath);
-    musicRef.current.volume = 0.2; 
-    
+    musicRef.current.volume = 0.2;
+
     musicRef.current.onended = () => {
-      currentSong.current = currentSong.current === 1 ? 2 : 1; 
+      currentSong.current = currentSong.current === 1 ? 2 : 1;
       startMusic();
     };
-    
+
     musicRef.current.play().catch(e => console.log("Audio play blocked"));
   };
 
@@ -100,37 +100,37 @@ export default function BurgerGame() {
   };
 
   const endGame = async (status) => {
-    stopMusic(); 
+    stopMusic();
     setGameState(status);
-    
+
     if (!isMuted) {
-        if (status === 'won') { sfxWin.current?.play(); confetti(); }
-        else { sfxWrong.current?.play(); }
+      if (status === 'won') { sfxWin.current?.play(); confetti(); }
+      else { sfxWrong.current?.play(); }
     }
 
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-        const hadBonus = profile?.bonus_unlocked || false;
-        if (status === 'lost') setBonusResult("lost");
-        else {
-          if (score >= 25) setBonusResult(hadBonus ? "already_had_high" : "new_unlock");
-          else setBonusResult(hadBonus ? "already_had_low" : "missed_bonus");
-        }
-        saveHighScore(score);
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const hadBonus = profile?.bonus_unlocked || false;
+      if (status === 'lost') setBonusResult("lost");
+      else {
+        if (score >= 25) setBonusResult(hadBonus ? "already_had_high" : "new_unlock");
+        else setBonusResult(hadBonus ? "already_had_low" : "missed_bonus");
+      }
+      saveHighScore(score);
     }
   };
 
   const spawnBurger = () => {
     setIsExiting(false);
     setIsProcessing(false);
-    const startLevel = Math.floor(Math.random() * 4); 
+    const startLevel = Math.floor(Math.random() * 4);
     let initialStack = [];
     if (startLevel >= 1) initialStack.push({ type: 'bottom-bun', id: `b0-${Date.now()}` });
     if (startLevel >= 2) initialStack.push({ type: 'patty', id: `b1-${Date.now()}` });
     if (startLevel >= 3) initialStack.push({ type: 'cheese', id: `b2-${Date.now()}` });
     setStack(initialStack);
-    setBaseCount(initialStack.length); 
+    setBaseCount(initialStack.length);
   };
 
   const handleInput = (inputType) => {
@@ -145,7 +145,7 @@ export default function BurgerGame() {
 
     if (nextPiece === "") { endGame('lost'); return; }
 
-    if (!isMuted) sfxPlace.current?.cloneNode(true).play(); 
+    if (!isMuted) sfxPlace.current?.cloneNode(true).play();
 
     setIsProcessing(true);
     setStack(prev => [...prev, { type: nextPiece, id: `d-${Date.now()}` }]);
@@ -160,10 +160,10 @@ export default function BurgerGame() {
   };
 
   return (
-    <div className="h-[100dvh] w-full flex flex-col overflow-y-auto overflow-x-hidden overscroll-none select-none font-sans bg-[#E55937] relative text-[#FFE974]">
-      
+    <div className="h-screen w-full flex flex-col overflow-hidden select-none font-sans bg-[#E55937] relative text-[#FFE974]">
+
       {/* HUD WITH MUTE BUTTON */}
-      <div className="p-4 md:p-6 grid grid-cols-[auto_1fr_auto] items-center bg-[#FFE974] border-b-4 md:border-b-8 border-black z-50 shadow-lg">
+      <div className="p-6 grid grid-cols-[auto_1fr_auto] items-center bg-[#FFE974] border-b-8 border-black z-50 shadow-lg">
         <div className="flex items-center gap-4">
           <Link href="/"><ArrowLeft size={32} className="text-[#E55937]" /></Link>
           {/* MUSIC TOGGLE */}
@@ -171,9 +171,9 @@ export default function BurgerGame() {
             {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
           </button>
         </div>
-       <div className="flex justify-center text-center leading-none">
-  <span className="text-[#E55937] font-black text-lg uppercase italic">PICNIC<br/>AT HOME</span>
-</div>
+        <div className="flex justify-center text-center leading-none">
+          <span className="text-[#E55937] font-black text-lg uppercase italic">PICNIC<br />AT HOME</span>
+        </div>
         <div className="flex gap-2 md:gap-4">
           <div className="bg-[#E55937] text-[#FFE974] px-3 py-2 rounded-xl text-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">{timeLeft}s</div>
           <div className="bg-white text-[#E55937] px-3 py-2 rounded-xl text-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">{score}</div>
@@ -207,17 +207,17 @@ export default function BurgerGame() {
       </div>
 
       {/* CONTROLS */}
-      <div className="p-4 pb-6 md:p-6 md:pb-12 grid grid-cols-3 gap-2 md:gap-4 bg-[#FFE974] border-t-4 md:border-t-8 border-black z-50 mt-auto">
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-4 md:py-8 rounded-xl md:rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">PATTY</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-4 md:py-8 rounded-xl md:rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">CHEESE</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-[#E55937] text-white border-4 border-black py-4 md:py-8 rounded-xl md:rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">BUN</button>
+      <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-50">
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">PATTY</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">CHEESE</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-[#E55937] text-white border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">BUN</button>
       </div>
 
       {/* DYNAMIC RESULTS OVERLAY */}
       {gameState !== 'playing' && (
         <div className="absolute inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center p-8 text-center text-white">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-sm font-sans">
-            
+
             <div className="mb-6 flex flex-col items-center">
               {bonusResult === "lost" && (
                 <>
@@ -260,11 +260,11 @@ export default function BurgerGame() {
             </div>
 
             <div className="space-y-4 w-full">
-              <button 
-                onClick={() => { 
+              <button
+                onClick={() => {
                   setScore(0); setTimeLeft(60); setGameState('playing'); spawnBurger(); setBonusResult("");
-                  startMusic(); 
-                }} 
+                  startMusic();
+                }}
                 className="w-full bg-[#FFE974] border-4 border-black text-black py-5 rounded-full font-black text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-all"
               >
                 {gameState === 'start' ? 'START SHIFT' : 'TRY AGAIN'}

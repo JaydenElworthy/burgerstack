@@ -53,71 +53,71 @@ export default function Home() {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto h-[100dvh] flex flex-col bg-[#E55937] text-[#FFE974] font-Gopher-Bold.otf overflow-y-auto overflow-x-hidden overscroll-none">
-      <header className="py-12 text-center relative px-4">
-  <h2 className="text-[12vw] sm:text-6xl leading-none tracking-tighter text-[#FFE974] font-bold">
-    Picnic At Home
-  </h2>
-  <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white opacity-80 mt-3">
-    Scratch To Win Weekly Prizes <br /> Play & Score 25 Points To Win A Second Scratch Card
-  </p>
-</header>
+    <div className="p-3 sm:p-6 max-w-md mx-auto h-[100dvh] flex flex-col justify-between bg-[#E55937] text-[#FFE974] font-Gopher-Bold.otf overflow-hidden overscroll-none">
+      <header className="py-2 sm:py-6 text-center relative px-2 shrink-0">
+        <h2 className="text-[10vw] sm:text-6xl leading-none tracking-tighter text-[#FFE974] font-bold">
+          Picnic At Home
+        </h2>
+        <p className="text-[8px] sm:text-[10px] uppercase font-bold tracking-[0.2em] text-white opacity-80 mt-2">
+          Scratch To Win Weekly Prizes <br /> Play & Score 25 Points To Win A Second Scratch Card
+        </p>
+      </header>
 
       {/* Points Card */}
-      <div className="bg-[#FFE974] text-[#E55937] p-6 rounded-[2.5rem] mb-6 shadow-2xl flex justify-between items-center border-4 border-black">
+      <div className="bg-[#FFE974] text-[#E55937] p-4 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] shrink-0 flex justify-between items-center border-4 border-black">
         <div>
-          <p className="text-[10px] uppercase font-black opacity-60 tracking-widest text-[#E55937]"> All Time High Score</p>
-          <p className="text-6xl font-bold italic tracking-tighter leading-none">
+          <p className="text-[8px] sm:text-[10px] uppercase font-black opacity-60 tracking-widest text-[#E55937]"> All Time High Score</p>
+          <p className="text-4xl sm:text-6xl font-bold italic tracking-tighter leading-none">
             {profile ? profile.high_score : '0'}
           </p>
         </div>
-        <div className="bg-[#E55937] text-[#FFE974] p-4 rounded-full shadow-lg border-2 border-black">
-          <Star size={32} fill="currentColor" />
+        <div className="bg-[#E55937] text-[#FFE974] p-3 sm:p-4 rounded-full shadow-lg border-2 border-black">
+          <Star size={24} className="sm:w-8 sm:h-8" fill="currentColor" />
         </div>
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <Link href="/game" className="bg-[#FFE974] border-4 border-black p-6 rounded-[2.5rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all">
-          <Gamepad2 size={40} className="text-[#E55937]" />
-          <span className="font-bold uppercase text-xs text-[#E55937]"> Play To Win</span>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 shrink-0">
+        <Link href="/game" className="bg-[#FFE974] border-[3px] sm:border-4 border-black p-4 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] flex flex-col items-center gap-1 sm:gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all">
+          <Gamepad2 size={32} className="sm:w-10 sm:h-10 text-[#E55937]" />
+          <span className="font-bold uppercase text-[10px] sm:text-xs text-[#E55937]"> Play To Win</span>
         </Link>
-        <Link href="/scratch" className="bg-white border-4 border-black p-6 rounded-[2.5rem] flex flex-col items-center gap-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all">
-          <Ticket size={40} className="text-[#E55937]" />
-          <span className="font-bold uppercase text-xs text-[#E55937]"> Scratch To Win</span>
+        <Link href="/scratch" className="bg-white border-[3px] sm:border-4 border-black p-4 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] flex flex-col items-center gap-1 sm:gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all">
+          <Ticket size={32} className="sm:w-10 sm:h-10 text-[#E55937]" />
+          <span className="font-bold uppercase text-[10px] sm:text-xs text-[#E55937]"> Scratch To Win</span>
         </Link>
       </div>
 
-      <div className="space-y-4 mb-10">
-        <Link href="/wallet" className="w-full bg-[#FFE974] border-4 border-black p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
-          <span className="flex items-center gap-3"><Wallet size={24}/>My Wallet</span>
+      <div className="space-y-2 sm:space-y-4 shrink-0">
+        <Link href="/wallet" className="w-full bg-[#FFE974] border-[3px] sm:border-4 border-black p-3 sm:p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
+          <span className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base"><Wallet size={20}/>My Wallet</span>
           <span>→</span>
         </Link>
         
-        <Link href="/leaderboard" className="w-full bg-[#FFE974] border-4 border-black p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
-          <span className="flex items-center gap-3"><Trophy size={24}/> Leaderboard</span>
+        <Link href="/leaderboard" className="w-full bg-[#FFE974] border-[3px] sm:border-4 border-black p-3 sm:p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
+          <span className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base"><Trophy size={20}/> Leaderboard</span>
           <span>→</span>
         </Link>
       </div>
 
-     <div className="mt-auto space-y-4">
-        <a href="https://picnicathome.com" className="w-full bg-black text-[#FFE974] p-6 rounded-2xl flex justify-center items-center gap-4 font-bold uppercase italic text-2xl shadow-xl">
-          <ShoppingBag size={28} /> Order Online
+     <div className="space-y-2 sm:space-y-4 shrink-0 pb-2 sm:pb-0 mt-2 sm:mt-0">
+        <a href="https://picnicathome.com" className="w-full bg-black text-[#FFE974] p-4 sm:p-6 rounded-2xl flex justify-center items-center gap-2 sm:gap-4 font-bold uppercase italic text-lg sm:text-2xl shadow-xl">
+          <ShoppingBag size={24} /> Order Online
         </a>
 
         {user ? (
-          <button onClick={handleSignOut} className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-40 text-white hover:opacity-100 transition-opacity">
+          <button onClick={handleSignOut} className="w-full py-2 sm:py-4 flex justify-center items-center gap-2 font-bold uppercase text-[8px] sm:text-[10px] tracking-widest opacity-40 text-white hover:opacity-100 transition-opacity">
             <LogOut size={14} /> Sign Out
           </button>
         ) : (
-          <Link href="/login" className="w-full py-4 flex justify-center items-center gap-2 font-bold uppercase text-[10px] tracking-widest opacity-80 text-white underline underline-offset-4 hover:opacity-100 transition-opacity">
+          <Link href="/login" className="w-full py-2 sm:py-4 flex justify-center items-center gap-2 font-bold uppercase text-[8px] sm:text-[10px] tracking-widest opacity-80 text-white underline underline-offset-4 hover:opacity-100 transition-opacity">
             <User size={14} /> Sign In To Save Your Wallet
           </Link>
         )}
 
         {/* ADMIN SHORTCUT (Visible only to admins) */}
         {profile?.is_admin && (
-          <Link href="/admin/super" className="w-full border-2 border-dashed border-white/20 p-2 text-center text-[8px] uppercase font-black opacity-20 hover:opacity-100 transition-opacity text-white">
+          <Link href="/admin/super" className="w-full border-2 border-dashed border-white/20 p-2 text-center text-[8px] uppercase font-black opacity-20 hover:opacity-100 transition-opacity text-white block mt-2">
             Access Admin Panel
           </Link>
         )}
