@@ -100,24 +100,34 @@ export default function BurgerGame() {
   };
 
   const endGame = async (status) => {
-    stopMusic();
+    stopMusic(); 
     setGameState(status);
-
+    
     if (!isMuted) {
-      if (status === 'won') { sfxWin.current?.play(); confetti(); }
-      else { sfxWrong.current?.play(); }
+        if (status === 'won') { sfxWin.current?.play(); confetti(); }
+        else { sfxWrong.current?.play(); }
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      const hadBonus = profile?.bonus_unlocked || false;
-      if (status === 'lost') setBonusResult("lost");
-      else {
-        if (score >= 25) setBonusResult(hadBonus ? "already_had_high" : "new_unlock");
-        else setBonusResult(hadBonus ? "already_had_low" : "missed_bonus");
+    if (status === 'lost') {
+        setBonusResult("lost");
+    } else {
+        setBonusResult(score >= 25 ? "new_unlock" : "missed_bonus");
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+          const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+          const hadBonus = profile?.bonus_unlocked || false;
+          
+          if (status !== 'lost') {
+            if (score >= 25) setBonusResult(hadBonus ? "already_had_high" : "new_unlock");
+            else setBonusResult(hadBonus ? "already_had_low" : "missed_bonus");
+          }
+          saveHighScore(score);
       }
-      saveHighScore(score);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -160,28 +170,28 @@ export default function BurgerGame() {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col overflow-hidden select-none font-sans bg-[#E55937] relative text-[#FFE974]">
+    <div className="h-[100dvh] w-full flex flex-col overflow-hidden overscroll-none select-none font-sans bg-[#E55937] relative text-[#FFE974]">
 
       {/* HUD WITH MUTE BUTTON */}
-      <div className="p-6 grid grid-cols-[auto_1fr_auto] items-center bg-[#FFE974] border-b-8 border-black z-50 shadow-lg">
-        <div className="flex items-center gap-4">
-          <Link href="/"><ArrowLeft size={32} className="text-[#E55937]" /></Link>
+      <div className="p-3 sm:p-6 grid grid-cols-[auto_1fr_auto] items-center bg-[#FFE974] border-b-4 sm:border-b-8 border-black z-50 shadow-lg shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Link href="/"><ArrowLeft size={28} className="sm:w-8 sm:h-8 text-[#E55937]" /></Link>
           {/* MUSIC TOGGLE */}
-          <button onClick={toggleMute} className="bg-[#E55937] p-2 rounded-lg border-2 border-black text-[#FFE974] active:scale-90 transition-transform">
-            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+          <button onClick={toggleMute} className="bg-[#E55937] p-1.5 sm:p-2 rounded-lg border-2 border-black text-[#FFE974] active:scale-90 transition-transform">
+            {isMuted ? <VolumeX size={18} className="sm:w-5 sm:h-5" /> : <Volume2 size={18} className="sm:w-5 sm:h-5" />}
           </button>
         </div>
         <div className="flex justify-center text-center leading-none">
-          <span className="text-[#E55937] font-black text-lg uppercase italic">PICNIC<br />AT HOME</span>
+          <span className="text-[#E55937] font-black text-sm sm:text-lg uppercase italic">PICNIC<br />AT HOME</span>
         </div>
-        <div className="flex gap-2 md:gap-4">
-          <div className="bg-[#E55937] text-[#FFE974] px-3 py-2 rounded-xl text-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">{timeLeft}s</div>
-          <div className="bg-white text-[#E55937] px-3 py-2 rounded-xl text-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">{score}</div>
+        <div className="flex gap-1.5 sm:gap-4">
+          <div className="bg-[#E55937] text-[#FFE974] px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-sm sm:text-xl border-2 sm:border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">{timeLeft}s</div>
+          <div className="bg-white text-[#E55937] px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-sm sm:text-xl border-2 sm:border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">{score}</div>
         </div>
       </div>
 
       {/* STAGE */}
-      <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden">
+      <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden min-h-0">
         <img src="/images/bbqbackground.jpeg" alt="" className="absolute inset-0 w-full h-full object-cover z-0" />
         <AnimatePresence>
           {!isExiting && (
@@ -190,14 +200,14 @@ export default function BurgerGame() {
               initial={{ x: "-150%" }} animate={{ x: "-50%" }}
               exit={{ x: "250%", transition: { duration: 0.4, ease: "expoIn" } }}
               transition={{ x: { type: "tween", ease: "circOut", duration: 0.5 } }}
-              className="absolute bottom-[40px] md:bottom-[60px] left-1/2 w-64 md:w-80 h-[300px] z-30 pointer-events-none"
+              className="absolute bottom-[20px] sm:bottom-[60px] left-1/2 w-48 sm:w-80 h-[250px] sm:h-[300px] z-30 pointer-events-none"
             >
               {stack.map((item, i) => {
                 let elev = 0;
                 if (i === 1) elev = 22; if (i === 2) elev = 38; if (i === 3) elev = 58;
                 return (
                   <motion.div key={item.id} layout initial={i < baseCount ? false : { y: -1000 }} animate={{ y: -elev }} transition={{ y: { type: "tween", ease: "circIn", duration: 0.25 } }} className="absolute bottom-0 left-0 w-full flex justify-center" style={{ zIndex: i }}>
-                    <img src={`/images/${item.type}.svg`} alt="" className="w-44 md:w-64 h-auto block" />
+                    <img src={`/images/${item.type}.svg`} alt="" className="w-40 sm:w-64 h-auto block" />
                   </motion.div>
                 );
               })}
@@ -207,10 +217,10 @@ export default function BurgerGame() {
       </div>
 
       {/* CONTROLS */}
-      <div className="p-6 grid grid-cols-3 gap-4 bg-[#FFE974] border-t-8 border-black pb-12 z-50">
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">PATTY</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">CHEESE</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-[#E55937] text-white border-4 border-black py-8 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">BUN</button>
+      <div className="p-3 sm:p-6 grid grid-cols-3 gap-2 sm:gap-4 bg-[#FFE974] border-t-4 sm:border-t-8 border-black pb-6 sm:pb-12 z-50 shrink-0">
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base">PATTY</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base">CHEESE</button>
+        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-[#E55937] text-white border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base">BUN</button>
       </div>
 
       {/* DYNAMIC RESULTS OVERLAY */}
