@@ -9,6 +9,12 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
 
+  // --- PWA INSTALL STATE ---
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+
   // --- UPDATED LOGIC START ---
   useEffect(() => {
     // 1. Function to fetch profile data from Supabase
@@ -45,6 +51,60 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
   // --- UPDATED LOGIC END ---
+
+  // --- PWA INSTALL LOGIC ---
+  useEffect(() => {
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => {
+        console.error('Service Worker registration failed:', err);
+      });
+    }
+
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      if (localStorage.getItem('pwa_install_dismissed') !== 'true') {
+        setShowInstallPrompt(true);
+      }
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Detect iOS & Standalone
+    const ua = window.navigator.userAgent;
+    const isIosDevice = /iphone|ipad|ipod/i.test(ua);
+    const isInStandaloneMode = ('standalone' in window.navigator) || (window.navigator.standalone);
+    setIsIOS(isIosDevice);
+    setIsStandalone(isInStandaloneMode);
+
+    if (isIosDevice && !isInStandaloneMode && localStorage.getItem('pwa_install_dismissed') !== 'true') {
+      setShowInstallPrompt(true);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallPWA = async () => {
+    if (isIOS) {
+      alert("To install this app on your iPhone:\n1. Tap the Share button in Safari (at the bottom of the screen)\n2. Select 'Add to Home Screen'.");
+      return;
+    }
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setShowInstallPrompt(false);
+    }
+    setDeferredPrompt(null);
+  };
+
+  const handleDismissPWA = () => {
+    localStorage.setItem('pwa_install_dismissed', 'true');
+    setShowInstallPrompt(false);
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -122,6 +182,39 @@ export default function Home() {
           </Link>
         )}
       </div>
+
+      {/* PWA INSTALL BANNER */}
+      <AnimatePresence>
+        {showInstallPrompt && (
+          <motion.div
+            initial={{ y: 100, opacity: 0, x: "-50%" }}
+            animate={{ y: 0, opacity: 1, x: "-50%" }}
+            exit={{ y: 100, opacity: 0, x: "-50%" }}
+            className="fixed bottom-6 left-1/2 w-[90%] max-w-sm bg-[#FFE974] border-4 border-black p-5 rounded-[2rem] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] z-[9999] text-[#E55937] flex flex-col gap-3 font-sans"
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex-1 pr-2">
+                <h3 className="text-lg font-black uppercase italic tracking-tight leading-none mb-1">Add to Home Screen</h3>
+                <p className="text-[10px] font-bold text-black/60 uppercase tracking-wider leading-snug">
+                  {isIOS 
+                    ? 'Tap the Share button ⎋ and select "Add to Home Screen" to install.'
+                    : 'Install our mobile app to save your wallet and stack burgers instantly!'}
+                </p>
+              </div>
+              <button onClick={handleDismissPWA} className="text-black/40 hover:text-black font-bold text-xl leading-none p-1">&times;</button>
+            </div>
+            {!isIOS && (
+              <button
+                onClick={handleInstallPWA}
+                className="w-full bg-black text-[#FFE974] py-3 rounded-xl font-bold uppercase italic text-sm border-2 border-black active:scale-95 transition-transform"
+              >
+                Install App
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
