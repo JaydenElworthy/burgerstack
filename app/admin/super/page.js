@@ -38,6 +38,12 @@ export default function SuperAdmin() {
   const [activeAddCodesPrizeId, setActiveAddCodesPrizeId] = useState(null);
   const [syncError, setSyncError] = useState(null);
 
+  // Import confirmation states
+  const [showImportConfirmModal, setShowImportConfirmModal] = useState(false);
+  const [importConfirmBucket, setImportConfirmBucket] = useState('');
+  const [importConfirmCodes, setImportConfirmCodes] = useState([]);
+  const [importConfirmTitle, setImportConfirmTitle] = useState('');
+
   // Scratch prize form modal states
   const [showAddScratchModal, setShowAddScratchModal] = useState(false);
   const [scratchFormTitle, setScratchFormTitle] = useState('');
@@ -113,28 +119,25 @@ export default function SuperAdmin() {
     }
   };
 
-  const handleImportDiscounts = async () => {
-    const toImport = Object.entries(selectedImportCodes)
-      .filter(([_, value]) => value.selected)
-      .map(([code, value]) => ({
-        code,
-        prize_type: value.bucket,
-        is_claimed: false
-      }));
+  const handleImportDiscounts = async (targetBucket) => {
+    const selectedCodesList = Object.entries(selectedImportCodes)
+      .filter(([_, value]) => value.selected && value.bucket === targetBucket)
+      .map(([code]) => code);
 
-    if (toImport.length === 0) return alert("Select at least one discount code to import");
+    if (selectedCodesList.length === 0) return alert("Select at least one discount code to import");
 
-    setIsSaving(true);
-    const { error } = await supabase.from('manual_code_bank').insert(toImport);
-    setIsSaving(false);
-
-    if (!error) {
-      alert(`Successfully imported ${toImport.length} codes into the Code Bank!`);
-      loadData();
-      loadSquarespaceDiscounts();
+    let currentTitle = '';
+    if (targetBucket === 'GRAND') {
+      currentTitle = pTitle;
     } else {
-      alert("Error importing codes: " + error.message);
+      const sp = scratchPrizes.find(p => p.id === targetBucket);
+      currentTitle = sp ? sp.title : '';
     }
+
+    setImportConfirmCodes(selectedCodesList);
+    setImportConfirmBucket(targetBucket);
+    setImportConfirmTitle(currentTitle);
+    setShowImportConfirmModal(true);
   };
 
   useEffect(() => { 
@@ -199,22 +202,63 @@ export default function SuperAdmin() {
 
     if (newCodes.length === 0) return alert("All codes already exist in bank.");
 
-    setIsSaving(true);
-    const { error } = await supabase.from('manual_code_bank').insert(
-      newCodes.map(code => ({ 
-        code, 
-        prize_type: targetBucket, 
-        is_claimed: false 
-      }))
-    );
-    setIsSaving(false);
-
-    if (!error) {
-      alert(`Added ${newCodes.length} codes!`);
-      setManualCodes('');
-      loadData();
+    let currentTitle = '';
+    if (targetBucket === 'GRAND') {
+      currentTitle = pTitle;
     } else {
-      alert("Error: " + error.message);
+      const sp = scratchPrizes.find(p => p.id === targetBucket);
+      currentTitle = sp ? sp.title : '';
+    }
+
+    setImportConfirmCodes(newCodes);
+    setImportConfirmBucket(targetBucket);
+    setImportConfirmTitle(currentTitle);
+    setShowImportConfirmModal(true);
+  };
+
+  const saveImportData = async (e) => {
+    e.preventDefault();
+    if (!importConfirmTitle.trim()) return alert("Prize description/title cannot be empty");
+
+    setIsSaving(true);
+    try {
+      if (importConfirmBucket === 'GRAND') {
+        const { error: settErr } = await supabase.from('app_settings').update({
+          prize_title: importConfirmTitle
+        }).eq('id', 1);
+        if (settErr) throw new Error("Failed to update Settings title: " + settErr.message);
+        setPTitle(importConfirmTitle);
+      } else {
+        const { error: spErr } = await supabase.from('scratch_prizes').update({
+          title: importConfirmTitle
+        }).eq('id', importConfirmBucket);
+        if (spErr) throw new Error("Failed to update Scratch Prize title: " + spErr.message);
+      }
+
+      const toInsert = importConfirmCodes.map(code => ({
+        code,
+        prize_type: importConfirmBucket,
+        is_claimed: false
+      }));
+
+      const { error: insertErr } = await supabase.from('manual_code_bank').insert(toInsert);
+      if (insertErr) throw new Error("Failed to insert codes: " + insertErr.message);
+
+      alert(`Successfully loaded ${importConfirmCodes.length} codes for "${importConfirmTitle}"!`);
+      
+      setShowImportConfirmModal(false);
+      setImportConfirmCodes([]);
+      setImportConfirmBucket('');
+      setImportConfirmTitle('');
+      setManualCodes('');
+      setSelectedImportCodes({});
+      
+      loadData();
+      loadSquarespaceDiscounts();
+    } catch (err) {
+      alert("Error saving: " + err.message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -302,7 +346,7 @@ export default function SuperAdmin() {
                 </div>
                 <button
                   type="button"
-                  onClick={handleImportDiscounts}
+                  onClick={() => handleImportDiscounts(targetBucket)}
                   disabled={isSaving}
                   className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold uppercase italic text-[10px] border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5"
                 >
@@ -772,6 +816,68 @@ export default function SuperAdmin() {
                     className="flex-1 bg-blue-600 text-[#FFE974] border-2 border-black py-3 rounded-xl font-bold uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none"
                   >
                     Create Prize
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* CONFIRM CODE IMPORT MODAL */}
+      <AnimatePresence>
+        {showImportConfirmModal && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[99999] font-sans">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white border-4 border-black p-6 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md text-black relative mx-auto my-auto"
+            >
+              <button 
+                onClick={() => setShowImportConfirmModal(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-black font-bold text-2xl leading-none"
+              >
+                &times;
+              </button>
+              
+              <h3 className="text-xl font-black uppercase italic tracking-tight mb-4 flex items-center gap-2 text-blue-600">
+                <Tag /> Confirm Code Details
+              </h3>
+
+              <div className="bg-blue-50 border-2 border-black p-3 rounded-xl mb-4 text-xs">
+                <p className="font-bold uppercase text-[9px] text-blue-700 mb-1">Queueing Codes to Load</p>
+                <p className="font-medium text-gray-700">You are uploading <span className="font-black text-black">{importConfirmCodes.length} codes</span>. These will be added to the code pool for this prize.</p>
+              </div>
+
+              <form onSubmit={saveImportData} className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase opacity-40">What the codes are (Shown to Players)</label>
+                  <p className="text-[9px] text-gray-500 mb-1 leading-tight">This title will be displayed to users in their reward wallet and when they claim this prize.</p>
+                  <input
+                    type="text"
+                    required
+                    value={importConfirmTitle}
+                    onChange={(e) => setImportConfirmTitle(e.target.value)}
+                    placeholder="e.g. Free Loaded Fries"
+                    className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowImportConfirmModal(false)}
+                    className="flex-1 bg-gray-200 border-2 border-black py-3 rounded-xl font-bold uppercase text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="flex-1 bg-blue-600 text-[#FFE974] border-2 border-black py-3 rounded-xl font-bold uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2"
+                  >
+                    {isSaving ? <Loader2 className="animate-spin w-4 h-4" /> : "Confirm & Load"}
                   </button>
                 </div>
               </form>
