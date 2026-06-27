@@ -280,17 +280,19 @@ export default function BurgerGame() {
                 {gameState === 'start' ? 'START SHIFT' : 'TRY AGAIN'}
               </button>
 
+              <div className="pt-2">
+                <h2 className="text-xl font-black uppercase text-[#FFE974] mb-2">STACK IN ORDER</h2>
+                <h3 className="text-xs font-medium uppercase text-white opacity-80 tracking-wider">
+                  BUN -&gt; PATTY -&gt; CHEESE -&gt; BUN
+                </h3>
+              </div>
+
               {gameState !== 'start' && (
                 <Link href="/" className="w-full flex items-center justify-center gap-2 bg-[#E55937] border-4 border-black text-white py-4 rounded-full font-bold uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                   <Home size={16} /> Exit to Menu
                 </Link>
               )}
             </div>
-
-            <h2 className="text-xl font-black uppercase text-[#FFE974] mt-6 mb-2">STACK IN ORDER</h2>
-            <h3 className="text-xs font-medium uppercase text-white opacity-80 tracking-wider">
-              BUN -&gt; PATTY -&gt; CHEESE -&gt; BUN
-            </h3>
           </motion.div>
         </div>
       )}
