@@ -24,6 +24,12 @@ export default function SuperAdmin() {
   const [pId, setPId] = useState('');
   const [pTitle, setPTitle] = useState('Weekly Prize');
 
+  // Squarespace sync states
+  const [squarespaceDiscounts, setSquarespaceDiscounts] = useState([]);
+  const [isLoadingDiscounts, setIsLoadingDiscounts] = useState(false);
+  const [selectedImportCodes, setSelectedImportCodes] = useState({});
+  const [codeBankTab, setCodeBankTab] = useState('sync'); // 'sync' or 'manual'
+
   const loadData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     const { data: prof } = await supabase.from('profiles').select('is_admin').eq('id', user?.id).single();
@@ -57,7 +63,60 @@ export default function SuperAdmin() {
     setLoading(false);
   };
 
-  useEffect(() => { loadData(); }, []);
+  const loadSquarespaceDiscounts = async () => {
+    setIsLoadingDiscounts(true);
+    try {
+      const res = await fetch('/api/squarespace/discounts');
+      const discounts = await res.json();
+      
+      if (Array.isArray(discounts)) {
+        const { data: existing } = await supabase.from('manual_code_bank').select('code');
+        const bankCodes = new Set(existing?.map(x => x.code) || []);
+        
+        const available = discounts.filter(d => d.promoCode && !bankCodes.has(d.promoCode));
+        setSquarespaceDiscounts(available);
+        
+        const initialSelections = {};
+        available.forEach(d => {
+          initialSelections[d.promoCode] = { selected: false, bucket: 'GRAND' };
+        });
+        setSelectedImportCodes(initialSelections);
+      }
+    } catch (e) {
+      console.error("Failed to load Squarespace discounts:", e);
+    } finally {
+      setIsLoadingDiscounts(false);
+    }
+  };
+
+  const handleImportDiscounts = async () => {
+    const toImport = Object.entries(selectedImportCodes)
+      .filter(([_, value]) => value.selected)
+      .map(([code, value]) => ({
+        code,
+        prize_type: value.bucket,
+        is_claimed: false
+      }));
+
+    if (toImport.length === 0) return alert("Select at least one discount code to import");
+
+    setIsSaving(true);
+    const { error } = await supabase.from('manual_code_bank').insert(toImport);
+    setIsSaving(false);
+
+    if (!error) {
+      alert(`Successfully imported ${toImport.length} codes into the Code Bank!`);
+      loadData();
+      loadSquarespaceDiscounts();
+    } else {
+      alert("Error importing codes: " + error.message);
+    }
+  };
+
+  useEffect(() => { 
+    loadData(); 
+    loadSquarespaceDiscounts();
+  }, []);
 
   const refreshProducts = async () => {
     setIsRefreshing(true);
@@ -248,15 +307,93 @@ export default function SuperAdmin() {
           {/* CODE BANK (THE BUCKET) */}
           <div className="bg-white p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2.5rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <h2 className="font-bold uppercase text-sm mb-4 flex items-center gap-2"><Tag size={16}/> Load Code Bank</h2>
+            
+            {/* Tabs */}
+            <div className="flex border-b-2 border-black mb-4">
+              <button
+                type="button"
+                onClick={() => setCodeBankTab('sync')}
+                className={`flex-1 py-2 font-bold uppercase text-xs text-center border-r-2 border-black last:border-r-0 ${codeBankTab === 'sync' ? 'bg-[#FFE974] text-black font-black' : 'bg-white text-gray-500 font-bold'}`}
+              >
+                Sync Squarespace
+              </button>
+              <button
+                type="button"
+                onClick={() => setCodeBankTab('manual')}
+                className={`flex-1 py-2 font-bold uppercase text-xs text-center ${codeBankTab === 'manual' ? 'bg-[#FFE974] text-black font-black' : 'bg-white text-gray-500 font-bold'}`}
+              >
+                Manual Paste
+              </button>
+            </div>
+
             <div className="space-y-4">
-              <select value={codeBucket} onChange={(e) => setCodeBucket(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-black uppercase text-[10px]">
-                <option value="GRAND">Bucket: Weekly Grand Prize</option>
-                {scratchPrizes.map(p => (
-                  <option key={p.id} value={p.id}>Bucket: {p.title}</option>
-                ))}
-              </select>
-              <textarea value={manualCodes} onChange={(e) => setManualCodes(e.target.value)} className="w-full h-32 border-4 border-black p-3 rounded-xl font-mono text-xs" placeholder="Paste Squarespace codes here (one per line)..." />
-              <button onClick={uploadToBucket} className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold uppercase italic shadow-md active:translate-y-1">Load Bucket</button>
+              {codeBankTab === 'sync' ? (
+                <>
+                  {isLoadingDiscounts ? (
+                    <div className="flex items-center justify-center py-10">
+                      <Loader2 className="animate-spin text-blue-600" size={24} />
+                      <span className="text-xs uppercase font-bold tracking-wider ml-2">Loading active codes...</span>
+                    </div>
+                  ) : squarespaceDiscounts.length === 0 ? (
+                    <p className="text-center py-6 text-xs text-gray-400 font-bold uppercase italic leading-tight">All active Squarespace codes are already loaded in the bank.</p>
+                  ) : (
+                    <>
+                      <div className="space-y-3 max-h-56 overflow-y-auto border-2 border-black p-3 rounded-xl bg-gray-50">
+                        {squarespaceDiscounts.map(d => (
+                          <div key={d.promoCode} className="flex items-center justify-between gap-3 text-xs border-b border-gray-200 pb-2 last:border-0 last:pb-0">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <input
+                                type="checkbox"
+                                checked={selectedImportCodes[d.promoCode]?.selected || false}
+                                onChange={(e) => {
+                                  setSelectedImportCodes(prev => ({
+                                    ...prev,
+                                    [d.promoCode]: { ...prev[d.promoCode], selected: e.target.checked }
+                                  }));
+                                }}
+                                className="w-4 h-4 accent-blue-600 cursor-pointer"
+                              />
+                              <div className="truncate min-w-0">
+                                <p className="font-bold text-black truncate">{d.promoCode}</p>
+                                <p className="text-[9px] text-gray-500 truncate leading-none">{d.name}</p>
+                              </div>
+                            </div>
+                            <select
+                              value={selectedImportCodes[d.promoCode]?.bucket || 'GRAND'}
+                              onChange={(e) => {
+                                setSelectedImportCodes(prev => ({
+                                  ...prev,
+                                  [d.promoCode]: { ...prev[d.promoCode], bucket: e.target.value }
+                                }));
+                              }}
+                              className="border-2 border-black rounded-lg p-1 font-black uppercase text-[8px] bg-white cursor-pointer"
+                            >
+                              <option value="GRAND">Grand Prize</option>
+                              {scratchPrizes.map(p => (
+                                <option key={p.id} value={p.id}>{p.title}</option>
+                              ))}
+                            </select>
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={handleImportDiscounts} disabled={isSaving} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase italic shadow-md active:translate-y-0.5 text-xs">
+                        Import Selected ({Object.values(selectedImportCodes).filter(v => v.selected).length})
+                      </button>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  <select value={codeBucket} onChange={(e) => setCodeBucket(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-black uppercase text-[10px]">
+                    <option value="GRAND">Bucket: Weekly Grand Prize</option>
+                    {scratchPrizes.map(p => (
+                      <option key={p.id} value={p.id}>Bucket: {p.title}</option>
+                    ))}
+                  </select>
+                  <textarea value={manualCodes} onChange={(e) => setManualCodes(e.target.value)} className="w-full h-32 border-4 border-black p-3 rounded-xl font-mono text-xs" placeholder="Paste Squarespace codes here (one per line)..." />
+                  <button onClick={uploadToBucket} className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold uppercase italic shadow-md active:translate-y-1">Load Bucket</button>
+                </>
+              )}
             </div>
           </div>
         </div>
