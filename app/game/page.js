@@ -314,6 +314,7 @@ export default function BurgerGame() {
                   <CheckCircle2 size={80} className="text-[#FFE974] mb-4" />
                   <h1 className="text-5xl font-black tracking-tighter text-[#FFE974]">SHIFT COMPLETE!</h1>
                   <p className="text-xl font-bold uppercase mb-4 text-center">Score: {score}</p>
+                  <p className="text-xs opacity-60 uppercase italic mb-4">Weekly bonus already claimed!</p>
                 </>
               )}
 
