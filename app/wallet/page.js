@@ -3,14 +3,12 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 import { Ticket, ArrowLeft, ShoppingBag, Check, Loader2 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 export default function Wallet() {
   const [rewards, setRewards] = useState([])
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(null)
-  const [showModal, setShowModal] = useState(false)
-  const [activeCode, setActiveCode] = useState('')
 
   useEffect(() => {
     async function getRewards() {
@@ -35,13 +33,10 @@ export default function Wallet() {
   const handleOrderNow = (code) => {
     navigator.clipboard.writeText(code);
     setCopied(code);
-    setActiveCode(code);
-    setShowModal(true);
-  };
-
-  const handleRedirect = () => {
-    setShowModal(false);
-    window.location.href = `https://picnicathome.com/shop?promo=${activeCode}`;
+    setTimeout(() => {
+      // Direct link to your Squarespace checkout with the promo applied
+      window.location.href = `https://picnicathome.com/shop?promo=${code}`;
+    }, 800);
   };
 
   return (
@@ -103,56 +98,6 @@ export default function Wallet() {
           Prizes are awarded every Sunday to the top player. Keep stacking to stay #1!
         </p>
       </footer>
-
-      {/* Checkout Instructions Modal */}
-      <AnimatePresence>
-        {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#FFE974] border-4 border-black p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-[340px] text-[#E55937] text-center relative"
-            >
-              <h3 className="text-3xl font-black uppercase tracking-tighter italic mb-4">Code Copied!</h3>
-              
-              <div className="bg-white border-2 border-black p-4 rounded-2xl text-center mb-6 shadow-inner font-mono text-xl font-black tracking-widest italic select-all text-black">
-                {activeCode}
-              </div>
-
-              <div className="text-left text-[11px] text-black space-y-3 font-semibold mb-6 bg-white/50 p-4 border-2 border-dashed border-black rounded-2xl">
-                <p className="flex items-start gap-2">
-                  <span className="bg-[#E55937] text-[#FFE974] rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-black shrink-0">1</span>
-                  <span>Promo code has been copied to your clipboard.</span>
-                </p>
-                <p className="flex items-start gap-2">
-                  <span className="bg-[#E55937] text-[#FFE974] rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-black shrink-0">2</span>
-                  <span>Add items to your cart on the Picnic At Home shop.</span>
-                </p>
-                <p className="flex items-start gap-2">
-                  <span className="bg-[#E55937] text-[#FFE974] rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-black shrink-0">3</span>
-                  <span>Paste this code in the <span className="font-bold underline">Promo Code</span> box on the checkout page.</span>
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <button 
-                  onClick={handleRedirect}
-                  className="w-full bg-black text-[#FFE974] py-4 rounded-xl font-black uppercase italic text-sm border-4 border-black active:translate-y-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                >
-                  Go to Shop & Order
-                </button>
-                <button 
-                  onClick={() => setShowModal(false)}
-                  className="w-full bg-transparent text-[#E55937] py-2 font-black uppercase text-[10px] hover:underline"
-                >
-                  Back to Wallet
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }
