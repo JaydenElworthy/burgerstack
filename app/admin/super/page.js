@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { ArrowLeft, Settings, Trophy, Trash2, Plus, Crown, Star, RefreshCw, Loader2, Tag, Ticket } from 'lucide-react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SuperAdmin() {
   const [loading, setLoading] = useState(true);
@@ -27,8 +28,13 @@ export default function SuperAdmin() {
   // Squarespace sync states
   const [squarespaceDiscounts, setSquarespaceDiscounts] = useState([]);
   const [isLoadingDiscounts, setIsLoadingDiscounts] = useState(false);
-  const [selectedImportCodes, setSelectedImportCodes] = useState({});
   const [codeBankTab, setCodeBankTab] = useState('sync'); // 'sync' or 'manual'
+
+  // Scratch prize form modal states
+  const [showAddScratchModal, setShowAddScratchModal] = useState(false);
+  const [scratchFormTitle, setScratchFormTitle] = useState('');
+  const [scratchFormValue, setScratchFormValue] = useState('');
+  const [scratchFormProductId, setScratchFormProductId] = useState('');
 
   const loadData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -152,19 +158,15 @@ export default function SuperAdmin() {
     }
   };
 
-  const addScratchPrizeType = async () => {
-    const title = prompt("Prize Name (e.g. 50% Off Loaded Fries)");
-    const val = prompt("Discount % (e.g. 50)");
-    const itemId = prompt("Specific Squarespace Product ID (Leave blank for Total Order)");
-    
-    if (title && val) {
-      const { error } = await supabase.from('scratch_prizes').insert({
-        title,
-        discount_type: 'RATE',
-        discount_value: parseFloat(val),
-        apply_to_item_id: itemId || null
-      });
-      if (!error) loadData();
+  const toggleScratchPrizeActive = async (id, currentStatus) => {
+    const { error } = await supabase
+      .from('scratch_prizes')
+      .update({ is_active: !currentStatus })
+      .eq('id', id);
+    if (!error) {
+      loadData();
+    } else {
+      alert("Error updating status: " + error.message);
     }
   };
 
@@ -179,12 +181,41 @@ export default function SuperAdmin() {
     setIsSaving(true);
     const item = products.find(p => p.id === pId);
     await supabase.from('app_settings').update({
-      redemption_strategy: strategy, weekly_prize_type: pType,
-      weekly_prize_scope: pScope, weekly_prize_value: pValue,
-      active_item_id: pId, prize_title: item?.name || pTitle
+      redemption_strategy: strategy, 
+      weekly_prize_type: pType,
+      weekly_prize_scope: pScope, 
+      weekly_prize_value: pValue,
+      active_item_id: pType === 'FREE_PRODUCT' ? pId : null, 
+      prize_title: pType === 'FREE_PRODUCT' ? (item?.name || pTitle) : pTitle
     }).eq('id', 1);
     setIsSaving(false);
     alert("Weekly Prize Updated!");
+  };
+
+  const handleCreateScratchPrize = async (e) => {
+    e.preventDefault();
+    if (!scratchFormTitle || !scratchFormValue) return alert("Title and discount value are required.");
+    
+    setIsSaving(true);
+    const { error } = await supabase.from('scratch_prizes').insert({
+      title: scratchFormTitle,
+      discount_type: 'RATE',
+      discount_value: parseFloat(scratchFormValue),
+      apply_to_item_id: scratchFormProductId || null,
+      is_active: true
+    });
+    setIsSaving(false);
+
+    if (!error) {
+      alert("Scratch prize added successfully!");
+      setScratchFormTitle('');
+      setScratchFormValue('');
+      setScratchFormProductId('');
+      setShowAddScratchModal(false);
+      loadData();
+    } else {
+      alert("Error adding scratch prize: " + error.message);
+    }
   };
 
   const finalizeWeek = async () => {
@@ -255,18 +286,31 @@ export default function SuperAdmin() {
           <div className="bg-white border-4 border-black rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <div className="flex justify-between items-center mb-6 sm:mb-8">
               <h2 className="text-lg sm:text-2xl font-bold uppercase italic text-blue-600 flex items-center gap-2"><Ticket /> Scratch Prizes</h2>
-              <button onClick={addScratchPrizeType} className="bg-blue-600 text-white p-2.5 sm:p-3 rounded-full shadow-lg active:scale-90 transition-all hover:bg-blue-700">
+              <button 
+                onClick={() => setShowAddScratchModal(true)} 
+                className="bg-blue-600 text-white p-2.5 sm:p-3 rounded-full shadow-lg active:scale-90 transition-all hover:bg-blue-700"
+              >
                 <Plus size={20} className="sm:w-6 sm:h-6" />
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {scratchPrizes.map((p) => (
                 <div key={p.id} className="p-4 sm:p-5 border-4 border-black rounded-2xl bg-gray-50 flex justify-between items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                  <div>
+                  <div className="flex-1 pr-3">
                     <p className="font-bold uppercase text-sm">{p.title}</p>
-                    <p className="text-[10px] opacity-50 font-black uppercase">{p.discount_value}% Off • {p.apply_to_item_id ? "Specific Item" : "Total Order"}</p>
+                    <p className="text-[10px] opacity-50 font-black uppercase">
+                      {p.discount_value}% Off • {p.apply_to_item_id ? `Product: ${products.find(prod => prod.id === p.apply_to_item_id)?.name || 'Specific Item'}` : "Total Order"}
+                    </p>
                   </div>
-                  <button onClick={() => deleteScratchPrize(p.id)} className="text-red-500 hover:scale-125 transition-transform p-2"><Trash2 size={18} /></button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => toggleScratchPrizeActive(p.id, p.is_active)}
+                      className={`px-3 py-1 rounded-full border-2 border-black text-[9px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none transition-all ${p.is_active ? 'bg-green-400 text-black' : 'bg-gray-300 text-gray-600'}`}
+                    >
+                      {p.is_active ? 'Active' : 'Inactive'}
+                    </button>
+                    <button onClick={() => deleteScratchPrize(p.id)} className="text-red-500 hover:scale-125 transition-transform p-2"><Trash2 size={18} /></button>
+                  </div>
                 </div>
               ))}
               {scratchPrizes.length === 0 && <p className="col-span-2 text-center opacity-30 uppercase font-bold italic">No scratch prizes created yet.</p>}
@@ -280,21 +324,46 @@ export default function SuperAdmin() {
           <div className="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <h2 className="text-lg sm:text-xl font-bold uppercase mb-6 sm:mb-8 flex items-center gap-2 underline underline-offset-8 decoration-red-500"><Settings size={20} /> Weekly Setup</h2>
             <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-black uppercase opacity-40">Prize Title (Display Name)</label>
+                <input 
+                  type="text" 
+                  value={pTitle} 
+                  onChange={(e) => setPTitle(e.target.value)} 
+                  placeholder="e.g. Free Loaded Fries or 50% Off Order" 
+                  className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
+                />
+              </div>
+
                <div>
                 <label className="text-[10px] font-black uppercase opacity-40">Prize Type</label>
-                <select value={pType} onChange={(e) => setPType(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs">
+                <select value={pType} onChange={(e) => setPType(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs mt-1">
                   <option value="FREE_PRODUCT">Free Item</option>
                   <option value="RATE">% Off Order</option>
                 </select>
               </div>
               
-              {pType === 'FREE_PRODUCT' && (
-                <div className="flex gap-2">
-                  <select value={pId} onChange={(e) => setPId(e.target.value)} className="flex-1 border-4 border-black p-3 rounded-xl font-bold uppercase text-[10px]">
-                    <option value="">-- Choose Product --</option>
-                    {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                  <button onClick={refreshProducts} className={`p-3 border-4 border-black rounded-xl bg-white ${isRefreshing ? 'animate-spin' : ''}`}><RefreshCw size={18}/></button>
+              {pType === 'FREE_PRODUCT' ? (
+                <div>
+                  <label className="text-[10px] font-black uppercase opacity-40">Choose Squarespace Product</label>
+                  <div className="flex gap-2 mt-1">
+                    <select value={pId} onChange={(e) => setPId(e.target.value)} className="flex-1 border-4 border-black p-3 rounded-xl font-bold uppercase text-[10px] bg-white text-black">
+                      <option value="">-- Choose Product --</option>
+                      {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                    <button onClick={refreshProducts} className={`p-3 border-4 border-black rounded-xl bg-white ${isRefreshing ? 'animate-spin' : ''}`}><RefreshCw size={18}/></button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-[10px] font-black uppercase opacity-40">Discount Percentage (%)</label>
+                  <input 
+                    type="number" 
+                    value={pValue} 
+                    onChange={(e) => setPValue(parseFloat(e.target.value) || 0)} 
+                    placeholder="e.g. 50" 
+                    className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
+                  />
                 </div>
               )}
 
@@ -426,6 +495,87 @@ export default function SuperAdmin() {
           )}
         </button>
       </div>
+
+      {/* ADD SCRATCH PRIZE MODAL */}
+      <AnimatePresence>
+        {showAddScratchModal && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[99999] font-sans">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white border-4 border-black p-6 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md text-black relative mx-auto my-auto"
+            >
+              <button 
+                onClick={() => setShowAddScratchModal(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-black font-bold text-2xl leading-none"
+              >
+                &times;
+              </button>
+              
+              <h3 className="text-xl font-black uppercase italic tracking-tight mb-6 flex items-center gap-2 text-blue-600">
+                <Ticket /> Add Scratch Prize
+              </h3>
+
+              <form onSubmit={handleCreateScratchPrize} className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase opacity-40">Prize Title (Display Name)</label>
+                  <input
+                    type="text"
+                    required
+                    value={scratchFormTitle}
+                    onChange={(e) => setScratchFormTitle(e.target.value)}
+                    placeholder="e.g. 50% Off Loaded Fries"
+                    className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase opacity-40">Discount Value (%)</label>
+                  <input
+                    type="number"
+                    required
+                    value={scratchFormValue}
+                    onChange={(e) => setScratchFormValue(e.target.value)}
+                    placeholder="e.g. 50"
+                    className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase opacity-40">Applies To Product (Optional)</label>
+                  <select
+                    value={scratchFormProductId}
+                    onChange={(e) => setScratchFormProductId(e.target.value)}
+                    className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-[10px] bg-white text-black mt-1"
+                  >
+                    <option value="">Apply to Total Order (No Specific Item)</option>
+                    {products.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddScratchModal(false)}
+                    className="flex-1 bg-gray-200 border-2 border-black py-3 rounded-xl font-bold uppercase text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 text-[#FFE974] border-2 border-black py-3 rounded-xl font-bold uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none"
+                  >
+                    Create Prize
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
