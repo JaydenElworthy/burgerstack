@@ -16,6 +16,7 @@ export default function ScratchCard() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [prizeResult, setPrizeResult] = useState(null);
+  const [preRolledPrize, setPreRolledPrize] = useState(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -42,20 +43,56 @@ export default function ScratchCard() {
       lastSunday.setHours(0, 1, 0, 0);
       const lastScratch = prof?.last_scratch_date ? new Date(prof.last_scratch_date) : new Date(0);
 
+      const loadPreRolledPrize = async (activeUser) => {
+        try {
+          const { data: prizes } = await supabase.from('scratch_prizes').select('*').eq('is_active', true);
+          const winRoll = Math.random() > 0.3;
+          let preRolled = { win: false };
+          
+          if (winRoll && prizes && prizes.length > 0) {
+            const randomCat = prizes[Math.floor(Math.random() * prizes.length)];
+            const { data: codeRow } = await supabase
+              .from('manual_code_bank')
+              .select('*')
+              .eq('prize_type', randomCat.id)
+              .eq('is_claimed', false)
+              .limit(1)
+              .single();
+
+            if (codeRow) {
+              preRolled = {
+                win: true,
+                title: randomCat.title,
+                code: codeRow.code,
+                prizeId: randomCat.id,
+                codeRowId: codeRow.id
+              };
+            }
+          }
+          setPreRolledPrize(preRolled);
+        } catch (e) {
+          console.error("Error pre-rolling prize:", e);
+          setPreRolledPrize({ win: false });
+        }
+      };
+
       if (lastScratch < lastSunday && prof?.scratch_count > 0) {
         await supabase.from('profiles').update({ scratch_count: 0, bonus_unlocked: false }).eq('id', activeUser.id);
         setStatus('can_scratch');
         setIsRevealed(false);
+        await loadPreRolledPrize(activeUser);
         return;
       }
 
       if (prof?.scratch_count === 0) { 
         setStatus('can_scratch'); 
         setIsRevealed(false);
+        await loadPreRolledPrize(activeUser);
       } else if (prof?.scratch_count === 1) {
         if (prof?.bonus_unlocked) { 
           setStatus('can_scratch'); 
           setIsRevealed(false);
+          await loadPreRolledPrize(activeUser);
         } else { 
           setStatus('locked_need_points'); 
           setIsRevealed(true); 
@@ -70,23 +107,17 @@ export default function ScratchCard() {
 
   // 2. REVEAL ENGINE (Only for Logged In)
   const handleReveal = async () => {
-    if (isRevealed || !user) return;
+    if (isRevealed || !user || !preRolledPrize) return;
     setIsRevealed(true);
-    const winRoll = Math.random() > 0.3; 
 
-    if (winRoll) {
-      const { data: prizes } = await supabase.from('scratch_prizes').select('*').eq('is_active', true);
-      const randomCat = prizes?.[Math.floor(Math.random() * prizes.length)];
-      if (randomCat) {
-        const { data: codeRow } = await supabase.from('manual_code_bank').select('*').eq('prize_type', randomCat.id).eq('is_claimed', false).limit(1).single();
-        if (codeRow) {
-          setPrizeResult({ title: randomCat.title, code: codeRow.code });
-          confetti();
-          await supabase.from('manual_code_bank').update({ is_claimed: true, claimed_by: user.id }).eq('id', codeRow.id);
-          await supabase.from('rewards').insert({ user_id: user.id, prize_title: randomCat.title, prize_code: codeRow.code });
-        } else { setPrizeResult(null); }
-      }
-    } else { setPrizeResult(null); }
+    if (preRolledPrize.win) {
+      setPrizeResult({ title: preRolledPrize.title, code: preRolledPrize.code });
+      confetti();
+      await supabase.from('manual_code_bank').update({ is_claimed: true, claimed_by: user.id }).eq('id', preRolledPrize.codeRowId);
+      await supabase.from('rewards').insert({ user_id: user.id, prize_title: preRolledPrize.title, prize_code: preRolledPrize.code });
+    } else {
+      setPrizeResult(null);
+    }
 
     const nextCount = (profile?.scratch_count || 0) + 1;
     await supabase.from('profiles').update({ 
@@ -104,8 +135,8 @@ export default function ScratchCard() {
     if (!isInitialized) {
       canvas.width = 320; canvas.height = 320;
       ctx.fillStyle = '#222'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#444';
-      for(let i=0; i<9; i++) { ctx.fillText('PICNIC • PICNIC • PICNIC', 160, 40 + (i*35)); }
+      ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#444';
+      for(let i=0; i<9; i++) { ctx.fillText('PICNIC AT HOME • PICNIC AT HOME', 160, 42 + (i*32)); }
       setIsInitialized(true);
     }
     const scratch = (x, y) => {
@@ -193,11 +224,28 @@ export default function ScratchCard() {
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">Play Burger Slinger for more chances</p>
                 </div>
               )
+            ) : status === 'can_scratch' ? (
+              !preRolledPrize ? (
+                <Loader2 className="animate-spin opacity-20" size={40} />
+              ) : preRolledPrize.win ? (
+                <div className="flex flex-col items-center w-full px-4 text-center">
+                  <Ticket size={50} className="sm:w-16 sm:h-16 mb-2 sm:mb-4 animate-bounce rotate-[-10deg]" />
+                  <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter leading-none mb-1">WINNER!</h3>
+                  <p className="text-xs sm:text-sm font-bold uppercase tracking-tight opacity-75 mb-3">{preRolledPrize.title}</p>
+                  <p className="text-sm sm:text-lg font-mono bg-white text-black px-4 py-2 rounded-xl border border-black font-black uppercase select-text tracking-widest shadow-inner leading-none">{preRolledPrize.code}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center w-full px-4 text-center">
+                  <XCircle size={50} className="sm:w-16 sm:h-16 mb-2 sm:mb-4 opacity-20" />
+                  <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tighter leading-none mb-2 opacity-60">Better Luck Next Time</h3>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">Play Burger Slinger for more chances</p>
+                </div>
+              )
             ) : (
               <div className="flex flex-col items-center w-full px-4">
                 <Ticket size={50} className="sm:w-16 sm:h-16 mb-2 sm:mb-4 opacity-20 rotate-[-10deg]" />
-                <h3 className="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none mb-3 sm:mb-4 italic">
-                    Play Burger Slinger to win another scratch card
+                <h3 className="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none mb-3 sm:mb-4 italic text-center">
+                  Play Burger Slinger to win another scratch card
                 </h3>
                 <div className="bg-[#E55937] text-white px-4 sm:px-6 py-2 rounded-full font-black uppercase text-[8px] sm:text-[10px] tracking-widest shadow-lg">
                     Renews Every Sunday

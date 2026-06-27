@@ -21,14 +21,18 @@ export default function Leaderboard() {
       
       if (leaderData) setLeaders(leaderData)
 
-      // 2. Fetch the Prize Title set by Super Admin
-      const { data: settingsData } = await supabase
-        .from('app_settings')
-        .select('prize_title')
-        .eq('id', 1)
-        .single()
-      
-      if (settingsData) setPrize(settingsData.prize_title)
+      // 2. Fetch the Prize Title set by Super Admin via backend API to bypass RLS restrictions
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const settingsData = await res.json();
+          if (settingsData && settingsData.prize_title) {
+            setPrize(settingsData.prize_title);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch prize settings:", err);
+      }
 
       setLoading(false)
     }
