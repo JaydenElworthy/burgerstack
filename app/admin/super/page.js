@@ -30,6 +30,9 @@ export default function SuperAdmin() {
   const [isLoadingDiscounts, setIsLoadingDiscounts] = useState(false);
   const [codeBankTab, setCodeBankTab] = useState('sync'); // 'sync' or 'manual'
 
+  // Code Bank Inventory state
+  const [codeBankInventory, setCodeBankInventory] = useState([]);
+
   // Scratch prize form modal states
   const [showAddScratchModal, setShowAddScratchModal] = useState(false);
   const [scratchFormTitle, setScratchFormTitle] = useState('');
@@ -65,6 +68,10 @@ export default function SuperAdmin() {
     // Load Scratch Prize Types
     const { data: sp } = await supabase.from('scratch_prizes').select('*').order('created_at', { ascending: false });
     setScratchPrizes(sp || []);
+
+    // Load Code Bank Inventory
+    const { data: codes } = await supabase.from('manual_code_bank').select('*').order('created_at', { ascending: false });
+    setCodeBankInventory(codes || []);
     
     setLoading(false);
   };
@@ -151,11 +158,47 @@ export default function SuperAdmin() {
     );
 
     if (!error) {
-      alert(`Added ${newCodes.length} codes to ${codeBucket === 'GRAND' ? 'Grand Prize' : 'Scratch Pool'}!`);
+      alert(`Added ${newCodes.length} codes to ${codeBucket === 'GRAND' ? 'High Score Prize' : 'Scratch Pool'}!`);
       setManualCodes('');
+      loadData();
     } else {
       alert("Error: " + error.message);
     }
+  };
+
+  const deleteCodeFromBank = async (id) => {
+    if (confirm("Remove this code from the bank?")) {
+      const { error } = await supabase.from('manual_code_bank').delete().eq('id', id);
+      if (!error) {
+        loadData();
+        loadSquarespaceDiscounts();
+      } else {
+        alert("Error deleting code: " + error.message);
+      }
+    }
+  };
+
+  const getGroupedCodes = () => {
+    const groups = {
+      GRAND: { title: "High Score Winner Prize", unclaimed: [], claimed: [] }
+    };
+    
+    scratchPrizes.forEach(p => {
+      groups[p.id] = { title: p.title, unclaimed: [], claimed: [] };
+    });
+
+    codeBankInventory.forEach(c => {
+      if (!groups[c.prize_type]) {
+        groups[c.prize_type] = { title: `Deleted/Unknown Prize Category (${c.prize_type})`, unclaimed: [], claimed: [] };
+      }
+      if (c.is_claimed) {
+        groups[c.prize_type].claimed.push(c);
+      } else {
+        groups[c.prize_type].unclaimed.push(c);
+      }
+    });
+
+    return groups;
   };
 
   const toggleScratchPrizeActive = async (id, currentStatus) => {
@@ -265,11 +308,11 @@ export default function SuperAdmin() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         
-        {/* LEFT: WEEKLY WINNER */}
+        {/* LEFT: HIGH SCORE CHAMPION */}
         <div className="lg:col-span-2 space-y-6 sm:space-y-8">
           <div className="bg-black text-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(229,255,68,1)] sm:shadow-[8px_8px_0px_0px_rgba(229,255,68,1)] relative overflow-hidden">
             <Crown className="absolute -right-6 -top-6 text-white/10 w-48 h-48 rotate-12" />
-            <h2 className="text-[#FFE974] font-bold uppercase italic text-xl sm:text-2xl mb-4 sm:mb-8 flex items-center gap-2"><Star fill="#FFE974" /> Weekly Champion</h2>
+            <h2 className="text-[#FFE974] font-bold uppercase italic text-xl sm:text-2xl mb-4 sm:mb-8 flex items-center gap-2"><Star fill="#FFE974" /> High Score Champion</h2>
             {currentTopScorer && currentTopScorer.high_score > 0 ? (
               <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-6 relative z-10 w-full text-center md:text-left">
                 <div className="flex-1 min-w-0">
@@ -322,7 +365,7 @@ export default function SuperAdmin() {
         <div className="space-y-6 sm:space-y-8">
           {/* WEEKLY SETTINGS */}
           <div className="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <h2 className="text-lg sm:text-xl font-bold uppercase mb-6 sm:mb-8 flex items-center gap-2 underline underline-offset-8 decoration-red-500"><Settings size={20} /> Weekly Setup</h2>
+            <h2 className="text-lg sm:text-xl font-bold uppercase mb-6 sm:mb-8 flex items-center gap-2 underline underline-offset-8 decoration-red-500"><Settings size={20} /> High Score Setup</h2>
             <div className="space-y-4">
               <div>
                 <label className="text-[10px] font-black uppercase opacity-40">Prize Title (Display Name)</label>
@@ -368,7 +411,7 @@ export default function SuperAdmin() {
               )}
 
               <button onClick={saveWeeklyConfig} disabled={isSaving} className="w-full bg-black text-[#FFE974] py-4 rounded-xl font-black uppercase italic shadow-lg flex justify-center items-center gap-2 active:translate-y-1">
-                {isSaving ? <Loader2 className="animate-spin" /> : "Save Weekly Prize"}
+                {isSaving ? <Loader2 className="animate-spin" /> : "Save High Score Prize"}
               </button>
             </div>
           </div>
@@ -437,7 +480,7 @@ export default function SuperAdmin() {
                               }}
                               className="border-2 border-black rounded-lg p-1 font-black uppercase text-[8px] bg-white cursor-pointer"
                             >
-                              <option value="GRAND">Grand Prize</option>
+                              <option value="GRAND">High Score Winner</option>
                               {scratchPrizes.map(p => (
                                 <option key={p.id} value={p.id}>{p.title}</option>
                               ))}
@@ -454,7 +497,7 @@ export default function SuperAdmin() {
               ) : (
                 <>
                   <select value={codeBucket} onChange={(e) => setCodeBucket(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-black uppercase text-[10px]">
-                    <option value="GRAND">Bucket: Weekly Grand Prize</option>
+                    <option value="GRAND">Bucket: High Score Winner</option>
                     {scratchPrizes.map(p => (
                       <option key={p.id} value={p.id}>Bucket: {p.title}</option>
                     ))}
@@ -465,6 +508,54 @@ export default function SuperAdmin() {
               )}
             </div>
           </div>
+
+          {/* CODE BANK INVENTORY */}
+          <div className="bg-white p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2.5rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-6 sm:mt-8">
+            <h2 className="font-bold uppercase text-sm mb-4 flex items-center gap-2"><Trophy size={16}/> Code Bank Inventory</h2>
+            <div className="space-y-3">
+              {Object.entries(getGroupedCodes()).map(([key, group]) => {
+                const total = group.unclaimed.length + group.claimed.length;
+                if (total === 0) return null;
+                return (
+                  <details key={key} className="border-2 border-black rounded-xl p-3 bg-gray-50 group">
+                    <summary className="font-bold uppercase text-[10px] sm:text-xs flex justify-between items-center cursor-pointer list-none select-none">
+                      <span className="truncate pr-2">{group.title}</span>
+                      <span className="bg-black text-white px-2 py-0.5 rounded-full text-[8px] font-black shrink-0">
+                        {group.unclaimed.length} Available / {total} Total
+                      </span>
+                    </summary>
+                    <div className="mt-3 pt-3 border-t border-gray-200 space-y-2 max-h-48 overflow-y-auto">
+                      {group.unclaimed.map(c => (
+                        <div key={c.id} className="flex justify-between items-center text-[10px] font-mono bg-white border border-gray-200 px-2 py-1 rounded">
+                          <span className="text-green-600 font-bold">{c.code}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-black uppercase text-green-700 bg-green-100 px-1 rounded">Unclaimed</span>
+                            <button onClick={() => deleteCodeFromBank(c.id)} className="text-red-500 hover:text-red-700 font-bold">&times;</button>
+                          </div>
+                        </div>
+                      ))}
+                      {group.claimed.map(c => {
+                        const claimer = allUsers.find(u => u.id === c.claimed_by);
+                        return (
+                          <div key={c.id} className="flex justify-between items-center text-[10px] font-mono bg-white border border-gray-200 px-2 py-1 rounded opacity-60">
+                            <span className="text-gray-600 line-through">{c.code}</span>
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className="text-[8px] font-black uppercase text-gray-500 bg-gray-100 px-1 rounded">Claimed</span>
+                              {claimer && <span className="text-[8px] text-gray-400 truncate max-w-[120px] font-sans">{claimer.email}</span>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </details>
+                );
+              })}
+              {codeBankInventory.length === 0 && (
+                <p className="text-center py-6 text-xs text-gray-400 font-bold uppercase italic leading-tight">No codes loaded in the bank yet.</p>
+              )}
+            </div>
+          </div>
+
         </div>
 
       </div>
