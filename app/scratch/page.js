@@ -178,6 +178,21 @@ export default function ScratchCard() {
                     Renews Every Sunday
                 </div>
               </div>
+            ) : isRevealed ? (
+              prizeResult ? (
+                <div className="flex flex-col items-center w-full px-4 text-center">
+                  <Ticket size={50} className="sm:w-16 sm:h-16 mb-2 sm:mb-4 animate-bounce rotate-[-10deg]" />
+                  <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter leading-none mb-1">WINNER!</h3>
+                  <p className="text-xs sm:text-sm font-bold uppercase tracking-tight opacity-75 mb-3">{prizeResult.title}</p>
+                  <p className="text-sm sm:text-lg font-mono bg-white text-black px-4 py-2 rounded-xl border border-black font-black uppercase select-text tracking-widest shadow-inner leading-none">{prizeResult.code}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center w-full px-4 text-center">
+                  <XCircle size={50} className="sm:w-16 sm:h-16 mb-2 sm:mb-4 opacity-20" />
+                  <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tighter leading-none mb-2 opacity-60">Better Luck Next Time</h3>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">Play Burger Slinger for more chances</p>
+                </div>
+              )
             ) : (
               <div className="flex flex-col items-center w-full px-4">
                 <Ticket size={50} className="sm:w-16 sm:h-16 mb-2 sm:mb-4 opacity-20 rotate-[-10deg]" />
