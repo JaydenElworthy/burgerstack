@@ -148,7 +148,7 @@ export default function ScratchCard() {
 
       <div className="text-center mb-4 sm:mb-6 px-4 shrink-0">
         <h2 className="text-[10vw] sm:text-5xl font-bold uppercase leading-[0.8] tracking-tighter text-[#FFE974]">
-            {status === 'loading' ? 'LOADING...' : status === 'no_auth' ? 'Log In' : status === 'bonus_used' ? 'All Done' : 'Daily Drop'}
+            {status === 'loading' ? 'LOADING...' : status === 'no_auth' ? 'Log In' : status === 'bonus_used' ? 'All Done' : 'Scratch To Win'}
         </h2>
       </div>
 
