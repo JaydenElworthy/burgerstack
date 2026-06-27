@@ -36,6 +36,7 @@ export default function SuperAdmin() {
   // Accordion/toggle states for code loaders
   const [showHighScoreAddCodes, setShowHighScoreAddCodes] = useState(false);
   const [activeAddCodesPrizeId, setActiveAddCodesPrizeId] = useState(null);
+  const [syncError, setSyncError] = useState(null);
 
   // Scratch prize form modal states
   const [showAddScratchModal, setShowAddScratchModal] = useState(false);
@@ -82,6 +83,7 @@ export default function SuperAdmin() {
 
   const loadSquarespaceDiscounts = async () => {
     setIsLoadingDiscounts(true);
+    setSyncError(null);
     try {
       const res = await fetch('/api/squarespace/discounts');
       const discounts = await res.json();
@@ -98,9 +100,14 @@ export default function SuperAdmin() {
           initialSelections[d.promoCode] = { selected: false, bucket: 'GRAND' };
         });
         setSelectedImportCodes(initialSelections);
+      } else if (discounts && discounts.error) {
+        setSyncError(discounts.error);
+      } else {
+        setSyncError("Failed to fetch codes: invalid response format.");
       }
     } catch (e) {
       console.error("Failed to load Squarespace discounts:", e);
+      setSyncError("Network error: " + e.message);
     } finally {
       setIsLoadingDiscounts(false);
     }
@@ -237,6 +244,18 @@ export default function SuperAdmin() {
               <div className="flex items-center justify-center py-6">
                 <Loader2 className="animate-spin text-blue-600 w-5 h-5" />
                 <span className="text-[10px] font-bold uppercase tracking-wider ml-2">Syncing...</span>
+              </div>
+            ) : syncError ? (
+              <div className="bg-red-50 border-2 border-red-500 rounded-xl p-3 text-red-600 text-center space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-tight">Sync Failed</p>
+                <p className="text-[9px] font-mono leading-normal break-words">{syncError}</p>
+                <button
+                  type="button"
+                  onClick={loadSquarespaceDiscounts}
+                  className="bg-red-600 text-white border-2 border-black px-4 py-1 rounded-xl text-[9px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none transition-transform"
+                >
+                  Retry Sync
+                </button>
               </div>
             ) : squarespaceDiscounts.length === 0 ? (
               <div className="text-center py-4 space-y-3">
