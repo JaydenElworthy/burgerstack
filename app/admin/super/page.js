@@ -234,13 +234,34 @@ export default function SuperAdmin() {
         {codeBankTab === 'sync' ? (
           <div className="space-y-3">
             {isLoadingDiscounts ? (
-              <div className="flex items-center justify-center py-4">
+              <div className="flex items-center justify-center py-6">
                 <Loader2 className="animate-spin text-blue-600 w-5 h-5" />
+                <span className="text-[10px] font-bold uppercase tracking-wider ml-2">Syncing...</span>
               </div>
             ) : squarespaceDiscounts.length === 0 ? (
-              <p className="text-center py-2 text-[9px] text-gray-400 font-bold uppercase italic">No active Squarespace codes found.</p>
+              <div className="text-center py-4 space-y-3">
+                <p className="text-[10px] text-gray-400 font-bold uppercase italic leading-tight">No new Squarespace codes found.</p>
+                <button
+                  type="button"
+                  onClick={loadSquarespaceDiscounts}
+                  className="bg-black text-[#FFE974] px-4 py-2 rounded-xl text-[9px] font-black uppercase border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none transition-transform"
+                >
+                  Pull Codes from Squarespace
+                </button>
+              </div>
             ) : (
               <>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[9px] font-black uppercase text-gray-400">Select codes:</span>
+                  <button
+                    type="button"
+                    onClick={loadSquarespaceDiscounts}
+                    className="text-[9px] font-black uppercase text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    <RefreshCw size={10} className={`${isLoadingDiscounts ? 'animate-spin' : ''}`} /> Sync Squarespace
+                  </button>
+                </div>
+                
                 <div className="space-y-2 max-h-36 overflow-y-auto border-2 border-black p-2 rounded-lg bg-white">
                   {squarespaceDiscounts.map(d => (
                     <label key={d.promoCode} className="flex items-center gap-2 text-[10px] cursor-pointer py-1 border-b border-gray-100 last:border-0">
@@ -255,7 +276,7 @@ export default function SuperAdmin() {
                         }}
                         className="w-3.5 h-3.5 accent-blue-600"
                       />
-                      <span className="font-mono font-bold truncate pr-1">{d.promoCode}</span>
+                      <span className="font-mono font-bold truncate pr-1 text-black">{d.promoCode}</span>
                       <span className="text-[8px] text-gray-400 truncate flex-1">({d.name})</span>
                     </label>
                   ))}
@@ -264,9 +285,9 @@ export default function SuperAdmin() {
                   type="button"
                   onClick={handleImportDiscounts}
                   disabled={isSaving}
-                  className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold uppercase italic text-[10px]"
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold uppercase italic text-[10px] border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5"
                 >
-                  Import Checked ({Object.values(selectedImportCodes).filter(v => v.selected && v.bucket === targetBucket).length})
+                  Import Selected ({Object.values(selectedImportCodes).filter(v => v.selected && v.bucket === targetBucket).length})
                 </button>
               </>
             )}
