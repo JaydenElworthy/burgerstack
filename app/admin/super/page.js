@@ -33,6 +33,10 @@ export default function SuperAdmin() {
   // Code Bank Inventory state
   const [codeBankInventory, setCodeBankInventory] = useState([]);
 
+  // Accordion/toggle states for code loaders
+  const [showHighScoreAddCodes, setShowHighScoreAddCodes] = useState(false);
+  const [activeAddCodesPrizeId, setActiveAddCodesPrizeId] = useState(null);
+
   // Scratch prize form modal states
   const [showAddScratchModal, setShowAddScratchModal] = useState(false);
   const [scratchFormTitle, setScratchFormTitle] = useState('');
@@ -176,6 +180,116 @@ export default function SuperAdmin() {
         alert("Error deleting code: " + error.message);
       }
     }
+  };
+
+  const uploadToBucketDirect = async (targetBucket) => {
+    if (!manualCodes) return alert("Paste codes first");
+    const list = manualCodes.split(/[\n,]+/).map(c => c.trim()).filter(c => c !== '');
+    
+    const { data: existing } = await supabase.from('manual_code_bank').select('code');
+    const existingStrings = existing?.map(x => x.code) || [];
+    const newCodes = list.filter(c => !existingStrings.includes(c));
+
+    if (newCodes.length === 0) return alert("All codes already exist in bank.");
+
+    setIsSaving(true);
+    const { error } = await supabase.from('manual_code_bank').insert(
+      newCodes.map(code => ({ 
+        code, 
+        prize_type: targetBucket, 
+        is_claimed: false 
+      }))
+    );
+    setIsSaving(false);
+
+    if (!error) {
+      alert(`Added ${newCodes.length} codes!`);
+      setManualCodes('');
+      loadData();
+    } else {
+      alert("Error: " + error.message);
+    }
+  };
+
+  const renderInlineCodeLoader = (targetBucket) => {
+    return (
+      <div className="border-2 border-black rounded-2xl p-4 bg-gray-50 mt-3 space-y-3 text-black">
+        <div className="flex border-b-2 border-black mb-3">
+          <button
+            type="button"
+            onClick={() => setCodeBankTab('sync')}
+            className={`flex-1 py-1.5 font-bold uppercase text-[10px] text-center border-r-2 border-black last:border-r-0 ${codeBankTab === 'sync' ? 'bg-[#FFE974] text-black font-black' : 'bg-white text-gray-500 font-bold'}`}
+          >
+            Sync Squarespace
+          </button>
+          <button
+            type="button"
+            onClick={() => setCodeBankTab('manual')}
+            className={`flex-1 py-1.5 font-bold uppercase text-[10px] text-center ${codeBankTab === 'manual' ? 'bg-[#FFE974] text-black font-black' : 'bg-white text-gray-500 font-bold'}`}
+          >
+            Manual Paste
+          </button>
+        </div>
+
+        {codeBankTab === 'sync' ? (
+          <div className="space-y-3">
+            {isLoadingDiscounts ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="animate-spin text-blue-600 w-5 h-5" />
+              </div>
+            ) : squarespaceDiscounts.length === 0 ? (
+              <p className="text-center py-2 text-[9px] text-gray-400 font-bold uppercase italic">No active Squarespace codes found.</p>
+            ) : (
+              <>
+                <div className="space-y-2 max-h-36 overflow-y-auto border-2 border-black p-2 rounded-lg bg-white">
+                  {squarespaceDiscounts.map(d => (
+                    <label key={d.promoCode} className="flex items-center gap-2 text-[10px] cursor-pointer py-1 border-b border-gray-100 last:border-0">
+                      <input
+                        type="checkbox"
+                        checked={selectedImportCodes[d.promoCode]?.selected || false}
+                        onChange={(e) => {
+                          setSelectedImportCodes(prev => ({
+                            ...prev,
+                            [d.promoCode]: { selected: e.target.checked, bucket: targetBucket }
+                          }));
+                        }}
+                        className="w-3.5 h-3.5 accent-blue-600"
+                      />
+                      <span className="font-mono font-bold truncate pr-1">{d.promoCode}</span>
+                      <span className="text-[8px] text-gray-400 truncate flex-1">({d.name})</span>
+                    </label>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleImportDiscounts}
+                  disabled={isSaving}
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold uppercase italic text-[10px]"
+                >
+                  Import Checked ({Object.values(selectedImportCodes).filter(v => v.selected && v.bucket === targetBucket).length})
+                </button>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <textarea
+              value={manualCodes}
+              onChange={(e) => setManualCodes(e.target.value)}
+              className="w-full h-24 border-2 border-black p-2 rounded-lg font-mono text-[10px] bg-white text-black"
+              placeholder="Paste codes here (one per line)..."
+            />
+            <button
+              type="button"
+              onClick={() => uploadToBucketDirect(targetBucket)}
+              className="w-full bg-blue-600 text-[#FFE974] py-2 rounded-lg font-bold uppercase italic text-[10px] border border-black active:translate-y-0.5"
+            >
+              Upload Codes
+            </button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const getGroupedCodes = () => {
@@ -337,25 +451,53 @@ export default function SuperAdmin() {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {scratchPrizes.map((p) => (
-                <div key={p.id} className="p-4 sm:p-5 border-4 border-black rounded-2xl bg-gray-50 flex justify-between items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                  <div className="flex-1 pr-3">
-                    <p className="font-bold uppercase text-sm">{p.title}</p>
-                    <p className="text-[10px] opacity-50 font-black uppercase">
-                      {p.discount_value}% Off • {p.apply_to_item_id ? `Product: ${products.find(prod => prod.id === p.apply_to_item_id)?.name || 'Specific Item'}` : "Total Order"}
-                    </p>
+              {scratchPrizes.map((p) => {
+                const pCodes = codeBankInventory.filter(c => c.prize_type === p.id);
+                const unclaimedCount = pCodes.filter(c => !c.is_claimed).length;
+                const isAddingCodes = activeAddCodesPrizeId === p.id;
+                
+                return (
+                  <div key={p.id} className="p-4 sm:p-5 border-4 border-black rounded-2xl bg-gray-50 flex flex-col gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black">
+                    <div className="flex justify-between items-start w-full">
+                      <div className="flex-1 pr-3">
+                        <p className="font-bold uppercase text-sm leading-tight">{p.title}</p>
+                        <p className="text-[10px] opacity-50 font-black uppercase my-1">
+                          {p.discount_value}% Off • {p.apply_to_item_id ? `Product: ${products.find(prod => prod.id === p.apply_to_item_id)?.name || 'Specific Item'}` : "Total Order"}
+                        </p>
+                        <p className="text-[9px] font-black uppercase text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full inline-block leading-none">
+                          {unclaimedCount} codes available
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => toggleScratchPrizeActive(p.id, p.is_active)}
+                          className={`px-3 py-1 rounded-full border-2 border-black text-[9px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none transition-all ${p.is_active ? 'bg-green-400 text-black' : 'bg-gray-300 text-gray-600'}`}
+                        >
+                          {p.is_active ? 'Active' : 'Inactive'}
+                        </button>
+                        <button onClick={() => deleteScratchPrize(p.id)} className="text-red-500 hover:scale-125 transition-transform p-2"><Trash2 size={18} /></button>
+                      </div>
+                    </div>
+
+                    {/* Loader trigger */}
+                    <div className="w-full border-t border-dashed border-gray-300 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveAddCodesPrizeId(isAddingCodes ? null : p.id);
+                          setCodeBucket(p.id);
+                        }}
+                        className="text-[9px] font-black uppercase text-blue-600 hover:underline flex items-center gap-1"
+                      >
+                        {isAddingCodes ? "Close Loader" : "+ Load Promo Codes"}
+                      </button>
+                    </div>
+
+                    {/* Collapsible loader drawer */}
+                    {isAddingCodes && renderInlineCodeLoader(p.id)}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => toggleScratchPrizeActive(p.id, p.is_active)}
-                      className={`px-3 py-1 rounded-full border-2 border-black text-[9px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none transition-all ${p.is_active ? 'bg-green-400 text-black' : 'bg-gray-300 text-gray-600'}`}
-                    >
-                      {p.is_active ? 'Active' : 'Inactive'}
-                    </button>
-                    <button onClick={() => deleteScratchPrize(p.id)} className="text-red-500 hover:scale-125 transition-transform p-2"><Trash2 size={18} /></button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               {scratchPrizes.length === 0 && <p className="col-span-2 text-center opacity-30 uppercase font-bold italic">No scratch prizes created yet.</p>}
             </div>
           </div>
@@ -413,101 +555,31 @@ export default function SuperAdmin() {
               <button onClick={saveWeeklyConfig} disabled={isSaving} className="w-full bg-black text-[#FFE974] py-4 rounded-xl font-black uppercase italic shadow-lg flex justify-center items-center gap-2 active:translate-y-1">
                 {isSaving ? <Loader2 className="animate-spin" /> : "Save High Score Prize"}
               </button>
+
+              {/* High Score Code Bank details */}
+              <div className="border-t-2 border-black pt-4 mt-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold uppercase text-xs">High Score Code Bank</h3>
+                    <p className="text-[9px] text-gray-500 font-bold uppercase leading-none mt-1">
+                      {codeBankInventory.filter(c => c.prize_type === 'GRAND' && !c.is_claimed).length} codes available in bank
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowHighScoreAddCodes(!showHighScoreAddCodes)}
+                    className="bg-black text-[#FFE974] px-3 py-1.5 rounded-xl border-2 border-black text-[9px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none"
+                  >
+                    {showHighScoreAddCodes ? "Hide Loader" : "+ Load Codes"}
+                  </button>
+                </div>
+
+                {showHighScoreAddCodes && renderInlineCodeLoader('GRAND')}
+              </div>
             </div>
           </div>
 
-          {/* CODE BANK (THE BUCKET) */}
-          <div className="bg-white p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2.5rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <h2 className="font-bold uppercase text-sm mb-4 flex items-center gap-2"><Tag size={16}/> Load Code Bank</h2>
-            
-            {/* Tabs */}
-            <div className="flex border-b-2 border-black mb-4">
-              <button
-                type="button"
-                onClick={() => setCodeBankTab('sync')}
-                className={`flex-1 py-2 font-bold uppercase text-xs text-center border-r-2 border-black last:border-r-0 ${codeBankTab === 'sync' ? 'bg-[#FFE974] text-black font-black' : 'bg-white text-gray-500 font-bold'}`}
-              >
-                Sync Squarespace
-              </button>
-              <button
-                type="button"
-                onClick={() => setCodeBankTab('manual')}
-                className={`flex-1 py-2 font-bold uppercase text-xs text-center ${codeBankTab === 'manual' ? 'bg-[#FFE974] text-black font-black' : 'bg-white text-gray-500 font-bold'}`}
-              >
-                Manual Paste
-              </button>
-            </div>
 
-            <div className="space-y-4">
-              {codeBankTab === 'sync' ? (
-                <>
-                  {isLoadingDiscounts ? (
-                    <div className="flex items-center justify-center py-10">
-                      <Loader2 className="animate-spin text-blue-600" size={24} />
-                      <span className="text-xs uppercase font-bold tracking-wider ml-2">Loading active codes...</span>
-                    </div>
-                  ) : squarespaceDiscounts.length === 0 ? (
-                    <p className="text-center py-6 text-xs text-gray-400 font-bold uppercase italic leading-tight">All active Squarespace codes are already loaded in the bank.</p>
-                  ) : (
-                    <>
-                      <div className="space-y-3 max-h-56 overflow-y-auto border-2 border-black p-3 rounded-xl bg-gray-50">
-                        {squarespaceDiscounts.map(d => (
-                          <div key={d.promoCode} className="flex items-center justify-between gap-3 text-xs border-b border-gray-200 pb-2 last:border-0 last:pb-0">
-                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                              <input
-                                type="checkbox"
-                                checked={selectedImportCodes[d.promoCode]?.selected || false}
-                                onChange={(e) => {
-                                  setSelectedImportCodes(prev => ({
-                                    ...prev,
-                                    [d.promoCode]: { ...prev[d.promoCode], selected: e.target.checked }
-                                  }));
-                                }}
-                                className="w-4 h-4 accent-blue-600 cursor-pointer"
-                              />
-                              <div className="truncate min-w-0">
-                                <p className="font-bold text-black truncate">{d.promoCode}</p>
-                                <p className="text-[9px] text-gray-500 truncate leading-none">{d.name}</p>
-                              </div>
-                            </div>
-                            <select
-                              value={selectedImportCodes[d.promoCode]?.bucket || 'GRAND'}
-                              onChange={(e) => {
-                                setSelectedImportCodes(prev => ({
-                                  ...prev,
-                                  [d.promoCode]: { ...prev[d.promoCode], bucket: e.target.value }
-                                }));
-                              }}
-                              className="border-2 border-black rounded-lg p-1 font-black uppercase text-[8px] bg-white cursor-pointer"
-                            >
-                              <option value="GRAND">High Score Winner</option>
-                              {scratchPrizes.map(p => (
-                                <option key={p.id} value={p.id}>{p.title}</option>
-                              ))}
-                            </select>
-                          </div>
-                        ))}
-                      </div>
-                      <button onClick={handleImportDiscounts} disabled={isSaving} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase italic shadow-md active:translate-y-0.5 text-xs">
-                        Import Selected ({Object.values(selectedImportCodes).filter(v => v.selected).length})
-                      </button>
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  <select value={codeBucket} onChange={(e) => setCodeBucket(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-black uppercase text-[10px]">
-                    <option value="GRAND">Bucket: High Score Winner</option>
-                    {scratchPrizes.map(p => (
-                      <option key={p.id} value={p.id}>Bucket: {p.title}</option>
-                    ))}
-                  </select>
-                  <textarea value={manualCodes} onChange={(e) => setManualCodes(e.target.value)} className="w-full h-32 border-4 border-black p-3 rounded-xl font-mono text-xs" placeholder="Paste Squarespace codes here (one per line)..." />
-                  <button onClick={uploadToBucket} className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold uppercase italic shadow-md active:translate-y-1">Load Bucket</button>
-                </>
-              )}
-            </div>
-          </div>
 
           {/* CODE BANK INVENTORY */}
           <div className="bg-white p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2.5rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-6 sm:mt-8">
