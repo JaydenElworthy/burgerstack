@@ -66,7 +66,7 @@ export default function Home() {
       {/* Points Card */}
       <div className="bg-[#FFE974] text-[#E55937] p-4 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] shrink-0 flex justify-between items-center border-4 border-black">
         <div>
-          <p className="text-[8px] sm:text-[10px] uppercase font-black opacity-60 tracking-widest text-[#E55937]"> All Time High Score</p>
+          <p className="text-[8px] sm:text-[10px] uppercase font-black opacity-60 tracking-widest text-[#E55937]">My All Time High Score</p>
           <p className="text-4xl sm:text-6xl font-bold italic tracking-tighter leading-none">
             {profile ? profile.high_score : '0'}
           </p>
@@ -90,17 +90,17 @@ export default function Home() {
 
       <div className="space-y-2 sm:space-y-4 shrink-0">
         <Link href="/wallet" className="w-full bg-[#FFE974] border-[3px] sm:border-4 border-black p-3 sm:p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
-          <span className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base"><Wallet size={20}/>My Wallet</span>
+          <span className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base"><Wallet size={20} />Wallet</span>
           <span>→</span>
         </Link>
-        
+
         <Link href="/leaderboard" className="w-full bg-[#FFE974] border-[3px] sm:border-4 border-black p-3 sm:p-5 rounded-2xl flex justify-between items-center font-bold uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-[#E55937]">
-          <span className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base"><Trophy size={20}/> Leaderboard</span>
+          <span className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base"><Trophy size={20} /> Leaderboard</span>
           <span>→</span>
         </Link>
       </div>
 
-     <div className="space-y-2 sm:space-y-4 shrink-0 pb-2 sm:pb-0 mt-2 sm:mt-0">
+      <div className="space-y-2 sm:space-y-4 shrink-0 pb-2 sm:pb-0 mt-2 sm:mt-0">
         <a href="https://picnicathome.com" className="w-full bg-black text-[#FFE974] p-4 sm:p-6 rounded-2xl flex justify-center items-center gap-2 sm:gap-4 font-bold uppercase italic text-lg sm:text-2xl shadow-xl">
           <ShoppingBag size={24} /> Order Online
         </a>

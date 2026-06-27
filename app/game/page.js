@@ -286,6 +286,11 @@ export default function BurgerGame() {
                 </Link>
               )}
             </div>
+
+            <h2 className="text-xl font-black uppercase text-[#FFE974] mt-6 mb-2">STACK IN ORDER</h2>
+            <h3 className="text-xs font-medium uppercase text-white opacity-80 tracking-wider">
+              BUN -&gt; PATTY -&gt; CHEESE -&gt; BUN
+            </h3>
           </motion.div>
         </div>
       )}

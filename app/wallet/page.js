@@ -14,7 +14,7 @@ export default function Wallet() {
     async function getRewards() {
       // 1. Get the current logged in user
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       if (user) {
         // 2. Fetch rewards only for this user
         const { data, error } = await supabase
@@ -22,7 +22,7 @@ export default function Wallet() {
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
-        
+
         if (!error) setRewards(data || [])
       }
       setLoading(false)
@@ -43,8 +43,8 @@ export default function Wallet() {
     <div className="h-[100dvh] p-4 sm:p-6 bg-[#E55937] font-sans text-[#FFE974] flex flex-col overflow-hidden overscroll-none">
       {/* Header */}
       <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-8 pt-2 shrink-0">
-        <Link href="/"><ArrowLeft className="text-[#FFE974]" size={28}/></Link>
-        <h1 className="text-3xl sm:text-4xl font-bold uppercase tracking-tighter italic">My Wallet</h1>
+        <Link href="/"><ArrowLeft className="text-[#FFE974]" size={28} /></Link>
+        <h1 className="text-3xl sm:text-4xl font-bold uppercase tracking-tighter italic">Wallet</h1>
       </div>
 
       {loading ? (
@@ -55,9 +55,9 @@ export default function Wallet() {
       ) : (
         <div className="space-y-4 sm:space-y-6 flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-4">
           {rewards.length > 0 ? rewards.map((r, i) => (
-            <motion.div 
-              key={i} 
-              initial={{ x: -20, opacity: 0 }} 
+            <motion.div
+              key={i}
+              initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: i * 0.1 }}
               className="bg-[#FFE974] border-[3px] sm:border-4 border-black p-5 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden text-[#E55937]"
@@ -65,12 +65,12 @@ export default function Wallet() {
               <Ticket size={32} className="sm:w-10 sm:h-10 mb-3 sm:mb-4" />
               <h2 className="text-2xl sm:text-3xl font-bold uppercase leading-tight mb-1">{r.prize_title}</h2>
               <p className="text-[9px] sm:text-[10px] font-bold opacity-60 mb-4 sm:mb-6 uppercase tracking-widest italic">One-time use champion code</p>
-              
+
               <div className="bg-white border-2 border-black p-4 sm:p-5 rounded-2xl text-center mb-4 sm:mb-6 shadow-inner">
-                 <span className="font-mono text-2xl sm:text-3xl font-black tracking-widest italic">{r.prize_code}</span>
+                <span className="font-mono text-2xl sm:text-3xl font-black tracking-widest italic">{r.prize_code}</span>
               </div>
 
-              <button 
+              <button
                 onClick={() => handleOrderNow(r.prize_code)}
                 className="w-full bg-black text-[#FFE974] py-4 sm:py-5 rounded-2xl font-bold uppercase italic text-lg sm:text-xl flex items-center justify-center gap-2 sm:gap-3 active:scale-95 transition-transform"
               >

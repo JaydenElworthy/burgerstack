@@ -57,7 +57,7 @@ export default function ScratchCard() {
           setStatus('can_scratch'); 
           setIsRevealed(false);
         } else { 
-          setStatus('locked_points'); 
+          setStatus('locked_need_points'); 
           setIsRevealed(true); 
         }
       } else { 
@@ -93,6 +93,7 @@ export default function ScratchCard() {
         scratch_count: nextCount,
         last_scratch_date: new Date().toISOString()
     }).eq('id', user.id);
+    setProfile(prev => prev ? { ...prev, scratch_count: nextCount } : null);
   };
 
   // 3. CANVAS ENGINE
@@ -215,7 +216,7 @@ export default function ScratchCard() {
         ) : (isRevealed || status !== 'can_scratch') ? (
             <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
               <Link href="/game" className="block w-full bg-black text-[#FFE974] p-4 sm:p-5 rounded-2xl font-bold uppercase italic text-center border-[3px] sm:border-4 border-black active:translate-y-1 transition-all leading-tight shadow-lg text-sm sm:text-lg px-2">
-                  Play Burger Slinger To Win Another Scratch Card
+                  {profile?.scratch_count >= 1 ? "Weekly Bonus Already Claimed" : "Play Burger Slinger To Win Another Scratch Card"}
               </Link>
             </motion.div>
         ) : (
