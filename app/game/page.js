@@ -19,6 +19,7 @@ export default function BurgerGame() {
 
   // --- NEW: MUTE STATE ---
   const [isMuted, setIsMuted] = useState(false);
+  const [activeKey, setActiveKey] = useState(null);
 
   // --- AUDIO REFS ---
   const musicRef = useRef(null);
@@ -169,6 +170,41 @@ export default function BurgerGame() {
     }
   };
 
+  // --- KEYBOARD CONTROLS ---
+  const handleInputRef = useRef(null);
+  handleInputRef.current = handleInput;
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.repeat) return; // Prevent key repeat events
+      const key = e.key.toLowerCase();
+      if (key === 'p') {
+        setActiveKey('patty');
+        handleInputRef.current?.('patty');
+      } else if (key === 'c') {
+        setActiveKey('cheese');
+        handleInputRef.current?.('cheese');
+      } else if (key === 'b') {
+        handleInputRef.current?.('bun');
+        setActiveKey('bun');
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      const key = e.key.toLowerCase();
+      if (key === 'p' || key === 'c' || key === 'b') {
+        setActiveKey(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
   return (
     <div className="h-[100dvh] w-full flex flex-col overflow-hidden overscroll-none select-none font-sans bg-[#E55937] relative text-[#FFE974]">
 
@@ -218,9 +254,29 @@ export default function BurgerGame() {
 
       {/* CONTROLS */}
       <div className="p-3 sm:p-6 grid grid-cols-3 gap-2 sm:gap-4 bg-[#FFE974] border-t-4 sm:border-t-8 border-black pb-6 sm:pb-12 z-50 shrink-0">
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} className="bg-[#4B2C20] text-white border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base">PATTY</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} className="bg-[#FFD700] text-black border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base">CHEESE</button>
-        <button onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} className="bg-[#E55937] text-white border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base">BUN</button>
+        <button 
+          onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} 
+          className={`bg-[#4B2C20] text-white border-[3px] sm:border-4 border-black py-3 sm:py-6 rounded-xl sm:rounded-2xl font-bold flex flex-col items-center justify-center transition-all ${activeKey === 'patty' ? 'translate-y-1 shadow-none border-b-[3px] sm:border-b-4' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1'} text-xs sm:text-base`}
+        >
+          <span>PATTY</span>
+          <span className="text-[10px] opacity-60 mt-0.5 font-bold">[P]</span>
+        </button>
+        
+        <button 
+          onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} 
+          className={`bg-[#FFD700] text-black border-[3px] sm:border-4 border-black py-3 sm:py-6 rounded-xl sm:rounded-2xl font-bold flex flex-col items-center justify-center transition-all ${activeKey === 'cheese' ? 'translate-y-1 shadow-none border-b-[3px] sm:border-b-4' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1'} text-xs sm:text-base`}
+        >
+          <span>CHEESE</span>
+          <span className="text-[10px] opacity-60 mt-0.5 font-bold">[C]</span>
+        </button>
+        
+        <button 
+          onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} 
+          className={`bg-[#E55937] text-white border-[3px] sm:border-4 border-black py-3 sm:py-6 rounded-xl sm:rounded-2xl font-bold flex flex-col items-center justify-center transition-all ${activeKey === 'bun' ? 'translate-y-1 shadow-none border-b-[3px] sm:border-b-4' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1'} text-xs sm:text-base`}
+        >
+          <span>BUN</span>
+          <span className="text-[10px] opacity-60 mt-0.5 font-bold">[B]</span>
+        </button>
       </div>
 
       {/* DYNAMIC RESULTS OVERLAY */}
