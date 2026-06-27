@@ -18,6 +18,15 @@ export default function ScratchCard() {
   const [prizeResult, setPrizeResult] = useState(null);
   const [preRolledPrize, setPreRolledPrize] = useState(null);
 
+  const preRolledRef = useRef(null);
+  preRolledRef.current = preRolledPrize;
+
+  const userRef = useRef(null);
+  userRef.current = user;
+
+  const profileRef = useRef(null);
+  profileRef.current = profile;
+
   useEffect(() => { setMounted(true); }, []);
 
   // 1. AUTH & ELIGIBILITY LOGIC
@@ -107,23 +116,27 @@ export default function ScratchCard() {
 
   // 2. REVEAL ENGINE (Only for Logged In)
   const handleReveal = async () => {
-    if (isRevealed || !user || !preRolledPrize) return;
+    const curPrize = preRolledRef.current;
+    const curUser = userRef.current;
+    const curProfile = profileRef.current;
+
+    if (isRevealed || !curUser || !curPrize) return;
     setIsRevealed(true);
 
-    if (preRolledPrize.win) {
-      setPrizeResult({ title: preRolledPrize.title, code: preRolledPrize.code });
+    if (curPrize.win) {
+      setPrizeResult({ title: curPrize.title, code: curPrize.code });
       confetti();
-      await supabase.from('manual_code_bank').update({ is_claimed: true, claimed_by: user.id }).eq('id', preRolledPrize.codeRowId);
-      await supabase.from('rewards').insert({ user_id: user.id, prize_title: preRolledPrize.title, prize_code: preRolledPrize.code });
+      await supabase.from('manual_code_bank').update({ is_claimed: true, claimed_by: curUser.id }).eq('id', curPrize.codeRowId);
+      await supabase.from('rewards').insert({ user_id: curUser.id, prize_title: curPrize.title, prize_code: curPrize.code });
     } else {
       setPrizeResult(null);
     }
 
-    const nextCount = (profile?.scratch_count || 0) + 1;
+    const nextCount = (curProfile?.scratch_count || 0) + 1;
     await supabase.from('profiles').update({ 
         scratch_count: nextCount,
         last_scratch_date: new Date().toISOString()
-    }).eq('id', user.id);
+    }).eq('id', curUser.id);
     setProfile(prev => prev ? { ...prev, scratch_count: nextCount } : null);
   };
 
