@@ -8,6 +8,7 @@ export default function SuperAdmin() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [products, setProducts] = useState([]);
   const [allUsers, setUsers] = useState([]);
   const [scratchPrizes, setScratchPrizes] = useState([]);
@@ -136,6 +137,30 @@ export default function SuperAdmin() {
     else { alert("Error: " + result.error); }
   };
 
+  const handleResetAll = async () => {
+    const confirmation1 = confirm("⚠️ WARNING: This will permanently delete all rewards from players' wallets and reset all high scores to 0. Are you absolutely sure you want to proceed?");
+    if (!confirmation1) return;
+
+    const confirmation2 = confirm("🚨 FINAL WARNING: This action is irreversible. Press OK to confirm you want to delete all rewards and reset all scores.");
+    if (!confirmation2) return;
+
+    setIsResetting(true);
+    try {
+      const res = await fetch('/api/admin/reset-all', { method: 'POST' });
+      if (res.ok) {
+        alert("Database reset successfully! All high scores, scratch counts, and wallet rewards have been cleared.");
+        window.location.reload();
+      } else {
+        const result = await res.json();
+        alert("Error resetting database: " + result.error);
+      }
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#E55937] text-[#FFE974] font-bold italic uppercase">Loading Kitchen...</div>;
 
   return (
@@ -237,6 +262,34 @@ export default function SuperAdmin() {
         </div>
 
       </div>
+
+      {/* DANGER ZONE / RESET SECTION */}
+      <div className="mt-12 bg-white p-8 rounded-[3rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(229,89,55,1)]">
+        <h2 className="text-2xl font-bold uppercase italic text-red-600 flex items-center gap-2 mb-4">
+          <Trash2 size={24} /> Danger Zone
+        </h2>
+        <p className="text-sm text-gray-600 mb-6 font-medium">
+          Resetting the system will set all player high scores to 0, reset scratch card counts, lock bonus scratches, and permanently delete all rewards from players' wallets. This action is irreversible.
+        </p>
+        <button
+          onClick={handleResetAll}
+          disabled={isResetting}
+          className="bg-red-600 text-white border-4 border-black px-8 py-4 rounded-2xl font-bold uppercase italic text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none hover:bg-red-700 transition-all flex items-center gap-2"
+        >
+          {isResetting ? (
+            <>
+              <Loader2 className="animate-spin" size={20} />
+              Resetting Database...
+            </>
+          ) : (
+            <>
+              <RefreshCw size={20} />
+              Reset All Scores & Wallet Rewards
+            </>
+          )}
+        </button>
+      </div>
+
     </div>
   );
 }
