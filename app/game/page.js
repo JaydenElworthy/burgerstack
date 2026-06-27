@@ -256,26 +256,21 @@ export default function BurgerGame() {
       <div className="p-3 sm:p-6 grid grid-cols-3 gap-2 sm:gap-4 bg-[#FFE974] border-t-4 sm:border-t-8 border-black pb-6 sm:pb-12 z-50 shrink-0">
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} 
-          className={`bg-[#4B2C20] text-white border-[3px] sm:border-4 border-black py-3 sm:py-6 rounded-xl sm:rounded-2xl font-bold flex flex-col items-center justify-center transition-all ${activeKey === 'patty' ? 'translate-y-1 shadow-none border-b-[3px] sm:border-b-4' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1'} text-xs sm:text-base`}
+          className={`bg-[#4B2C20] text-white border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base ${activeKey === 'patty' ? 'translate-y-1 shadow-none' : ''}`}
         >
-          <span>PATTY</span>
-          <span className="text-[10px] opacity-60 mt-0.5 font-bold">[P]</span>
+          PATTY
         </button>
-        
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} 
-          className={`bg-[#FFD700] text-black border-[3px] sm:border-4 border-black py-3 sm:py-6 rounded-xl sm:rounded-2xl font-bold flex flex-col items-center justify-center transition-all ${activeKey === 'cheese' ? 'translate-y-1 shadow-none border-b-[3px] sm:border-b-4' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1'} text-xs sm:text-base`}
+          className={`bg-[#FFD700] text-black border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base ${activeKey === 'cheese' ? 'translate-y-1 shadow-none' : ''}`}
         >
-          <span>CHEESE</span>
-          <span className="text-[10px] opacity-60 mt-0.5 font-bold">[C]</span>
+          CHEESE
         </button>
-        
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} 
-          className={`bg-[#E55937] text-white border-[3px] sm:border-4 border-black py-3 sm:py-6 rounded-xl sm:rounded-2xl font-bold flex flex-col items-center justify-center transition-all ${activeKey === 'bun' ? 'translate-y-1 shadow-none border-b-[3px] sm:border-b-4' : 'shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1'} text-xs sm:text-base`}
+          className={`bg-[#E55937] text-white border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base ${activeKey === 'bun' ? 'translate-y-1 shadow-none' : ''}`}
         >
-          <span>BUN</span>
-          <span className="text-[10px] opacity-60 mt-0.5 font-bold">[B]</span>
+          BUN
         </button>
       </div>
 
