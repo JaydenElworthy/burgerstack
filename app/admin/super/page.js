@@ -28,6 +28,7 @@ export default function SuperAdmin() {
   // Squarespace sync states
   const [squarespaceDiscounts, setSquarespaceDiscounts] = useState([]);
   const [isLoadingDiscounts, setIsLoadingDiscounts] = useState(false);
+  const [selectedImportCodes, setSelectedImportCodes] = useState({});
   const [codeBankTab, setCodeBankTab] = useState('sync'); // 'sync' or 'manual'
 
   // Code Bank Inventory state
@@ -286,7 +287,7 @@ export default function SuperAdmin() {
           <div className="space-y-3">
             {isLoadingDiscounts ? (
               <div className="flex items-center justify-center py-6">
-                <Loader2 className="animate-spin text-blue-600 w-5 h-5" />
+                <Loader2 className="animate-spin text-[#E55937] w-5 h-5" />
                 <span className="text-[10px] font-bold uppercase tracking-wider ml-2">Syncing...</span>
               </div>
             ) : syncError ? (
@@ -319,7 +320,7 @@ export default function SuperAdmin() {
                   <button
                     type="button"
                     onClick={loadSquarespaceDiscounts}
-                    className="text-[9px] font-black uppercase text-blue-600 hover:underline flex items-center gap-1"
+                    className="text-[9px] font-black uppercase text-[#E55937] hover:underline flex items-center gap-1"
                   >
                     <RefreshCw size={10} className={`${isLoadingDiscounts ? 'animate-spin' : ''}`} /> Sync Squarespace
                   </button>
@@ -337,7 +338,7 @@ export default function SuperAdmin() {
                             [d.promoCode]: { selected: e.target.checked, bucket: targetBucket }
                           }));
                         }}
-                        className="w-3.5 h-3.5 accent-blue-600"
+                        className="w-3.5 h-3.5 accent-[#E55937]"
                       />
                       <span className="font-mono font-bold truncate pr-1 text-black">{d.promoCode}</span>
                       <span className="text-[8px] text-gray-400 truncate flex-1">({d.name})</span>
@@ -348,7 +349,7 @@ export default function SuperAdmin() {
                   type="button"
                   onClick={() => handleImportDiscounts(targetBucket)}
                   disabled={isSaving}
-                  className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold uppercase italic text-[10px] border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5"
+                  className="w-full bg-black text-[#FFE974] py-2 rounded-lg font-bold uppercase italic text-[10px] border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5"
                 >
                   Import Selected ({Object.values(selectedImportCodes).filter(v => v.selected && v.bucket === targetBucket).length})
                 </button>
@@ -366,7 +367,7 @@ export default function SuperAdmin() {
             <button
               type="button"
               onClick={() => uploadToBucketDirect(targetBucket)}
-              className="w-full bg-blue-600 text-[#FFE974] py-2 rounded-lg font-bold uppercase italic text-[10px] border border-black active:translate-y-0.5"
+              className="w-full bg-black text-[#FFE974] py-2 rounded-lg font-bold uppercase italic text-[10px] border border-black active:translate-y-0.5"
             >
               Upload Codes
             </button>
@@ -499,14 +500,15 @@ export default function SuperAdmin() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#E55937] text-[#FFE974] font-bold italic uppercase">Loading Kitchen...</div>;
 
   return (
-    <div className="p-3 sm:p-6 md:p-10 max-w-7xl mx-auto min-h-screen bg-gray-100 text-black font-sans pb-20">
-      
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-6 md:mb-10 gap-2">
-        <Link href="/" className="bg-black text-white p-2.5 sm:p-3 rounded-xl shadow-lg hover:scale-110 transition-transform"><ArrowLeft size={20} className="sm:w-6 sm:h-6" /></Link>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase italic tracking-tighter text-center">Super <span className="text-red-600">Admin</span></h1>
-        <div className="w-10 sm:w-12" />
-      </div>
+    <div className="w-full min-h-screen bg-[#E55937]">
+      <div className="p-3 sm:p-6 md:p-10 max-w-7xl mx-auto text-white font-sans pb-20">
+        
+        {/* HEADER */}
+        <div className="flex justify-between items-center mb-6 md:mb-10 gap-2">
+          <Link href="/" className="bg-black text-[#FFE974] p-2.5 sm:p-3 rounded-xl border-4 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:scale-110 transition-transform"><ArrowLeft size={20} className="sm:w-6 sm:h-6" /></Link>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase italic tracking-tighter text-center text-[#FFE974]">Super <span className="text-white">Admin</span></h1>
+          <div className="w-10 sm:w-12" />
+        </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         
@@ -528,12 +530,12 @@ export default function SuperAdmin() {
           </div>
 
           {/* SCRATCH PRIZE MANAGEMENT */}
-          <div className="bg-white border-4 border-black rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="bg-white text-black border-4 border-black rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <div className="flex justify-between items-center mb-6 sm:mb-8">
-              <h2 className="text-lg sm:text-2xl font-bold uppercase italic text-blue-600 flex items-center gap-2"><Ticket /> Scratch Prizes</h2>
+              <h2 className="text-lg sm:text-2xl font-bold uppercase italic text-[#E55937] flex items-center gap-2"><Ticket /> Scratch Prizes</h2>
               <button 
                 onClick={() => setShowAddScratchModal(true)} 
-                className="bg-blue-600 text-white p-2.5 sm:p-3 rounded-full shadow-lg active:scale-90 transition-all hover:bg-blue-700"
+                className="bg-black text-[#FFE974] p-2.5 sm:p-3 rounded-full border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none hover:scale-105 transition-all"
               >
                 <Plus size={20} className="sm:w-6 sm:h-6" />
               </button>
@@ -552,7 +554,7 @@ export default function SuperAdmin() {
                         <p className="text-[10px] opacity-50 font-black uppercase my-1">
                           {p.discount_value}% Off • {p.apply_to_item_id ? `Product: ${products.find(prod => prod.id === p.apply_to_item_id)?.name || 'Specific Item'}` : "Total Order"}
                         </p>
-                        <p className="text-[9px] font-black uppercase text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full inline-block leading-none">
+                        <p className="text-[9px] font-black uppercase text-[#E55937] bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full inline-block leading-none">
                           {unclaimedCount} codes available
                         </p>
                       </div>
@@ -575,7 +577,7 @@ export default function SuperAdmin() {
                           setActiveAddCodesPrizeId(isAddingCodes ? null : p.id);
                           setCodeBucket(p.id);
                         }}
-                        className="text-[9px] font-black uppercase text-blue-600 hover:underline flex items-center gap-1"
+                        className="text-[9px] font-black uppercase text-[#E55937] hover:underline flex items-center gap-1"
                       >
                         {isAddingCodes ? "Close Loader" : "+ Load Promo Codes"}
                       </button>
@@ -590,9 +592,8 @@ export default function SuperAdmin() {
             </div>
           </div>
         </div>
-
         {/* RIGHT: CONFIG & CODE BANK */}
-        <div className="space-y-6 sm:space-y-8">
+        <div className="space-y-6 sm:space-y-8 text-black">
           {/* WEEKLY SETTINGS */}
           <div className="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <h2 className="text-lg sm:text-xl font-bold uppercase mb-4 flex items-center gap-2 underline underline-offset-8 decoration-red-500"><Settings size={20} /> High Score Setup</h2>
@@ -711,7 +712,7 @@ export default function SuperAdmin() {
 
 
           {/* CODE BANK INVENTORY */}
-          <div className="bg-white p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2.5rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-6 sm:mt-8">
+          <div className="bg-white p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2.5rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-6 sm:mt-8 text-black">
             <h2 className="font-bold uppercase text-sm mb-4 flex items-center gap-2"><Trophy size={16}/> Code Bank Inventory</h2>
             <div className="space-y-3">
               {Object.entries(getGroupedCodes()).map(([key, group]) => {
@@ -762,7 +763,7 @@ export default function SuperAdmin() {
       </div>
 
       {/* DANGER ZONE / RESET SECTION */}
-      <div className="mt-8 sm:mt-12 bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(229,89,55,1)] sm:shadow-[8px_8px_0px_0px_rgba(229,89,55,1)]">
+      <div className="mt-8 sm:mt-12 bg-white text-black p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(229,89,55,1)] sm:shadow-[8px_8px_0px_0px_rgba(229,89,55,1)]">
         <h2 className="text-xl sm:text-2xl font-bold uppercase italic text-red-600 flex items-center gap-2 mb-3 sm:mb-4">
           <Trash2 size={24} /> Danger Zone
         </h2>
@@ -772,7 +773,7 @@ export default function SuperAdmin() {
         <button
           onClick={handleResetAll}
           disabled={isResetting}
-          className="w-full sm:w-auto bg-red-600 text-white border-4 border-black px-6 py-4 rounded-2xl font-bold uppercase italic text-base sm:text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none hover:bg-red-700 transition-all flex items-center justify-center gap-2"
+          className="w-full sm:w-auto bg-red-600 text-white border-4 border-black px-6 py-4 rounded-2xl font-bold uppercase italic text-base sm:text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none hover:bg-red-700 transition-all flex items-center justify-center gap-2 text-white"
         >
           {isResetting ? (
             <>
@@ -805,7 +806,7 @@ export default function SuperAdmin() {
                 &times;
               </button>
               
-              <h3 className="text-xl font-black uppercase italic tracking-tight mb-6 flex items-center gap-2 text-blue-600">
+              <h3 className="text-xl font-black uppercase italic tracking-tight mb-6 flex items-center gap-2 text-[#E55937]">
                 <Ticket /> Add Scratch Prize
               </h3>
 
@@ -858,7 +859,7 @@ export default function SuperAdmin() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-blue-600 text-[#FFE974] border-2 border-black py-3 rounded-xl font-bold uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none"
+                    className="flex-1 bg-black text-[#FFE974] border-2 border-black py-3 rounded-xl font-bold uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none"
                   >
                     Create Prize
                   </button>
@@ -886,12 +887,12 @@ export default function SuperAdmin() {
                 &times;
               </button>
               
-              <h3 className="text-xl font-black uppercase italic tracking-tight mb-4 flex items-center gap-2 text-blue-600">
+              <h3 className="text-xl font-black uppercase italic tracking-tight mb-4 flex items-center gap-2 text-[#E55937]">
                 <Tag /> Confirm Code Details
               </h3>
 
-              <div className="bg-blue-50 border-2 border-black p-3 rounded-xl mb-4 text-xs">
-                <p className="font-bold uppercase text-[9px] text-blue-700 mb-1">Queueing Codes to Load</p>
+              <div className="bg-orange-50 border-2 border-black p-3 rounded-xl mb-4 text-xs">
+                <p className="font-bold uppercase text-[9px] text-[#E55937] mb-1">Queueing Codes to Load</p>
                 <p className="font-medium text-gray-700">You are uploading <span className="font-black text-black">{importConfirmCodes.length} codes</span>. These will be added to the code pool for this prize.</p>
               </div>
 
@@ -920,7 +921,7 @@ export default function SuperAdmin() {
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="flex-1 bg-blue-600 text-[#FFE974] border-2 border-black py-3 rounded-xl font-bold uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2"
+                    className="flex-1 bg-black text-[#FFE974] border-2 border-black py-3 rounded-xl font-bold uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2"
                   >
                     {isSaving ? <Loader2 className="animate-spin w-4 h-4" /> : "Confirm & Load"}
                   </button>
@@ -931,6 +932,7 @@ export default function SuperAdmin() {
         )}
       </AnimatePresence>
 
+      </div>
     </div>
   );
 }
