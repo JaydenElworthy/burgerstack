@@ -51,11 +51,11 @@ export default function Leaderboard() {
       <div className="bg-white/10 p-4 sm:p-6 rounded-2xl mb-4 sm:mb-8 shrink-0 border-2 border-dashed border-white/20">
         <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
           <Flame className="text-[#FFE974]" size={24} />
-          <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] text-[#FFE974]">Weekly Prize</p>
-   </div>
+          <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] text-[#FFE974]">High Score Champion Prize</p>
+        </div>
         <h2 className="text-lg sm:text-xl font-bold uppercase tracking-tight">Top Score Wins {prize} </h2>
-        <p className="text-[10px] sm:text-xs text-white/80 mt-1 sm:mt-2 font-semibold">Winner Selected Each Week</p>
-    </div>
+        <p className="text-[10px] sm:text-xs text-white/80 mt-1 sm:mt-2 font-semibold">Awarded Weekly to the Rank #1 Leader</p>
+      </div>
 
       {/* Leaderboard */}
       {loading ? (

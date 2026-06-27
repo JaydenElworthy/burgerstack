@@ -420,17 +420,21 @@ export default function SuperAdmin() {
 
   const saveWeeklyConfig = async () => {
     setIsSaving(true);
-    const item = products.find(p => p.id === pId);
-    await supabase.from('app_settings').update({
+    const { error } = await supabase.from('app_settings').update({
       redemption_strategy: strategy, 
       weekly_prize_type: pType,
       weekly_prize_scope: pScope, 
       weekly_prize_value: pValue,
       active_item_id: pType === 'FREE_PRODUCT' ? pId : null, 
-      prize_title: pType === 'FREE_PRODUCT' ? (item?.name || pTitle) : pTitle
+      prize_title: pTitle
     }).eq('id', 1);
     setIsSaving(false);
-    alert("Weekly Prize Updated!");
+    if (!error) {
+      alert("High Score Prize Updated!");
+      loadData();
+    } else {
+      alert("Error saving prize: " + error.message);
+    }
   };
 
   const handleCreateScratchPrize = async (e) => {
@@ -591,7 +595,12 @@ export default function SuperAdmin() {
         <div className="space-y-6 sm:space-y-8">
           {/* WEEKLY SETTINGS */}
           <div className="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <h2 className="text-lg sm:text-xl font-bold uppercase mb-6 sm:mb-8 flex items-center gap-2 underline underline-offset-8 decoration-red-500"><Settings size={20} /> High Score Setup</h2>
+            <h2 className="text-lg sm:text-xl font-bold uppercase mb-4 flex items-center gap-2 underline underline-offset-8 decoration-red-500"><Settings size={20} /> High Score Setup</h2>
+            
+            <div className="bg-yellow-50 border-2 border-black p-3 rounded-xl mb-4 text-[10px] leading-relaxed text-black font-semibold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              💡 <span className="font-black uppercase text-red-600">Leaderboard Prize Rules:</span> The winning prize can be configured as either a <span className="underline">completely free product</span> (synced from Squarespace) or a <span className="underline">percentage discount off the order</span>. Make sure the Prize Title matches exactly what is displayed on the leaderboard.
+            </div>
+
             <div className="space-y-4">
               <div>
                 <label className="text-[10px] font-black uppercase opacity-40">Prize Title (Display Name)</label>
@@ -606,7 +615,25 @@ export default function SuperAdmin() {
 
                <div>
                 <label className="text-[10px] font-black uppercase opacity-40">Prize Type</label>
-                <select value={pType} onChange={(e) => setPType(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs mt-1">
+                <select 
+                  value={pType} 
+                  onChange={(e) => {
+                    const type = e.target.value;
+                    setPType(type);
+                    if (type === 'RATE') {
+                      setPTitle(pValue + "% Off Total Order");
+                    } else if (type === 'FREE_PRODUCT') {
+                      const selectedProduct = products.find(p => p.id === pId);
+                      if (selectedProduct) {
+                        const prefix = selectedProduct.name.toUpperCase().startsWith("FREE") ? "" : "FREE ";
+                        setPTitle(prefix + selectedProduct.name);
+                      } else {
+                        setPTitle("Free Item");
+                      }
+                    }
+                  }} 
+                  className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs mt-1"
+                >
                   <option value="FREE_PRODUCT">Free Item</option>
                   <option value="RATE">% Off Order</option>
                 </select>
@@ -616,7 +643,19 @@ export default function SuperAdmin() {
                 <div>
                   <label className="text-[10px] font-black uppercase opacity-40">Choose Squarespace Product</label>
                   <div className="flex gap-2 mt-1">
-                    <select value={pId} onChange={(e) => setPId(e.target.value)} className="flex-1 border-4 border-black p-3 rounded-xl font-bold uppercase text-[10px] bg-white text-black">
+                    <select 
+                      value={pId} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPId(val);
+                        const selectedProduct = products.find(p => p.id === val);
+                        if (selectedProduct) {
+                          const prefix = selectedProduct.name.toUpperCase().startsWith("FREE") ? "" : "FREE ";
+                          setPTitle(prefix + selectedProduct.name);
+                        }
+                      }} 
+                      className="flex-1 border-4 border-black p-3 rounded-xl font-bold uppercase text-[10px] bg-white text-black"
+                    >
                       <option value="">-- Choose Product --</option>
                       {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
@@ -629,7 +668,13 @@ export default function SuperAdmin() {
                   <input 
                     type="number" 
                     value={pValue} 
-                    onChange={(e) => setPValue(parseFloat(e.target.value) || 0)} 
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0;
+                      setPValue(val);
+                      if (pType === 'RATE') {
+                        setPTitle(val + "% Off Total Order");
+                      }
+                    }} 
                     placeholder="e.g. 50" 
                     className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
                   />
