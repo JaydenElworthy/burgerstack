@@ -164,45 +164,45 @@ export default function SuperAdmin() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#E55937] text-[#FFE974] font-bold italic uppercase">Loading Kitchen...</div>;
 
   return (
-    <div className="p-4 md:p-10 max-w-7xl mx-auto min-h-screen bg-gray-100 text-black font-sans pb-20">
+    <div className="p-3 sm:p-6 md:p-10 max-w-7xl mx-auto min-h-screen bg-gray-100 text-black font-sans pb-20">
       
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-10">
-        <Link href="/" className="bg-black text-white p-3 rounded-xl shadow-lg hover:scale-110 transition-transform"><ArrowLeft /></Link>
-        <h1 className="text-4xl font-bold uppercase italic tracking-tighter">Super <span className="text-red-600">Admin</span></h1>
-        <div className="w-12" />
+      <div className="flex justify-between items-center mb-6 md:mb-10 gap-2">
+        <Link href="/" className="bg-black text-white p-2.5 sm:p-3 rounded-xl shadow-lg hover:scale-110 transition-transform"><ArrowLeft size={20} className="sm:w-6 sm:h-6" /></Link>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase italic tracking-tighter text-center">Super <span className="text-red-600">Admin</span></h1>
+        <div className="w-10 sm:w-12" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         
         {/* LEFT: WEEKLY WINNER */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="bg-black text-white p-8 rounded-[3rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(229,255,68,1)] relative overflow-hidden">
+        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+          <div className="bg-black text-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(229,255,68,1)] sm:shadow-[8px_8px_0px_0px_rgba(229,255,68,1)] relative overflow-hidden">
             <Crown className="absolute -right-6 -top-6 text-white/10 w-48 h-48 rotate-12" />
-            <h2 className="text-[#FFE974] font-bold uppercase italic text-2xl mb-8 flex items-center gap-2"><Star fill="#FFE974" /> Weekly Champion</h2>
+            <h2 className="text-[#FFE974] font-bold uppercase italic text-xl sm:text-2xl mb-4 sm:mb-8 flex items-center gap-2"><Star fill="#FFE974" /> Weekly Champion</h2>
             {currentTopScorer && currentTopScorer.high_score > 0 ? (
-              <div className="flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
-                <div>
+              <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-6 relative z-10 w-full text-center md:text-left">
+                <div className="flex-1 min-w-0">
                   <p className="text-xs font-black opacity-40 uppercase tracking-widest mb-1">Rank #1 Current</p>
-                  <p className="text-2xl font-bold mb-1">{currentTopScorer.email}</p>
-                  <p className="text-8xl font-bold text-[#FFE974] italic tracking-tighter">{currentTopScorer.high_score}</p>
+                  <p className="text-lg sm:text-2xl font-bold mb-1 break-all">{currentTopScorer.email}</p>
+                  <p className="text-6xl sm:text-8xl font-bold text-[#FFE974] italic tracking-tighter leading-none my-2">{currentTopScorer.high_score}</p>
                 </div>
-                <button onClick={finalizeWeek} className="bg-[#FFE974] text-black px-12 py-6 rounded-2xl font-bold uppercase italic text-xl shadow-xl hover:scale-105 transition-transform active:translate-y-1">Award & Reset</button>
+                <button onClick={finalizeWeek} className="w-full md:w-auto bg-[#FFE974] text-black px-8 py-4 sm:px-12 sm:py-6 rounded-2xl font-bold uppercase italic text-lg sm:text-xl shadow-xl hover:scale-105 transition-transform active:translate-y-1">Award & Reset</button>
               </div>
             ) : <p className="opacity-40 font-bold uppercase tracking-widest text-center py-10">Waiting for players to build burgers...</p>}
           </div>
 
           {/* SCRATCH PRIZE MANAGEMENT */}
-          <div className="bg-white border-4 border-black rounded-[3rem] p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold uppercase italic text-blue-600 flex items-center gap-2"><Ticket /> Scratch Prize Types</h2>
-              <button onClick={addScratchPrizeType} className="bg-blue-600 text-white p-3 rounded-full shadow-lg active:scale-90 transition-all hover:bg-blue-700">
-                <Plus size={24} />
+          <div className="bg-white border-4 border-black rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div className="flex justify-between items-center mb-6 sm:mb-8">
+              <h2 className="text-lg sm:text-2xl font-bold uppercase italic text-blue-600 flex items-center gap-2"><Ticket /> Scratch Prizes</h2>
+              <button onClick={addScratchPrizeType} className="bg-blue-600 text-white p-2.5 sm:p-3 rounded-full shadow-lg active:scale-90 transition-all hover:bg-blue-700">
+                <Plus size={20} className="sm:w-6 sm:h-6" />
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {scratchPrizes.map((p) => (
-                <div key={p.id} className="p-5 border-4 border-black rounded-2xl bg-gray-50 flex justify-between items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <div key={p.id} className="p-4 sm:p-5 border-4 border-black rounded-2xl bg-gray-50 flex justify-between items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                   <div>
                     <p className="font-bold uppercase text-sm">{p.title}</p>
                     <p className="text-[10px] opacity-50 font-black uppercase">{p.discount_value}% Off • {p.apply_to_item_id ? "Specific Item" : "Total Order"}</p>
@@ -216,10 +216,10 @@ export default function SuperAdmin() {
         </div>
 
         {/* RIGHT: CONFIG & CODE BANK */}
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {/* WEEKLY SETTINGS */}
-          <div className="bg-white p-8 rounded-[3rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <h2 className="text-xl font-bold uppercase mb-8 flex items-center gap-2 underline underline-offset-8 decoration-red-500"><Settings size={20} /> Weekly Setup</h2>
+          <div className="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-lg sm:text-xl font-bold uppercase mb-6 sm:mb-8 flex items-center gap-2 underline underline-offset-8 decoration-red-500"><Settings size={20} /> Weekly Setup</h2>
             <div className="space-y-4">
                <div>
                 <label className="text-[10px] font-black uppercase opacity-40">Prize Type</label>
@@ -246,7 +246,7 @@ export default function SuperAdmin() {
           </div>
 
           {/* CODE BANK (THE BUCKET) */}
-          <div className="bg-white p-6 rounded-[2.5rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="bg-white p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2.5rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <h2 className="font-bold uppercase text-sm mb-4 flex items-center gap-2"><Tag size={16}/> Load Code Bank</h2>
             <div className="space-y-4">
               <select value={codeBucket} onChange={(e) => setCodeBucket(e.target.value)} className="w-full border-4 border-black p-3 rounded-xl font-black uppercase text-[10px]">
@@ -264,8 +264,8 @@ export default function SuperAdmin() {
       </div>
 
       {/* DANGER ZONE / RESET SECTION */}
-      <div className="mt-12 bg-white p-8 rounded-[3rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(229,89,55,1)]">
-        <h2 className="text-2xl font-bold uppercase italic text-red-600 flex items-center gap-2 mb-4">
+      <div className="mt-8 sm:mt-12 bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(229,89,55,1)] sm:shadow-[8px_8px_0px_0px_rgba(229,89,55,1)]">
+        <h2 className="text-xl sm:text-2xl font-bold uppercase italic text-red-600 flex items-center gap-2 mb-3 sm:mb-4">
           <Trash2 size={24} /> Danger Zone
         </h2>
         <p className="text-sm text-gray-600 mb-6 font-medium">
@@ -274,7 +274,7 @@ export default function SuperAdmin() {
         <button
           onClick={handleResetAll}
           disabled={isResetting}
-          className="bg-red-600 text-white border-4 border-black px-8 py-4 rounded-2xl font-bold uppercase italic text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none hover:bg-red-700 transition-all flex items-center gap-2"
+          className="w-full sm:w-auto bg-red-600 text-white border-4 border-black px-6 py-4 rounded-2xl font-bold uppercase italic text-base sm:text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none hover:bg-red-700 transition-all flex items-center justify-center gap-2"
         >
           {isResetting ? (
             <>
