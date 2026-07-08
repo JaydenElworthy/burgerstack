@@ -33,7 +33,8 @@ export default function ScratchCard() {
   useEffect(() => {
     if (!mounted) return;
     async function checkStatus() {
-      const { data: { user: activeUser } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const activeUser = session?.user;
       setUser(activeUser);
       
       // GUEST LOGIC: If no user, show locked state immediately
@@ -52,56 +53,50 @@ export default function ScratchCard() {
       lastSunday.setHours(0, 1, 0, 0);
       const lastScratch = prof?.last_scratch_date ? new Date(prof.last_scratch_date) : new Date(0);
 
-      const loadPreRolledPrize = async (activeUser) => {
-        try {
-          const { data: prizes } = await supabase.from('scratch_prizes').select('*').eq('is_active', true);
-          const winRoll = Math.random() > 0.3;
-          let preRolled = { win: false };
-          
-          if (winRoll && prizes && prizes.length > 0) {
-            const randomCat = prizes[Math.floor(Math.random() * prizes.length)];
-            const { data: codeRow } = await supabase
-              .from('manual_code_bank')
-              .select('*')
-              .eq('prize_type', randomCat.id)
-              .eq('is_claimed', false)
-              .limit(1)
-              .single();
+      let scratchCount = prof?.scratch_count || 0;
+      let bonusUnlocked = prof?.bonus_unlocked || false;
 
-            if (codeRow) {
-              preRolled = {
-                win: true,
-                title: randomCat.title,
-                code: codeRow.code,
-                prizeId: randomCat.id,
-                codeRowId: codeRow.id
-              };
+      // Handle Sunday renewal check locally to match database reset logic
+      if (lastScratch < lastSunday && scratchCount > 0) {
+        scratchCount = 0;
+        bonusUnlocked = false;
+        setProfile(prev => prev ? { ...prev, scratch_count: 0, bonus_unlocked: false } : null);
+      }
+
+      const loadPreRolledPrize = async (token) => {
+        try {
+          const res = await fetch('/api/scratch', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
             }
+          });
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || "Failed to load scratch card");
           }
-          setPreRolledPrize(preRolled);
+          const data = await res.json();
+          setPreRolledPrize({
+            win: data.win,
+            title: data.title,
+            code: data.code
+          });
         } catch (e) {
           console.error("Error pre-rolling prize:", e);
           setPreRolledPrize({ win: false });
+          alert("Could not load scratch prize: " + e.message);
         }
       };
 
-      if (lastScratch < lastSunday && prof?.scratch_count > 0) {
-        await supabase.from('profiles').update({ scratch_count: 0, bonus_unlocked: false }).eq('id', activeUser.id);
-        setStatus('can_scratch');
-        setIsRevealed(false);
-        await loadPreRolledPrize(activeUser);
-        return;
-      }
-
-      if (prof?.scratch_count === 0) { 
+      if (scratchCount === 0) { 
         setStatus('can_scratch'); 
         setIsRevealed(false);
-        await loadPreRolledPrize(activeUser);
-      } else if (prof?.scratch_count === 1) {
-        if (prof?.bonus_unlocked) { 
+        await loadPreRolledPrize(session.access_token);
+      } else if (scratchCount === 1) {
+        if (bonusUnlocked) { 
           setStatus('can_scratch'); 
           setIsRevealed(false);
-          await loadPreRolledPrize(activeUser);
+          await loadPreRolledPrize(session.access_token);
         } else { 
           setStatus('locked_need_points'); 
           setIsRevealed(true); 
@@ -126,17 +121,11 @@ export default function ScratchCard() {
     if (curPrize.win) {
       setPrizeResult({ title: curPrize.title, code: curPrize.code });
       confetti();
-      await supabase.from('manual_code_bank').update({ is_claimed: true, claimed_by: curUser.id }).eq('id', curPrize.codeRowId);
-      await supabase.from('rewards').insert({ user_id: curUser.id, prize_title: curPrize.title, prize_code: curPrize.code });
     } else {
       setPrizeResult(null);
     }
 
     const nextCount = (curProfile?.scratch_count || 0) + 1;
-    await supabase.from('profiles').update({ 
-        scratch_count: nextCount,
-        last_scratch_date: new Date().toISOString()
-    }).eq('id', curUser.id);
     setProfile(prev => prev ? { ...prev, scratch_count: nextCount } : null);
   };
 

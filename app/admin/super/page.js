@@ -467,7 +467,16 @@ export default function SuperAdmin() {
   const finalizeWeek = async () => {
     if (!currentTopScorer || currentTopScorer.high_score === 0) return alert("No winner yet.");
     if (!confirm(`Finalize Week? Winner: ${currentTopScorer.email}`)) return;
-    const res = await fetch('/api/admin/finalize-week', { method: 'POST' });
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    const res = await fetch('/api/admin/finalize-week', { 
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     const result = await res.json();
     if (res.ok) { alert("WEEK CLOSED: Prize awarded to " + result.winner); window.location.reload(); }
     else { alert("Error: " + result.error); }
@@ -482,7 +491,15 @@ export default function SuperAdmin() {
 
     setIsResetting(true);
     try {
-      const res = await fetch('/api/admin/reset-all', { method: 'POST' });
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const res = await fetch('/api/admin/reset-all', { 
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (res.ok) {
         alert("Database reset successfully! All high scores, scratch counts, and wallet rewards have been cleared.");
         window.location.reload();

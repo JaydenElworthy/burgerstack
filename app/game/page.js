@@ -90,13 +90,18 @@ export default function BurgerGame() {
 
   const saveHighScore = async (finalScore) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      if (finalScore >= 25) await supabase.from('profiles').update({ bonus_unlocked: true }).eq('id', user.id);
-      const { data: profile } = await supabase.from('profiles').select('high_score').eq('id', user.id).single();
-      if (finalScore > (profile?.high_score || 0)) {
-        await supabase.from('profiles').update({ high_score: finalScore }).eq('id', user.id);
-      }
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) return;
+
+      await fetch('/api/game/submit-score', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ score: finalScore })
+      });
     } catch (err) { console.error(err); }
   };
 
@@ -256,19 +261,19 @@ export default function BurgerGame() {
       <div className="p-3 sm:p-6 grid grid-cols-3 gap-2 sm:gap-4 bg-[#FFE974] border-t-4 sm:border-t-8 border-black pb-6 sm:pb-12 z-50 shrink-0">
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} 
-          className={`bg-[#4B2C20] text-white border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base ${activeKey === 'patty' ? 'translate-y-1 shadow-none' : ''}`}
+          className={`bg-[#4B2C20] text-white border-[3px] sm:border-4 border-black py-5 sm:py-10 rounded-xl sm:rounded-2xl font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-sm sm:text-lg ${activeKey === 'patty' ? 'translate-y-1 shadow-none' : ''}`}
         >
           PATTY
         </button>
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} 
-          className={`bg-[#FFD700] text-black border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base ${activeKey === 'cheese' ? 'translate-y-1 shadow-none' : ''}`}
+          className={`bg-[#FFD700] text-black border-[3px] sm:border-4 border-black py-5 sm:py-10 rounded-xl sm:rounded-2xl font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-sm sm:text-lg ${activeKey === 'cheese' ? 'translate-y-1 shadow-none' : ''}`}
         >
           CHEESE
         </button>
         <button 
           onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} 
-          className={`bg-[#E55937] text-white border-[3px] sm:border-4 border-black py-4 sm:py-8 rounded-xl sm:rounded-2xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-xs sm:text-base ${activeKey === 'bun' ? 'translate-y-1 shadow-none' : ''}`}
+          className={`bg-[#E55937] text-white border-[3px] sm:border-4 border-black py-5 sm:py-10 rounded-xl sm:rounded-2xl font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-sm sm:text-lg ${activeKey === 'bun' ? 'translate-y-1 shadow-none' : ''}`}
         >
           BUN
         </button>
