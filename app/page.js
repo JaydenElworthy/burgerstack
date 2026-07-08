@@ -9,6 +9,12 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
 
+  // --- NICKNAME STATE ---
+  const [showNicknameModal, setShowNicknameModal] = useState(false);
+  const [nicknameInput, setNicknameInput] = useState('');
+  const [nicknameError, setNicknameError] = useState('');
+  const [isSavingNickname, setIsSavingNickname] = useState(false);
+
   // --- PWA INSTALL STATE ---
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
@@ -25,7 +31,12 @@ export default function Home() {
         .select('*')
         .eq('id', currentUser.id)
         .single();
-      if (data) setProfile(data);
+      if (data) {
+        setProfile(data);
+        if (!data.nickname) {
+          setShowNicknameModal(true);
+        }
+      }
     };
 
     // 2. Check initial session on load
@@ -105,6 +116,58 @@ export default function Home() {
     localStorage.setItem('pwa_install_dismissed', 'true');
     setShowInstallPrompt(false);
   };
+
+  const handleSaveNickname = async (e) => {
+    e.preventDefault();
+    setNicknameError('');
+    const trimmed = nicknameInput.trim();
+
+    if (trimmed.length < 2) {
+      setNicknameError('Nickname must be at least 2 characters.');
+      return;
+    }
+    if (trimmed.length > 15) {
+      setNicknameError('Nickname must be 15 characters or less.');
+      return;
+    }
+    const validFormat = /^[a-zA-Z0-9-_ ]+$/.test(trimmed);
+    if (!validFormat) {
+      setNicknameError('Alphanumeric, spaces, dashes and underscores only.');
+      return;
+    }
+
+    setIsSavingNickname(true);
+    try {
+      const { data: existing, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('nickname', trimmed)
+        .limit(1);
+
+      if (checkError) throw checkError;
+
+      if (existing && existing.length > 0) {
+        setNicknameError('This nickname is already taken.');
+        setIsSavingNickname(false);
+        return;
+      }
+
+      const { error: saveError } = await supabase
+        .from('profiles')
+        .update({ nickname: trimmed })
+        .eq('id', user.id);
+
+      if (saveError) throw saveError;
+
+      setProfile(prev => prev ? { ...prev, nickname: trimmed } : null);
+      setShowNicknameModal(false);
+    } catch (err) {
+      setNicknameError(err.message || 'An error occurred while saving.');
+    } finally {
+      setIsSavingNickname(false);
+    }
+  };
+
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -213,6 +276,53 @@ export default function Home() {
                 </button>
               )}
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* NICKNAME ONBOARDING MODAL */}
+        <AnimatePresence>
+          {showNicknameModal && (
+            <div className="fixed inset-0 bg-black/80 z-[10000] flex items-center justify-center p-4 backdrop-blur-sm">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="w-full max-w-sm bg-[#FFE974] border-4 border-black p-6 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-[#E55937] flex flex-col gap-4 font-sans"
+              >
+                <div className="text-center">
+                  <h3 className="text-2xl font-black uppercase italic tracking-tight leading-none mb-2">Claim Your Nickname</h3>
+                  <p className="text-[10px] font-bold text-black/60 uppercase tracking-widest leading-normal">
+                    This nickname will represent you on the weekly leaderboard. It cannot be changed later!
+                  </p>
+                </div>
+
+                <form onSubmit={handleSaveNickname} className="space-y-4">
+                  <div className="space-y-1">
+                    <input
+                      type="text"
+                      placeholder="e.g. BurgerChamp"
+                      className="w-full border-4 border-black p-4 rounded-xl font-black text-lg text-black placeholder:opacity-20 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none bg-white uppercase"
+                      value={nicknameInput}
+                      onChange={(e) => setNicknameInput(e.target.value.replace(/[^a-zA-Z0-9-_ ]/g, ''))}
+                      disabled={isSavingNickname}
+                      required
+                    />
+                    {nicknameError && (
+                      <p className="text-[9px] font-black uppercase text-[#E55937] bg-white border-2 border-black p-2 rounded-lg text-center shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                        ⚠️ {nicknameError}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSavingNickname}
+                    className="w-full bg-black text-[#FFE974] py-4 rounded-xl font-black uppercase italic text-base border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2"
+                  >
+                    {isSavingNickname ? 'Claiming...' : 'Lock It In'}
+                  </button>
+                </form>
+              </motion.div>
+            </div>
           )}
         </AnimatePresence>
       </div>

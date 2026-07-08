@@ -15,7 +15,7 @@ export default function Leaderboard() {
       // 1. Fetch Top 10 Leaders
       const { data: leaderData } = await supabase
         .from('profiles')
-        .select('email, high_score')
+        .select('email, nickname, high_score')
         .order('high_score', { ascending: false })
         .limit(10)
       
@@ -78,7 +78,7 @@ export default function Leaderboard() {
                   {i === 0 ? '👑' : `#${i + 1}`}
                 </div>
                 <span className="font-bold truncate w-32 sm:w-40 uppercase tracking-tighter text-sm sm:text-lg">
-                  {user.email ? user.email.split('@')[0] : 'Guest'}
+                  {user.nickname || (user.email ? user.email.split('@')[0] : 'Guest')}
                 </span>
               </div>
               <div className="flex items-center gap-2 sm:gap-3 font-bold">
