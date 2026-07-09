@@ -214,18 +214,20 @@ export default function BurgerGame() {
     <div className="h-[100dvh] w-full flex flex-col overflow-hidden overscroll-none select-none font-sans bg-[#E55937] relative text-[#FFE974]">
 
       {/* HUD WITH MUTE BUTTON */}
-      <div className="p-3 sm:p-6 grid grid-cols-[auto_1fr_auto] items-center bg-[#FFE974] border-b-4 sm:border-b-8 border-black z-50 shadow-lg shrink-0">
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Link href="/"><ArrowLeft size={28} className="sm:w-8 sm:h-8 text-[#E55937]" /></Link>
+      <div className="p-3 sm:p-6 grid grid-cols-3 items-center bg-[#FFE974] border-b-4 sm:border-b-8 border-black z-50 shadow-lg shrink-0">
+        <div className="flex items-center justify-start gap-2 sm:gap-4">
+          <Link href="/" className="bg-[#E55937] p-1.5 sm:p-2 rounded-lg border-2 border-black text-[#FFE974] active:scale-90 transition-transform flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 shrink-0">
+            <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
+          </Link>
           {/* MUSIC TOGGLE */}
-          <button onClick={toggleMute} className="bg-[#E55937] p-1.5 sm:p-2 rounded-lg border-2 border-black text-[#FFE974] active:scale-90 transition-transform">
+          <button onClick={toggleMute} className="bg-[#E55937] p-1.5 sm:p-2 rounded-lg border-2 border-black text-[#FFE974] active:scale-90 transition-transform flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 shrink-0">
             {isMuted ? <VolumeX size={18} className="sm:w-5 sm:h-5" /> : <Volume2 size={18} className="sm:w-5 sm:h-5" />}
           </button>
         </div>
         <div className="flex justify-center text-center leading-none">
           <span className="text-[#E55937] font-black text-sm sm:text-lg uppercase italic">PICNIC<br />AT HOME</span>
         </div>
-        <div className="flex gap-2.5 sm:gap-4">
+        <div className="flex justify-end gap-2.5 sm:gap-4">
           <div className="bg-[#E55937] text-[#FFE974] px-3.5 sm:px-6 py-2 sm:py-3 rounded-2xl text-xl sm:text-3xl border-[3.5px] sm:border-[5px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] font-black tracking-tight leading-none flex items-center justify-center min-w-[75px] sm:min-w-[105px]">{timeLeft}S</div>
           <div className="bg-white text-[#E55937] px-3.5 sm:px-6 py-2 sm:py-3 rounded-2xl text-xl sm:text-3xl border-[3.5px] sm:border-[5px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] font-black tracking-tight leading-none flex items-center justify-center min-w-[55px] sm:min-w-[85px]">{score}</div>
         </div>
