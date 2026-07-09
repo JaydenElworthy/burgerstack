@@ -2,7 +2,7 @@
   "name": "Picnic At Home",
   "short_name": "Picnic",
   "description": "Daily food drops and burger stacking fun.",
-  "start_url": "/",
+  "start_url": "https://picnicathome.com/",
   "display": "standalone",
   "background_color": "#E55937",
   "theme_color": "#E55937",

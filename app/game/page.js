@@ -106,31 +106,31 @@ export default function BurgerGame() {
   };
 
   const endGame = async (status) => {
-    stopMusic(); 
+    stopMusic();
     setGameState(status);
-    
+
     if (!isMuted) {
-        if (status === 'won') { sfxWin.current?.play(); confetti(); }
-        else { sfxWrong.current?.play(); }
+      if (status === 'won') { sfxWin.current?.play(); confetti(); }
+      else { sfxWrong.current?.play(); }
     }
 
     if (status === 'lost') {
-        setBonusResult("lost");
+      setBonusResult("lost");
     } else {
-        setBonusResult(score >= 25 ? "new_unlock" : "missed_bonus");
+      setBonusResult(score >= 25 ? "new_unlock" : "missed_bonus");
     }
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-          const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-          const hadBonus = profile?.bonus_unlocked || false;
-          
-          if (status !== 'lost') {
-            if (score >= 25) setBonusResult(hadBonus ? "already_had_high" : "new_unlock");
-            else setBonusResult(hadBonus ? "already_had_low" : "missed_bonus");
-          }
-          saveHighScore(score);
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        const hadBonus = profile?.bonus_unlocked || false;
+
+        if (status !== 'lost') {
+          if (score >= 25) setBonusResult(hadBonus ? "already_had_high" : "new_unlock");
+          else setBonusResult(hadBonus ? "already_had_low" : "missed_bonus");
+        }
+        saveHighScore(score);
       }
     } catch (e) {
       console.error(e);
@@ -225,9 +225,9 @@ export default function BurgerGame() {
         <div className="flex justify-center text-center leading-none">
           <span className="text-[#E55937] font-black text-sm sm:text-lg uppercase italic">PICNIC<br />AT HOME</span>
         </div>
-        <div className="flex gap-1.5 sm:gap-4">
-          <div className="bg-[#E55937] text-[#FFE974] px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-sm sm:text-xl border-2 sm:border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">{timeLeft}s</div>
-          <div className="bg-white text-[#E55937] px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-sm sm:text-xl border-2 sm:border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">{score}</div>
+        <div className="flex gap-2.5 sm:gap-4">
+          <div className="bg-[#E55937] text-[#FFE974] px-3.5 sm:px-6 py-2 sm:py-3 rounded-2xl text-xl sm:text-3xl border-[3.5px] sm:border-[5px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] font-black tracking-tight leading-none flex items-center justify-center min-w-[75px] sm:min-w-[105px]">{timeLeft}S</div>
+          <div className="bg-white text-[#E55937] px-3.5 sm:px-6 py-2 sm:py-3 rounded-2xl text-xl sm:text-3xl border-[3.5px] sm:border-[5px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] font-black tracking-tight leading-none flex items-center justify-center min-w-[55px] sm:min-w-[85px]">{score}</div>
         </div>
       </div>
 
@@ -259,21 +259,30 @@ export default function BurgerGame() {
 
       {/* CONTROLS */}
       <div className="p-3 sm:p-6 grid grid-cols-3 gap-2 sm:gap-4 bg-[#FFE974] border-t-4 sm:border-t-8 border-black pb-6 sm:pb-12 z-50 shrink-0">
-        <button 
-          onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }} 
-          className={`bg-[#4B2C20] text-white border-[3px] sm:border-4 border-black py-5 sm:py-10 rounded-xl sm:rounded-2xl font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-sm sm:text-lg ${activeKey === 'patty' ? 'translate-y-1 shadow-none' : ''}`}
+        <button
+          onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }}
+          className={`bg-[#4B2C20] text-white border-[4px] sm:border-[6px] border-black py-7 sm:py-12 rounded-[20px] sm:rounded-[2rem] font-black text-base sm:text-2xl tracking-wider transition-all ${activeKey === 'patty'
+              ? 'translate-y-[4px] translate-x-[4px] sm:translate-y-[6px] sm:translate-x-[6px] shadow-none'
+              : 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] sm:active:translate-y-[6px] sm:active:translate-x-[6px] active:shadow-none'
+            }`}
         >
           PATTY
         </button>
-        <button 
-          onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }} 
-          className={`bg-[#FFD700] text-black border-[3px] sm:border-4 border-black py-5 sm:py-10 rounded-xl sm:rounded-2xl font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-sm sm:text-lg ${activeKey === 'cheese' ? 'translate-y-1 shadow-none' : ''}`}
+        <button
+          onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }}
+          className={`bg-[#FFD700] text-black border-[4px] sm:border-[6px] border-black py-7 sm:py-12 rounded-[20px] sm:rounded-[2rem] font-black text-base sm:text-2xl tracking-wider transition-all ${activeKey === 'cheese'
+              ? 'translate-y-[4px] translate-x-[4px] sm:translate-y-[6px] sm:translate-x-[6px] shadow-none'
+              : 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] sm:active:translate-y-[6px] sm:active:translate-x-[6px] active:shadow-none'
+            }`}
         >
           CHEESE
         </button>
-        <button 
-          onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }} 
-          className={`bg-[#E55937] text-white border-[3px] sm:border-4 border-black py-5 sm:py-10 rounded-xl sm:rounded-2xl font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 text-sm sm:text-lg ${activeKey === 'bun' ? 'translate-y-1 shadow-none' : ''}`}
+        <button
+          onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }}
+          className={`bg-[#E55937] text-white border-[4px] sm:border-[6px] border-black py-7 sm:py-12 rounded-[20px] sm:rounded-[2rem] font-black text-base sm:text-2xl tracking-wider transition-all ${activeKey === 'bun'
+              ? 'translate-y-[4px] translate-x-[4px] sm:translate-y-[6px] sm:translate-x-[6px] shadow-none'
+              : 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] sm:active:translate-y-[6px] sm:active:translate-x-[6px] active:shadow-none'
+            }`}
         >
           BUN
         </button>
