@@ -1,12 +1,29 @@
-self.addEventListener('install', (e) => {
-  self.skipWaiting();
-});
+const CACHE_NAME = 'picnic-v1'
+const STATIC_ASSETS = [
+  '/',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
+]
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
-});
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+  )
+  self.skipWaiting()
+})
 
-self.addEventListener('fetch', (e) => {
-  // A basic fetch handler is required to qualify as a PWA
-  e.respondWith(fetch(e.request));
-});
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
+  )
+  self.clients.claim()
+})
+
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
+  )
+})
