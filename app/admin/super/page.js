@@ -16,7 +16,7 @@ export default function SuperAdmin() {
   const [currentTopScorer, setCurrentTopScorer] = useState(null);
   const [manualCodes, setManualCodes] = useState('');
   const [codeBucket, setCodeBucket] = useState('GRAND'); // 'GRAND' or a specific Scratch Prize ID
-  
+
   // Weekly Prize Settings State
   const [strategy, setStrategy] = useState('manual');
   const [pType, setPType] = useState('FREE_PRODUCT');
@@ -64,11 +64,11 @@ export default function SuperAdmin() {
     // Load App Settings (Weekly Prize)
     const { data: sett } = await supabase.from('app_settings').select('*').eq('id', 1).single();
     if (sett) {
-      setStrategy(sett.redemption_strategy || 'manual'); 
+      setStrategy(sett.redemption_strategy || 'manual');
       setPType(sett.weekly_prize_type || 'FREE_PRODUCT');
-      setPScope(sett.weekly_prize_scope || 'PRODUCT'); 
+      setPScope(sett.weekly_prize_scope || 'PRODUCT');
       setPValue(sett.weekly_prize_value || 100);
-      setPId(sett.active_item_id || ''); 
+      setPId(sett.active_item_id || '');
       setPTitle(sett.prize_title || 'Grand Prize');
     }
 
@@ -84,7 +84,7 @@ export default function SuperAdmin() {
     // Load Code Bank Inventory
     const { data: codes } = await supabase.from('manual_code_bank').select('*').order('created_at', { ascending: false });
     setCodeBankInventory(codes || []);
-    
+
     setLoading(false);
   };
 
@@ -94,14 +94,14 @@ export default function SuperAdmin() {
     try {
       const res = await fetch('/api/squarespace/discounts');
       const discounts = await res.json();
-      
+
       if (Array.isArray(discounts)) {
         const { data: existing } = await supabase.from('manual_code_bank').select('code');
         const bankCodes = new Set(existing?.map(x => x.code) || []);
-        
+
         const available = discounts.filter(d => d.promoCode && !bankCodes.has(d.promoCode));
         setSquarespaceDiscounts(available);
-        
+
         const initialSelections = {};
         available.forEach(d => {
           initialSelections[d.promoCode] = { selected: false, bucket: 'GRAND' };
@@ -141,8 +141,8 @@ export default function SuperAdmin() {
     setShowImportConfirmModal(true);
   };
 
-  useEffect(() => { 
-    loadData(); 
+  useEffect(() => {
+    loadData();
     loadSquarespaceDiscounts();
   }, []);
 
@@ -156,7 +156,7 @@ export default function SuperAdmin() {
   const uploadToBucket = async () => {
     if (!manualCodes) return alert("Paste codes first");
     const list = manualCodes.split(/[\n,]+/).map(c => c.trim()).filter(c => c !== '');
-    
+
     // Check for duplicates in the bank
     const { data: existing } = await supabase.from('manual_code_bank').select('code');
     const existingStrings = existing?.map(x => x.code) || [];
@@ -165,10 +165,10 @@ export default function SuperAdmin() {
     if (newCodes.length === 0) return alert("All codes already exist in bank.");
 
     const { error } = await supabase.from('manual_code_bank').insert(
-      newCodes.map(code => ({ 
-        code, 
-        prize_type: codeBucket, 
-        is_claimed: false 
+      newCodes.map(code => ({
+        code,
+        prize_type: codeBucket,
+        is_claimed: false
       }))
     );
 
@@ -196,7 +196,7 @@ export default function SuperAdmin() {
   const uploadToBucketDirect = async (targetBucket) => {
     if (!manualCodes) return alert("Paste codes first");
     const list = manualCodes.split(/[\n,]+/).map(c => c.trim()).filter(c => c !== '');
-    
+
     const { data: existing } = await supabase.from('manual_code_bank').select('code');
     const existingStrings = existing?.map(x => x.code) || [];
     const newCodes = list.filter(c => !existingStrings.includes(c));
@@ -246,14 +246,14 @@ export default function SuperAdmin() {
       if (insertErr) throw new Error("Failed to insert codes: " + insertErr.message);
 
       alert(`Successfully loaded ${importConfirmCodes.length} codes for "${importConfirmTitle}"!`);
-      
+
       setShowImportConfirmModal(false);
       setImportConfirmCodes([]);
       setImportConfirmBucket('');
       setImportConfirmTitle('');
       setManualCodes('');
       setSelectedImportCodes({});
-      
+
       loadData();
       loadSquarespaceDiscounts();
     } catch (err) {
@@ -325,7 +325,7 @@ export default function SuperAdmin() {
                     <RefreshCw size={10} className={`${isLoadingDiscounts ? 'animate-spin' : ''}`} /> Sync Squarespace
                   </button>
                 </div>
-                
+
                 <div className="space-y-2 max-h-36 overflow-y-auto border-2 border-black p-2 rounded-lg bg-white">
                   {squarespaceDiscounts.map(d => (
                     <label key={d.promoCode} className="flex items-center gap-2 text-[10px] cursor-pointer py-1 border-b border-gray-100 last:border-0">
@@ -381,7 +381,7 @@ export default function SuperAdmin() {
     const groups = {
       GRAND: { title: "High Score Winner Prize", unclaimed: [], claimed: [] }
     };
-    
+
     scratchPrizes.forEach(p => {
       groups[p.id] = { title: p.title, unclaimed: [], claimed: [] };
     });
@@ -422,11 +422,11 @@ export default function SuperAdmin() {
   const saveWeeklyConfig = async () => {
     setIsSaving(true);
     const { error } = await supabase.from('app_settings').update({
-      redemption_strategy: strategy, 
+      redemption_strategy: strategy,
       weekly_prize_type: pType,
-      weekly_prize_scope: pScope, 
+      weekly_prize_scope: pScope,
       weekly_prize_value: pValue,
-      active_item_id: pType === 'FREE_PRODUCT' ? pId : null, 
+      active_item_id: pType === 'FREE_PRODUCT' ? pId : null,
       prize_title: pTitle
     }).eq('id', 1);
     setIsSaving(false);
@@ -441,7 +441,7 @@ export default function SuperAdmin() {
   const handleCreateScratchPrize = async (e) => {
     e.preventDefault();
     if (!scratchFormTitle || !scratchFormValue) return alert("Title and discount value are required.");
-    
+
     setIsSaving(true);
     const { error } = await supabase.from('scratch_prizes').insert({
       title: scratchFormTitle,
@@ -471,7 +471,7 @@ export default function SuperAdmin() {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
-    const res = await fetch('/api/admin/finalize-week', { 
+    const res = await fetch('/api/admin/finalize-week', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -494,7 +494,7 @@ export default function SuperAdmin() {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      const res = await fetch('/api/admin/reset-all', { 
+      const res = await fetch('/api/admin/reset-all', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -519,7 +519,7 @@ export default function SuperAdmin() {
   return (
     <div className="w-full min-h-screen bg-[#E55937]">
       <div className="p-3 sm:p-6 md:p-10 max-w-7xl mx-auto text-white font-sans pb-20">
-        
+
         {/* HEADER */}
         <div className="flex justify-between items-center mb-6 md:mb-10 gap-2">
           <Link href="/" className="bg-black text-[#FFE974] p-2.5 sm:p-3 rounded-xl border-4 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:scale-110 transition-transform"><ArrowLeft size={20} className="sm:w-6 sm:h-6" /></Link>
@@ -527,427 +527,427 @@ export default function SuperAdmin() {
           <div className="w-10 sm:w-12" />
         </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        
-        {/* LEFT: HIGH SCORE CHAMPION */}
-        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
-          <div className="bg-black text-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(229,255,68,1)] sm:shadow-[8px_8px_0px_0px_rgba(229,255,68,1)] relative overflow-hidden">
-            <Crown className="absolute -right-6 -top-6 text-white/10 w-48 h-48 rotate-12" />
-            <h2 className="text-[#FFE974] font-bold uppercase italic text-xl sm:text-2xl mb-4 sm:mb-8 flex items-center gap-2"><Star fill="#FFE974" /> High Score Champion</h2>
-            {currentTopScorer && currentTopScorer.high_score > 0 ? (
-              <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-6 relative z-10 w-full text-center md:text-left">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-black opacity-40 uppercase tracking-widest mb-1">Rank #1 Current</p>
-                  <p className="text-lg sm:text-2xl font-bold mb-1 break-all">{currentTopScorer.email}</p>
-                  <p className="text-6xl sm:text-8xl font-bold text-[#FFE974] italic tracking-tighter leading-none my-2">{currentTopScorer.high_score}</p>
-                </div>
-                <button onClick={finalizeWeek} className="w-full md:w-auto bg-[#FFE974] text-black px-8 py-4 sm:px-12 sm:py-6 rounded-2xl font-bold uppercase italic text-lg sm:text-xl shadow-xl hover:scale-105 transition-transform active:translate-y-1">Award & Reset</button>
-              </div>
-            ) : <p className="opacity-40 font-bold uppercase tracking-widest text-center py-10">Waiting for players to build burgers...</p>}
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
 
-          {/* SCRATCH PRIZE MANAGEMENT */}
-          <div className="bg-white text-black border-4 border-black rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex justify-between items-center mb-6 sm:mb-8">
-              <h2 className="text-lg sm:text-2xl font-bold uppercase italic text-[#E55937] flex items-center gap-2"><Ticket /> Scratch Prizes</h2>
-              <button 
-                onClick={() => setShowAddScratchModal(true)} 
-                className="bg-black text-[#FFE974] p-2.5 sm:p-3 rounded-full border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none hover:scale-105 transition-all"
-              >
-                <Plus size={20} className="sm:w-6 sm:h-6" />
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {scratchPrizes.map((p) => {
-                const pCodes = codeBankInventory.filter(c => c.prize_type === p.id);
-                const unclaimedCount = pCodes.filter(c => !c.is_claimed).length;
-                const isAddingCodes = activeAddCodesPrizeId === p.id;
-                
-                return (
-                  <div key={p.id} className="p-4 sm:p-5 border-4 border-black rounded-2xl bg-gray-50 flex flex-col gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black">
-                    <div className="flex justify-between items-start w-full">
-                      <div className="flex-1 pr-3">
-                        <p className="font-bold uppercase text-sm leading-tight">{p.title}</p>
-                        <p className="text-[10px] opacity-50 font-black uppercase my-1">
-                          {p.discount_value}% Off • {p.apply_to_item_id ? `Product: ${products.find(prod => prod.id === p.apply_to_item_id)?.name || 'Specific Item'}` : "Total Order"}
-                        </p>
-                        <p className="text-[9px] font-black uppercase text-[#E55937] bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full inline-block leading-none">
-                          {unclaimedCount} codes available
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          onClick={() => toggleScratchPrizeActive(p.id, p.is_active)}
-                          className={`px-3 py-1 rounded-full border-2 border-black text-[9px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none transition-all ${p.is_active ? 'bg-green-400 text-black' : 'bg-gray-300 text-gray-600'}`}
-                        >
-                          {p.is_active ? 'Active' : 'Inactive'}
-                        </button>
-                        <button onClick={() => deleteScratchPrize(p.id)} className="text-red-500 hover:scale-125 transition-transform p-2"><Trash2 size={18} /></button>
-                      </div>
-                    </div>
-
-                    {/* Loader trigger */}
-                    <div className="w-full border-t border-dashed border-gray-300 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveAddCodesPrizeId(isAddingCodes ? null : p.id);
-                          setCodeBucket(p.id);
-                        }}
-                        className="text-[9px] font-black uppercase text-[#E55937] hover:underline flex items-center gap-1"
-                      >
-                        {isAddingCodes ? "Close Loader" : "+ Load Promo Codes"}
-                      </button>
-                    </div>
-
-                    {/* Collapsible loader drawer */}
-                    {isAddingCodes && renderInlineCodeLoader(p.id)}
+          {/* LEFT: HIGH SCORE CHAMPION */}
+          <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+            <div className="bg-black text-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(229,255,68,1)] sm:shadow-[8px_8px_0px_0px_rgba(229,255,68,1)] relative overflow-hidden">
+              <Crown className="absolute -right-6 -top-6 text-white/10 w-48 h-48 rotate-12" />
+              <h2 className="text-[#FFE974] font-bold uppercase italic text-xl sm:text-2xl mb-4 sm:mb-8 flex items-center gap-2"><Star fill="#FFE974" /> High Score Champion</h2>
+              {currentTopScorer && currentTopScorer.high_score > 0 ? (
+                <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-6 relative z-10 w-full text-center md:text-left">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black opacity-40 uppercase tracking-widest mb-1">Rank #1 Current</p>
+                    <p className="text-lg sm:text-2xl font-bold mb-1 break-all">{currentTopScorer.email}</p>
+                    <p className="text-6xl sm:text-8xl font-bold text-[#FFE974] italic tracking-tighter leading-none my-2">{currentTopScorer.high_score}</p>
                   </div>
-                );
-              })}
-              {scratchPrizes.length === 0 && <p className="col-span-2 text-center opacity-30 uppercase font-bold italic">No scratch prizes created yet.</p>}
-            </div>
-          </div>
-        </div>
-        {/* RIGHT: CONFIG & CODE BANK */}
-        <div className="space-y-6 sm:space-y-8 text-black">
-          {/* WEEKLY SETTINGS */}
-          <div className="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <h2 className="text-lg sm:text-xl font-bold uppercase mb-4 flex items-center gap-2 underline underline-offset-8 decoration-red-500"><Settings size={20} /> High Score Setup</h2>
-            
-            <div className="bg-yellow-50 border-2 border-black p-3 rounded-xl mb-4 text-[10px] leading-relaxed text-black font-semibold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-              💡 <span className="font-black uppercase text-red-600">Leaderboard Prize Rules:</span> The winning prize can be configured as either a <span className="underline">completely free product</span> (synced from Squarespace) or a <span className="underline">percentage discount off the order</span>. Make sure the Prize Title matches exactly what is displayed on the leaderboard.
+                  <button onClick={finalizeWeek} className="w-full md:w-auto bg-[#FFE974] text-black px-8 py-4 sm:px-12 sm:py-6 rounded-2xl font-bold uppercase italic text-lg sm:text-xl shadow-xl hover:scale-105 transition-transform active:translate-y-1">Award & Reset</button>
+                </div>
+              ) : <p className="opacity-40 font-bold uppercase tracking-widest text-center py-10">Waiting for players to build burgers...</p>}
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="text-[10px] font-black uppercase opacity-40">Prize Title (Display Name)</label>
-                <input 
-                  type="text" 
-                  value={pTitle} 
-                  onChange={(e) => setPTitle(e.target.value)} 
-                  placeholder="e.g. Free Loaded Fries or 50% Off Order" 
-                  className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
-                />
-              </div>
-
-               <div>
-                <label className="text-[10px] font-black uppercase opacity-40">Prize Type</label>
-                <select 
-                  value={pType} 
-                  onChange={(e) => {
-                    const type = e.target.value;
-                    setPType(type);
-                    if (type === 'RATE') {
-                      setPTitle(pValue + "% Off Total Order");
-                    } else if (type === 'FREE_PRODUCT') {
-                      const selectedProduct = products.find(p => p.id === pId);
-                      if (selectedProduct) {
-                        const prefix = selectedProduct.name.toUpperCase().startsWith("FREE") ? "" : "FREE ";
-                        setPTitle(prefix + selectedProduct.name);
-                      } else {
-                        setPTitle("Free Item");
-                      }
-                    }
-                  }} 
-                  className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs mt-1"
+            {/* SCRATCH PRIZE MANAGEMENT */}
+            <div className="bg-white text-black border-4 border-black rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex justify-between items-center mb-6 sm:mb-8">
+                <h2 className="text-lg sm:text-2xl font-bold uppercase italic text-[#E55937] flex items-center gap-2"><Ticket /> Scratch Prizes</h2>
+                <button
+                  onClick={() => setShowAddScratchModal(true)}
+                  className="bg-black text-[#FFE974] p-2.5 sm:p-3 rounded-full border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none hover:scale-105 transition-all"
                 >
-                  <option value="FREE_PRODUCT">Free Item</option>
-                  <option value="RATE">% Off Order</option>
-                </select>
+                  <Plus size={20} className="sm:w-6 sm:h-6" />
+                </button>
               </div>
-              
-              {pType === 'FREE_PRODUCT' ? (
-                <div>
-                  <label className="text-[10px] font-black uppercase opacity-40">Choose Squarespace Product</label>
-                  <div className="flex gap-2 mt-1">
-                    <select 
-                      value={pId} 
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setPId(val);
-                        const selectedProduct = products.find(p => p.id === val);
-                        if (selectedProduct) {
-                          const prefix = selectedProduct.name.toUpperCase().startsWith("FREE") ? "" : "FREE ";
-                          setPTitle(prefix + selectedProduct.name);
-                        }
-                      }} 
-                      className="flex-1 border-4 border-black p-3 rounded-xl font-bold uppercase text-[10px] bg-white text-black"
-                    >
-                      <option value="">-- Choose Product --</option>
-                      {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <button onClick={refreshProducts} className={`p-3 border-4 border-black rounded-xl bg-white ${isRefreshing ? 'animate-spin' : ''}`}><RefreshCw size={18}/></button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <label className="text-[10px] font-black uppercase opacity-40">Discount Percentage (%)</label>
-                  <input 
-                    type="number" 
-                    value={pValue} 
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value) || 0;
-                      setPValue(val);
-                      if (pType === 'RATE') {
-                        setPTitle(val + "% Off Total Order");
-                      }
-                    }} 
-                    placeholder="e.g. 50" 
-                    className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
-                  />
-                </div>
-              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {scratchPrizes.map((p) => {
+                  const pCodes = codeBankInventory.filter(c => c.prize_type === p.id);
+                  const unclaimedCount = pCodes.filter(c => !c.is_claimed).length;
+                  const isAddingCodes = activeAddCodesPrizeId === p.id;
 
-              <button onClick={saveWeeklyConfig} disabled={isSaving} className="w-full bg-black text-[#FFE974] py-4 rounded-xl font-black uppercase italic shadow-lg flex justify-center items-center gap-2 active:translate-y-1">
-                {isSaving ? <Loader2 className="animate-spin" /> : "Save High Score Prize"}
-              </button>
-
-              {/* High Score Code Bank details */}
-              <div className="border-t-2 border-black pt-4 mt-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold uppercase text-xs">High Score Code Bank</h3>
-                    <p className="text-[9px] text-gray-500 font-bold uppercase leading-none mt-1">
-                      {codeBankInventory.filter(c => c.prize_type === 'GRAND' && !c.is_claimed).length} codes available in bank
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowHighScoreAddCodes(!showHighScoreAddCodes)}
-                    className="bg-black text-[#FFE974] px-3 py-1.5 rounded-xl border-2 border-black text-[9px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none"
-                  >
-                    {showHighScoreAddCodes ? "Hide Loader" : "+ Load Codes"}
-                  </button>
-                </div>
-
-                {showHighScoreAddCodes && renderInlineCodeLoader('GRAND')}
-              </div>
-            </div>
-          </div>
-
-
-
-          {/* CODE BANK INVENTORY */}
-          <div className="bg-white p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2.5rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-6 sm:mt-8 text-black">
-            <h2 className="font-bold uppercase text-sm mb-4 flex items-center gap-2"><Trophy size={16}/> Code Bank Inventory</h2>
-            <div className="space-y-3">
-              {Object.entries(getGroupedCodes()).map(([key, group]) => {
-                const total = group.unclaimed.length + group.claimed.length;
-                if (total === 0) return null;
-                return (
-                  <details key={key} className="border-2 border-black rounded-xl p-3 bg-gray-50 group">
-                    <summary className="font-bold uppercase text-[10px] sm:text-xs flex justify-between items-center cursor-pointer list-none select-none">
-                      <span className="truncate pr-2">{group.title}</span>
-                      <span className="bg-black text-white px-2 py-0.5 rounded-full text-[8px] font-black shrink-0">
-                        {group.unclaimed.length} Available / {total} Total
-                      </span>
-                    </summary>
-                    <div className="mt-3 pt-3 border-t border-gray-200 space-y-2 max-h-48 overflow-y-auto">
-                      {group.unclaimed.map(c => (
-                        <div key={c.id} className="flex justify-between items-center text-[10px] font-mono bg-white border border-gray-200 px-2 py-1 rounded">
-                          <span className="text-green-600 font-bold">{c.code}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[8px] font-black uppercase text-green-700 bg-green-100 px-1 rounded">Unclaimed</span>
-                            <button onClick={() => deleteCodeFromBank(c.id)} className="text-red-500 hover:text-red-700 font-bold">&times;</button>
-                          </div>
+                  return (
+                    <div key={p.id} className="p-4 sm:p-5 border-4 border-black rounded-2xl bg-gray-50 flex flex-col gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black">
+                      <div className="flex justify-between items-start w-full">
+                        <div className="flex-1 pr-3">
+                          <p className="font-bold uppercase text-sm leading-tight">{p.title}</p>
+                          <p className="text-[10px] opacity-50 font-black uppercase my-1">
+                            {p.discount_value}% Off • {p.apply_to_item_id ? `Product: ${products.find(prod => prod.id === p.apply_to_item_id)?.name || 'Specific Item'}` : "Total Order"}
+                          </p>
+                          <p className="text-[9px] font-black uppercase text-[#E55937] bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full inline-block leading-none">
+                            {unclaimedCount} codes available
+                          </p>
                         </div>
-                      ))}
-                      {group.claimed.map(c => {
-                        const claimer = allUsers.find(u => u.id === c.claimed_by);
-                        return (
-                          <div key={c.id} className="flex justify-between items-center text-[10px] font-mono bg-white border border-gray-200 px-2 py-1 rounded opacity-60">
-                            <span className="text-gray-600 line-through">{c.code}</span>
-                            <div className="flex flex-col items-end gap-0.5">
-                              <span className="text-[8px] font-black uppercase text-gray-500 bg-gray-100 px-1 rounded">Claimed</span>
-                              {claimer && <span className="text-[8px] text-gray-400 truncate max-w-[120px] font-sans">{claimer.email}</span>}
-                            </div>
-                          </div>
-                        );
-                      })}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => toggleScratchPrizeActive(p.id, p.is_active)}
+                            className={`px-3 py-1 rounded-full border-2 border-black text-[9px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none transition-all ${p.is_active ? 'bg-green-400 text-black' : 'bg-gray-300 text-gray-600'}`}
+                          >
+                            {p.is_active ? 'Active' : 'Inactive'}
+                          </button>
+                          <button onClick={() => deleteScratchPrize(p.id)} className="text-red-500 hover:scale-125 transition-transform p-2"><Trash2 size={18} /></button>
+                        </div>
+                      </div>
+
+                      {/* Loader trigger */}
+                      <div className="w-full border-t border-dashed border-gray-300 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveAddCodesPrizeId(isAddingCodes ? null : p.id);
+                            setCodeBucket(p.id);
+                          }}
+                          className="text-[9px] font-black uppercase text-[#E55937] hover:underline flex items-center gap-1"
+                        >
+                          {isAddingCodes ? "Close Loader" : "+ Load Promo Codes"}
+                        </button>
+                      </div>
+
+                      {/* Collapsible loader drawer */}
+                      {isAddingCodes && renderInlineCodeLoader(p.id)}
                     </div>
-                  </details>
-                );
-              })}
-              {codeBankInventory.length === 0 && (
-                <p className="text-center py-6 text-xs text-gray-400 font-bold uppercase italic leading-tight">No codes loaded in the bank yet.</p>
-              )}
+                  );
+                })}
+                {scratchPrizes.length === 0 && <p className="col-span-2 text-center opacity-30 uppercase font-bold italic">No scratch prizes created yet.</p>}
+              </div>
             </div>
           </div>
+          {/* RIGHT: CONFIG & CODE BANK */}
+          <div className="space-y-6 sm:space-y-8 text-black">
+            {/* WEEKLY SETTINGS */}
+            <div className="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <h2 className="text-lg sm:text-xl font-bold uppercase mb-4 flex items-center gap-2 underline underline-offset-8 decoration-red-500"><Settings size={20} /> High Score Setup</h2>
 
-        </div>
+              <div className="bg-yellow-50 border-2 border-black p-3 rounded-xl mb-4 text-[10px] leading-relaxed text-black font-semibold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                💡 <span className="font-black uppercase text-red-600">Leaderboard Prize Rules:</span> The winning prize can be configured as either a <span className="underline">completely free product</span> (synced from Squarespace) or a <span className="underline">percentage discount off the order</span>. Make sure the Prize Title matches exactly what is displayed on the leaderboard.
+              </div>
 
-      </div>
-
-      {/* DANGER ZONE / RESET SECTION */}
-      <div className="mt-8 sm:mt-12 bg-white text-black p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(229,89,55,1)] sm:shadow-[8px_8px_0px_0px_rgba(229,89,55,1)]">
-        <h2 className="text-xl sm:text-2xl font-bold uppercase italic text-red-600 flex items-center gap-2 mb-3 sm:mb-4">
-          <Trash2 size={24} /> Danger Zone
-        </h2>
-        <p className="text-sm text-gray-600 mb-6 font-medium">
-          Resetting the system will set all player high scores to 0, reset scratch card counts, lock bonus scratches, and permanently delete all rewards from players' wallets. This action is irreversible.
-        </p>
-        <button
-          onClick={handleResetAll}
-          disabled={isResetting}
-          className="w-full sm:w-auto bg-red-600 text-white border-4 border-black px-6 py-4 rounded-2xl font-bold uppercase italic text-base sm:text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none hover:bg-red-700 transition-all flex items-center justify-center gap-2 text-white"
-        >
-          {isResetting ? (
-            <>
-              <Loader2 className="animate-spin" size={20} />
-              Resetting Database...
-            </>
-          ) : (
-            <>
-              <RefreshCw size={20} />
-              Reset All Scores & Wallet Rewards
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* ADD SCRATCH PRIZE MODAL */}
-      <AnimatePresence>
-        {showAddScratchModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[99999] font-sans">
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white border-4 border-black p-6 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md text-black relative mx-auto my-auto"
-            >
-              <button 
-                onClick={() => setShowAddScratchModal(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-black font-bold text-2xl leading-none"
-              >
-                &times;
-              </button>
-              
-              <h3 className="text-xl font-black uppercase italic tracking-tight mb-6 flex items-center gap-2 text-[#E55937]">
-                <Ticket /> Add Scratch Prize
-              </h3>
-
-              <form onSubmit={handleCreateScratchPrize} className="space-y-4">
+              <div className="space-y-4">
                 <div>
                   <label className="text-[10px] font-black uppercase opacity-40">Prize Title (Display Name)</label>
                   <input
                     type="text"
-                    required
-                    value={scratchFormTitle}
-                    onChange={(e) => setScratchFormTitle(e.target.value)}
-                    placeholder="e.g. 50% Off Loaded Fries"
+                    value={pTitle}
+                    onChange={(e) => setPTitle(e.target.value)}
+                    placeholder="e.g. Free Loaded Fries or 50% Off Order"
                     className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase opacity-40">Discount Value (%)</label>
-                  <input
-                    type="number"
-                    required
-                    value={scratchFormValue}
-                    onChange={(e) => setScratchFormValue(e.target.value)}
-                    placeholder="e.g. 50"
-                    className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black uppercase opacity-40">Applies To Product (Optional)</label>
+                  <label className="text-[10px] font-black uppercase opacity-40">Prize Type</label>
                   <select
-                    value={scratchFormProductId}
-                    onChange={(e) => setScratchFormProductId(e.target.value)}
-                    className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-[10px] bg-white text-black mt-1"
+                    value={pType}
+                    onChange={(e) => {
+                      const type = e.target.value;
+                      setPType(type);
+                      if (type === 'RATE') {
+                        setPTitle(pValue + "% Off Total Order");
+                      } else if (type === 'FREE_PRODUCT') {
+                        const selectedProduct = products.find(p => p.id === pId);
+                        if (selectedProduct) {
+                          const prefix = selectedProduct.name.toUpperCase().startsWith("FREE") ? "" : "FREE ";
+                          setPTitle(prefix + selectedProduct.name);
+                        } else {
+                          setPTitle("Free Item");
+                        }
+                      }
+                    }}
+                    className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs mt-1"
                   >
-                    <option value="">Apply to Total Order (No Specific Item)</option>
-                    {products.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
+                    <option value="FREE_PRODUCT">Free Item</option>
+                    <option value="RATE">% Off Order</option>
                   </select>
                 </div>
 
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddScratchModal(false)}
-                    className="flex-1 bg-gray-200 border-2 border-black py-3 rounded-xl font-bold uppercase text-xs"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 bg-black text-[#FFE974] border-2 border-black py-3 rounded-xl font-bold uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none"
-                  >
-                    Create Prize
-                  </button>
+                {pType === 'FREE_PRODUCT' ? (
+                  <div>
+                    <label className="text-[10px] font-black uppercase opacity-40">Choose Squarespace Product</label>
+                    <div className="flex gap-2 mt-1">
+                      <select
+                        value={pId}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setPId(val);
+                          const selectedProduct = products.find(p => p.id === val);
+                          if (selectedProduct) {
+                            const prefix = selectedProduct.name.toUpperCase().startsWith("FREE") ? "" : "FREE ";
+                            setPTitle(prefix + selectedProduct.name);
+                          }
+                        }}
+                        className="flex-1 border-4 border-black p-3 rounded-xl font-bold uppercase text-[10px] bg-white text-black"
+                      >
+                        <option value="">-- Choose Product --</option>
+                        {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      </select>
+                      <button onClick={refreshProducts} className={`p-3 border-4 border-black rounded-xl bg-white ${isRefreshing ? 'animate-spin' : ''}`}><RefreshCw size={18} /></button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="text-[10px] font-black uppercase opacity-40">Discount Percentage (%)</label>
+                    <input
+                      type="number"
+                      value={pValue}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value) || 0;
+                        setPValue(val);
+                        if (pType === 'RATE') {
+                          setPTitle(val + "% Off Total Order");
+                        }
+                      }}
+                      placeholder="e.g. 50"
+                      className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
+                    />
+                  </div>
+                )}
+
+                <button onClick={saveWeeklyConfig} disabled={isSaving} className="w-full bg-black text-[#FFE974] py-4 rounded-xl font-black uppercase italic shadow-lg flex justify-center items-center gap-2 active:translate-y-1">
+                  {isSaving ? <Loader2 className="animate-spin" /> : "Save High Score Prize"}
+                </button>
+
+                {/* High Score Code Bank details */}
+                <div className="border-t-2 border-black pt-4 mt-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-bold uppercase text-xs">High Score Code Bank</h3>
+                      <p className="text-[9px] text-gray-500 font-bold uppercase leading-none mt-1">
+                        {codeBankInventory.filter(c => c.prize_type === 'GRAND' && !c.is_claimed).length} codes available in bank
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowHighScoreAddCodes(!showHighScoreAddCodes)}
+                      className="bg-black text-[#FFE974] px-3 py-1.5 rounded-xl border-2 border-black text-[9px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none"
+                    >
+                      {showHighScoreAddCodes ? "Hide Loader" : "+ Load Codes"}
+                    </button>
+                  </div>
+
+                  {showHighScoreAddCodes && renderInlineCodeLoader('GRAND')}
                 </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* CONFIRM CODE IMPORT MODAL */}
-      <AnimatePresence>
-        {showImportConfirmModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[99999] font-sans">
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white border-4 border-black p-6 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md text-black relative mx-auto my-auto"
-            >
-              <button 
-                onClick={() => setShowImportConfirmModal(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-black font-bold text-2xl leading-none"
-              >
-                &times;
-              </button>
-              
-              <h3 className="text-xl font-black uppercase italic tracking-tight mb-4 flex items-center gap-2 text-[#E55937]">
-                <Tag /> Confirm Code Details
-              </h3>
-
-              <div className="bg-orange-50 border-2 border-black p-3 rounded-xl mb-4 text-xs">
-                <p className="font-bold uppercase text-[9px] text-[#E55937] mb-1">Queueing Codes to Load</p>
-                <p className="font-medium text-gray-700">You are uploading <span className="font-black text-black">{importConfirmCodes.length} codes</span>. These will be added to the code pool for this prize.</p>
               </div>
+            </div>
 
-              <form onSubmit={saveImportData} className="space-y-4">
-                <div>
-                  <label className="text-[10px] font-black uppercase opacity-40">What the codes are (Shown to Players)</label>
-                  <p className="text-[9px] text-gray-500 mb-1 leading-tight">This title will be displayed to users in their reward wallet and when they claim this prize.</p>
-                  <input
-                    type="text"
-                    required
-                    value={importConfirmTitle}
-                    onChange={(e) => setImportConfirmTitle(e.target.value)}
-                    placeholder="e.g. Free Loaded Fries"
-                    className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
-                  />
-                </div>
 
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowImportConfirmModal(false)}
-                    className="flex-1 bg-gray-200 border-2 border-black py-3 rounded-xl font-bold uppercase text-xs"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSaving}
-                    className="flex-1 bg-black text-[#FFE974] border-2 border-black py-3 rounded-xl font-bold uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2"
-                  >
-                    {isSaving ? <Loader2 className="animate-spin w-4 h-4" /> : "Confirm & Load"}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
+
+            {/* CODE BANK INVENTORY */}
+            <div className="bg-white p-5 sm:p-6 rounded-[1.75rem] sm:rounded-[2.5rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mt-6 sm:mt-8 text-black">
+              <h2 className="font-bold uppercase text-sm mb-4 flex items-center gap-2"><Trophy size={16} /> Code Bank Inventory</h2>
+              <div className="space-y-3">
+                {Object.entries(getGroupedCodes()).map(([key, group]) => {
+                  const total = group.unclaimed.length + group.claimed.length;
+                  if (total === 0) return null;
+                  return (
+                    <details key={key} className="border-2 border-black rounded-xl p-3 bg-gray-50 group">
+                      <summary className="font-bold uppercase text-[10px] sm:text-xs flex justify-between items-center cursor-pointer list-none select-none">
+                        <span className="truncate pr-2">{group.title}</span>
+                        <span className="bg-black text-white px-2 py-0.5 rounded-full text-[8px] font-black shrink-0">
+                          {group.unclaimed.length} Available / {total} Total
+                        </span>
+                      </summary>
+                      <div className="mt-3 pt-3 border-t border-gray-200 space-y-2 max-h-48 overflow-y-auto">
+                        {group.unclaimed.map(c => (
+                          <div key={c.id} className="flex justify-between items-center text-[10px] font-mono bg-white border border-gray-200 px-2 py-1 rounded">
+                            <span className="text-green-600 font-bold">{c.code}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[8px] font-black uppercase text-green-700 bg-green-100 px-1 rounded">Unclaimed</span>
+                              <button onClick={() => deleteCodeFromBank(c.id)} className="text-red-500 hover:text-red-700 font-bold">&times;</button>
+                            </div>
+                          </div>
+                        ))}
+                        {group.claimed.map(c => {
+                          const claimer = allUsers.find(u => u.id === c.claimed_by);
+                          return (
+                            <div key={c.id} className="flex justify-between items-center text-[10px] font-mono bg-white border border-gray-200 px-2 py-1 rounded opacity-60">
+                              <span className="text-gray-600 line-through">{c.code}</span>
+                              <div className="flex flex-col items-end gap-0.5">
+                                <span className="text-[8px] font-black uppercase text-gray-500 bg-gray-100 px-1 rounded">Claimed</span>
+                                {claimer && <span className="text-[8px] text-gray-400 truncate max-w-[120px] font-sans">{claimer.email}</span>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </details>
+                  );
+                })}
+                {codeBankInventory.length === 0 && (
+                  <p className="text-center py-6 text-xs text-gray-400 font-bold uppercase italic leading-tight">No codes loaded in the bank yet.</p>
+                )}
+              </div>
+            </div>
+
           </div>
-        )}
-      </AnimatePresence>
+
+        </div>
+
+        {/* DANGER ZONE / RESET SECTION */}
+        <div className="mt-8 sm:mt-12 bg-white text-black p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(229,89,55,1)] sm:shadow-[8px_8px_0px_0px_rgba(229,89,55,1)]">
+          <h2 className="text-xl sm:text-2xl font-bold uppercase italic text-red-600 flex items-center gap-2 mb-3 sm:mb-4">
+            <Trash2 size={24} /> Danger Zone
+          </h2>
+          <p className="text-sm text-gray-600 mb-6 font-medium">
+            Resetting the system will set all player high scores to 0, reset scratch card counts, lock bonus scratches, and permanently delete all rewards from players' wallets. This action is irreversible.
+          </p>
+          <button
+            onClick={handleResetAll}
+            disabled={isResetting}
+            className="w-full sm:w-auto bg-red-600 text-white border-4 border-black px-6 py-4 rounded-2xl font-bold uppercase italic text-base sm:text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none hover:bg-red-700 transition-all flex items-center justify-center gap-2 text-white"
+          >
+            {isResetting ? (
+              <>
+                <Loader2 className="animate-spin" size={20} />
+                Resetting Database...
+              </>
+            ) : (
+              <>
+                <RefreshCw size={20} />
+                Reset All Scores & Wallet Rewards
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* ADD SCRATCH PRIZE MODAL */}
+        <AnimatePresence>
+          {showAddScratchModal && (
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[99999] font-sans">
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white border-4 border-black p-6 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md text-black relative mx-auto my-auto"
+              >
+                <button
+                  onClick={() => setShowAddScratchModal(false)}
+                  className="absolute top-4 right-4 text-gray-500 hover:text-black font-bold text-2xl leading-none"
+                >
+                  &times;
+                </button>
+
+                <h3 className="text-xl font-black uppercase italic tracking-tight mb-6 flex items-center gap-2 text-[#E55937]">
+                  <Ticket /> Add Scratch Prize
+                </h3>
+
+                <form onSubmit={handleCreateScratchPrize} className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase opacity-40">Prize Title (Display Name)</label>
+                    <input
+                      type="text"
+                      required
+                      value={scratchFormTitle}
+                      onChange={(e) => setScratchFormTitle(e.target.value)}
+                      placeholder="e.g. 50% Off Loaded Fries"
+                      className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black uppercase opacity-40">Discount Value (%)</label>
+                    <input
+                      type="number"
+                      required
+                      value={scratchFormValue}
+                      onChange={(e) => setScratchFormValue(e.target.value)}
+                      placeholder="e.g. 50"
+                      className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black uppercase opacity-40">Applies To Product (Optional)</label>
+                    <select
+                      value={scratchFormProductId}
+                      onChange={(e) => setScratchFormProductId(e.target.value)}
+                      className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-[10px] bg-white text-black mt-1"
+                    >
+                      <option value="">Apply to Total Order (No Specific Item)</option>
+                      {products.map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddScratchModal(false)}
+                      className="flex-1 bg-gray-200 border-2 border-black py-3 rounded-xl font-bold uppercase text-xs"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 bg-black text-[#FFE974] border-2 border-black py-3 rounded-xl font-bold uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none"
+                    >
+                      Create Prize
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* CONFIRM CODE IMPORT MODAL */}
+        <AnimatePresence>
+          {showImportConfirmModal && (
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[99999] font-sans">
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white border-4 border-black p-6 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md text-black relative mx-auto my-auto"
+              >
+                <button
+                  onClick={() => setShowImportConfirmModal(false)}
+                  className="absolute top-4 right-4 text-gray-500 hover:text-black font-bold text-2xl leading-none"
+                >
+                  &times;
+                </button>
+
+                <h3 className="text-xl font-black uppercase italic tracking-tight mb-4 flex items-center gap-2 text-[#E55937]">
+                  <Tag /> Confirm Code Details
+                </h3>
+
+                <div className="bg-orange-50 border-2 border-black p-3 rounded-xl mb-4 text-xs">
+                  <p className="font-bold uppercase text-[9px] text-[#E55937] mb-1">Queueing Codes to Load</p>
+                  <p className="font-medium text-gray-700">You are uploading <span className="font-black text-black">{importConfirmCodes.length} codes</span>. These will be added to the code pool for this prize.</p>
+                </div>
+
+                <form onSubmit={saveImportData} className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase opacity-40">What the codes are (Shown to Players)</label>
+                    <p className="text-[9px] text-gray-500 mb-1 leading-tight">This title will be displayed to users in their reward wallet and when they claim this prize.</p>
+                    <input
+                      type="text"
+                      required
+                      value={importConfirmTitle}
+                      onChange={(e) => setImportConfirmTitle(e.target.value)}
+                      placeholder="e.g. Free Loaded Fries"
+                      className="w-full border-4 border-black p-3 rounded-xl font-bold text-xs bg-white text-black mt-1"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowImportConfirmModal(false)}
+                      className="flex-1 bg-gray-200 border-2 border-black py-3 rounded-xl font-bold uppercase text-xs"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="flex-1 bg-black text-[#FFE974] border-2 border-black py-3 rounded-xl font-bold uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2"
+                    >
+                      {isSaving ? <Loader2 className="animate-spin w-4 h-4" /> : "Confirm & Load"}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
       </div>
     </div>
