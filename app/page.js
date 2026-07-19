@@ -107,7 +107,7 @@ export default function Home() {
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
         };
-        }, []);
+    }, []);
 
     const handleInstallPWA = async () => {
         if (isIOS) {
