@@ -111,15 +111,6 @@ export default function Home() {
 
     const handleInstallPWA = async () => {
         if (isIOS) {
-            // iOS has no programmatic install prompt. If the user arrived from
-            // Squarespace, reload the current page so Safari's Add-to-Home-Screen
-            // bookmark preserves the ?source=squarespace param. That param is what
-            // lets the standalone launch redirect to picnicathome.com.
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('source')) {
-                window.location.reload();
-                return;
-            }
             alert("To install this app on your iPhone:\n1. Tap the Share button in Safari (at the bottom of the screen)\n2. Select 'Add to Home Screen'.");
             return;
         }
