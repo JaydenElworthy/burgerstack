@@ -142,9 +142,9 @@ export default function BurgerGame() {
     setIsProcessing(false);
     const startLevel = Math.floor(Math.random() * 4);
     let initialStack = [];
-    if (startLevel >= 1) initialStack.push({ type: 'bottom-bun', id: `b0-${Date.now()}` });
-    if (startLevel >= 2) initialStack.push({ type: 'patty', id: `b1-${Date.now()}` });
-    if (startLevel >= 3) initialStack.push({ type: 'cheese', id: `b2-${Date.now()}` });
+    if (startLevel >= 1) initialStack.push({ type: 'bottom-bun', id: `b0-${Date.now()}`, duration: 0.15 });
+    if (startLevel >= 2) initialStack.push({ type: 'patty', id: `b1-${Date.now()}`, duration: 0.15 });
+    if (startLevel >= 3) initialStack.push({ type: 'cheese', id: `b2-${Date.now()}`, duration: 0.15 });
     setStack(initialStack);
     setBaseCount(initialStack.length);
   };
@@ -163,15 +163,20 @@ export default function BurgerGame() {
 
     if (!isMuted) sfxPlace.current?.cloneNode(true).play();
 
-    setIsProcessing(true);
-    setStack(prev => [...prev, { type: nextPiece, id: `d-${Date.now()}` }]);
+    // Speed up all existing animating items, and add the new item with 0.15s (very fast default drop)
+    setStack(prev => {
+      const updated = prev.map(item => ({
+        ...item,
+        duration: 0.05 // snap existing items to destination
+      }));
+      return [...updated, { type: nextPiece, id: `d-${Date.now()}-${Math.random()}`, duration: 0.15 }];
+    });
 
     if (nextPiece === 'top-bun') {
+      setIsProcessing(true); // block further inputs while exiting
       setScore(prev => prev + 1);
-      setTimeout(() => { setIsExiting(true); }, 600);
-      setTimeout(() => { setBurgerId(prev => prev + 1); spawnBurger(); }, 1100);
-    } else {
-      setTimeout(() => { setIsProcessing(false); }, 250);
+      setTimeout(() => { setIsExiting(true); }, 120);
+      setTimeout(() => { setBurgerId(prev => prev + 1); spawnBurger(); }, 320);
     }
   };
 
@@ -241,15 +246,15 @@ export default function BurgerGame() {
             <motion.div
               key={`round-${burgerId}`}
               initial={{ x: "-150%" }} animate={{ x: "-50%" }}
-              exit={{ x: "250%", transition: { duration: 0.4, ease: "expoIn" } }}
-              transition={{ x: { type: "tween", ease: "circOut", duration: 0.5 } }}
+              exit={{ x: "250%", transition: { duration: 0.18, ease: "easeIn" } }}
+              transition={{ x: { type: "tween", ease: "circOut", duration: 0.25 } }}
               className="absolute bottom-[20px] sm:bottom-[60px] left-1/2 w-48 sm:w-80 h-[250px] sm:h-[300px] z-30 pointer-events-none"
             >
               {stack.map((item, i) => {
                 let elev = 0;
                 if (i === 1) elev = 22; if (i === 2) elev = 38; if (i === 3) elev = 58;
                 return (
-                  <motion.div key={item.id} layout initial={i < baseCount ? false : { y: -1000 }} animate={{ y: -elev }} transition={{ y: { type: "tween", ease: "circIn", duration: 0.25 } }} className="absolute bottom-0 left-0 w-full flex justify-center" style={{ zIndex: i }}>
+                  <motion.div key={item.id} layout initial={i < baseCount ? false : { y: -1000 }} animate={{ y: -elev }} transition={{ y: { type: "tween", ease: "circIn", duration: item.duration || 0.15 } }} className="absolute bottom-0 left-0 w-full flex justify-center" style={{ zIndex: i }}>
                     <img src={`/images/${item.type}.svg`} alt="" className="w-40 sm:w-64 h-auto block" />
                   </motion.div>
                 );
@@ -264,8 +269,8 @@ export default function BurgerGame() {
         <button
           onPointerDown={(e) => { e.preventDefault(); handleInput('patty'); }}
           className={`bg-[#4B2C20] text-white border-[4px] sm:border-[6px] border-black py-7 sm:py-12 rounded-[20px] sm:rounded-[2rem] font-black text-base sm:text-2xl tracking-wider transition-all ${activeKey === 'patty'
-              ? 'translate-y-[4px] translate-x-[4px] sm:translate-y-[6px] sm:translate-x-[6px] shadow-none'
-              : 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] sm:active:translate-y-[6px] sm:active:translate-x-[6px] active:shadow-none'
+            ? 'translate-y-[4px] translate-x-[4px] sm:translate-y-[6px] sm:translate-x-[6px] shadow-none'
+            : 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] sm:active:translate-y-[6px] sm:active:translate-x-[6px] active:shadow-none'
             }`}
         >
           PATTY
@@ -273,8 +278,8 @@ export default function BurgerGame() {
         <button
           onPointerDown={(e) => { e.preventDefault(); handleInput('cheese'); }}
           className={`bg-[#FFD700] text-black border-[4px] sm:border-[6px] border-black py-7 sm:py-12 rounded-[20px] sm:rounded-[2rem] font-black text-base sm:text-2xl tracking-wider transition-all ${activeKey === 'cheese'
-              ? 'translate-y-[4px] translate-x-[4px] sm:translate-y-[6px] sm:translate-x-[6px] shadow-none'
-              : 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] sm:active:translate-y-[6px] sm:active:translate-x-[6px] active:shadow-none'
+            ? 'translate-y-[4px] translate-x-[4px] sm:translate-y-[6px] sm:translate-x-[6px] shadow-none'
+            : 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] sm:active:translate-y-[6px] sm:active:translate-x-[6px] active:shadow-none'
             }`}
         >
           CHEESE
@@ -282,8 +287,8 @@ export default function BurgerGame() {
         <button
           onPointerDown={(e) => { e.preventDefault(); handleInput('bun'); }}
           className={`bg-[#E55937] text-white border-[4px] sm:border-[6px] border-black py-7 sm:py-12 rounded-[20px] sm:rounded-[2rem] font-black text-base sm:text-2xl tracking-wider transition-all ${activeKey === 'bun'
-              ? 'translate-y-[4px] translate-x-[4px] sm:translate-y-[6px] sm:translate-x-[6px] shadow-none'
-              : 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] sm:active:translate-y-[6px] sm:active:translate-x-[6px] active:shadow-none'
+            ? 'translate-y-[4px] translate-x-[4px] sm:translate-y-[6px] sm:translate-x-[6px] shadow-none'
+            : 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] sm:active:translate-y-[6px] sm:active:translate-x-[6px] active:shadow-none'
             }`}
         >
           BUN
