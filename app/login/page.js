@@ -66,8 +66,8 @@ export default function Login() {
             </button>
           </form>
           
-          <p className="mt-8 text-center text-white/40 text-[10px] uppercase font-bold tracking-widest px-8">
-            By signing in, you agree to receive magic links and game updates.
+          <p className="mt-8 text-center text-white/40 text-[10px] uppercase font-bold tracking-widest px-8 leading-relaxed">
+            By signing in, you agree to receive <br /> magic links and game updates.
           </p>
         </div>
       ) : (
@@ -80,7 +80,9 @@ export default function Login() {
             <Mail className="text-white" size={30} />
           </div>
           <h2 className="text-3xl font-bold uppercase text-[#E55937] mb-2 leading-none">Check your email!</h2>
-          <p className="font-bold text-[#E55937] opacity-80 mb-8">We just sent a magic login link to:</p>
+          <p className="font-bold text-[#E55937] opacity-80 mb-8 leading-snug">
+            We just sent a magic login link to:
+          </p>
           <div className="bg-white border-2 border-black p-3 rounded-xl font-mono text-sm text-[#E55937] mb-8 overflow-hidden truncate">
             {email}
           </div>

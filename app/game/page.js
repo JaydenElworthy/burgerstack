@@ -163,14 +163,14 @@ export default function BurgerGame() {
 
     if (!isMuted) sfxPlace.current?.cloneNode(true).play();
 
-    // Speed up all existing animating items, and add the new item with 0.15s (very fast default drop)
-    setStack(prev => {
-      const updated = prev.map(item => ({
-        ...item,
-        duration: 0.05 // snap existing items to destination
-      }));
-      return [...updated, { type: nextPiece, id: `d-${Date.now()}-${Math.random()}`, duration: 0.15 }];
-    });
+        // Speed up all existing animating items, and add the new item with 0.08s (lightning fast default drop)
+        setStack(prev => {
+            const updated = prev.map(item => ({
+                ...item,
+                duration: 0.04 // snap existing items to destination
+            }));
+            return [...updated, { type: nextPiece, id: `d-${Date.now()}-${Math.random()}`, duration: 0.08 }];
+        });
 
     if (nextPiece === 'top-bun') {
       setIsProcessing(true); // block further inputs while exiting
