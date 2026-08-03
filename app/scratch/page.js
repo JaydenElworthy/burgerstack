@@ -247,7 +247,7 @@ export default function ScratchCard() {
             <div className="flex flex-col items-center w-full px-4">
               <Ticket size={50} className="sm:w-16 sm:h-16 mb-2 sm:mb-4 opacity-20 rotate-[-10deg]" />
               <h3 className="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none mb-3 sm:mb-4 italic text-center">
-                Play Burger Slinger to win another scratch card
+                Play Burger Slinger To Win Another Scratch Card
               </h3>
               <div className="bg-[#E55937] text-white px-4 sm:px-6 py-2 rounded-full font-black uppercase text-[8px] sm:text-[10px] tracking-widest shadow-lg">
                 Renews Every Sunday
@@ -287,7 +287,7 @@ export default function ScratchCard() {
         ) : (
           <div className="p-4 sm:p-5 bg-black/20 border-[3px] sm:border-4 border-black border-dashed rounded-2xl sm:rounded-3xl flex gap-3 sm:gap-4 items-center">
             <Sparkles size={24} className="sm:w-7 sm:h-7 text-[#FFE974]" />
-            <p className="text-[9px] sm:text-[10px] font-bold uppercase text-white tracking-widest leading-tight">Use your finger to scratch and reveal your prize!</p>
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase text-white tracking-widest leading-tight">Scratch and reveal your prize!</p>
           </div>
         )}
       </div>
