@@ -13,7 +13,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
-    const { error } = await supabase.auth.signInWithOtp({ 
+    const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: window.location.origin }
     })
@@ -24,15 +24,15 @@ export default function Login() {
 
   return (
     <div className="h-[100dvh] bg-[#E55937] p-8 flex flex-col justify-center items-center font-sans text-[#FFE974] overflow-y-auto overflow-x-hidden overscroll-none">
-      
+
       {/* BRANDING */}
       <header className="mb-12 text-center">
         <h1 className="text-[12vw] sm:text-6xl font-bold uppercase leading-[0.85] tracking-tighter mb-2">
-          PICNIC AT<br/><span className="text-white text-6xl">HOME</span>
+          PICNIC AT<br /><span className="text-white text-6xl">HOME</span>
         </h1>
         <div className="h-2 w-20 bg-[#FFE974] mx-auto rounded-full mt-4" />
       </header>
-      
+
       {!sent ? (
         <div className="w-full max-w-sm">
           <form onSubmit={handleLogin} className="space-y-6">
@@ -42,19 +42,19 @@ export default function Login() {
               </p>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E55937] z-10" size={20} />
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   placeholder="you@example.com"
                   className="w-full border-4 border-black p-5 pl-12 rounded-2xl font-bold text-lg text-black placeholder:opacity-30 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-4 ring-[#FFE974]/20"
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
             </div>
 
-            <button 
-              disabled={loading} 
+            <button
+              disabled={loading}
               className="w-full bg-[#FFE974] text-[#E55937] py-6 rounded-2xl font-bold uppercase italic text-2xl border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-1 transition-all flex items-center justify-center gap-3"
             >
               {loading ? 'Sending...' : (
@@ -65,14 +65,14 @@ export default function Login() {
               )}
             </button>
           </form>
-          
+
           <p className="mt-8 text-center text-white/40 text-[10px] uppercase font-bold tracking-widest px-8 leading-relaxed">
-            By signing in, you agree to receive <br /> magic links and game updates.
+            By signing in, you agree to receive <br /> special offers and game updates.
           </p>
         </div>
       ) : (
-        <motion.div 
-          initial={{ scale: 0.9, opacity: 0 }} 
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="text-center bg-[#FFE974] border-4 border-black p-10 rounded-[2.5rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-sm"
         >
@@ -81,12 +81,12 @@ export default function Login() {
           </div>
           <h2 className="text-3xl font-bold uppercase text-[#E55937] mb-2 leading-none">Check your email!</h2>
           <p className="font-bold text-[#E55937] opacity-80 mb-8 leading-snug">
-            We just sent a magic login link to:
+            We just sent a login link to:
           </p>
           <div className="bg-white border-2 border-black p-3 rounded-xl font-mono text-sm text-[#E55937] mb-8 overflow-hidden truncate">
             {email}
           </div>
-          <button 
+          <button
             onClick={() => setSent(false)}
             className="text-[10px] font-black uppercase tracking-widest text-[#E55937] underline decoration-2 underline-offset-4"
           >
