@@ -175,8 +175,8 @@ export default function BurgerGame() {
     if (nextPiece === 'top-bun') {
       setIsProcessing(true); // block further inputs while exiting
       setScore(prev => prev + 1);
-      setTimeout(() => { setIsExiting(true); }, 120);
-      setTimeout(() => { setBurgerId(prev => prev + 1); spawnBurger(); }, 320);
+      setTimeout(() => { setIsExiting(true); }, 60);
+      setTimeout(() => { setBurgerId(prev => prev + 1); spawnBurger(); }, 200);
     }
   };
 
