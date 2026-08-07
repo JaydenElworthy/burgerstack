@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
-import { ArrowLeft, Settings, Trophy, Trash2, Plus, Crown, Star, RefreshCw, Loader2, Tag, Ticket } from 'lucide-react';
+import { ArrowLeft, Settings, Trophy, Trash2, Plus, Crown, Star, RefreshCw, Loader2, Tag, Ticket, Clock, Play, CheckCircle2, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,6 +24,14 @@ export default function SuperAdmin() {
   const [pValue, setPValue] = useState(100);
   const [pId, setPId] = useState('');
   const [pTitle, setPTitle] = useState('Weekly Prize');
+
+  // Automated Reset Cron State
+  const [autoResetEnabled, setAutoResetEnabled] = useState(false);
+  const [autoResetSchedule, setAutoResetSchedule] = useState('every_monday_0000');
+  const [autoResetAction, setAutoResetAction] = useState('reset_all');
+  const [isSavingAutoReset, setIsSavingAutoReset] = useState(false);
+  const [autoResetLastRun, setAutoResetLastRun] = useState(null);
+  const [autoResetStatusMsg, setAutoResetStatusMsg] = useState(null);
 
   // Squarespace sync states
   const [squarespaceDiscounts, setSquarespaceDiscounts] = useState([]);
@@ -85,7 +93,105 @@ export default function SuperAdmin() {
     const { data: codes } = await supabase.from('manual_code_bank').select('*').order('created_at', { ascending: false });
     setCodeBankInventory(codes || []);
 
+    // Load Auto Reset Settings
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (token) {
+        const autoRes = await fetch('/api/admin/auto-reset', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (autoRes.ok) {
+          const autoData = await autoRes.json();
+          setAutoResetEnabled(autoData.enabled ?? false);
+          setAutoResetSchedule(autoData.schedule ?? 'every_monday_0000');
+          setAutoResetAction(autoData.action ?? 'reset_all');
+          setAutoResetLastRun(autoData.lastRun ?? null);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load auto reset config:", err);
+    }
+
     setLoading(false);
+  };
+
+  const handleAutoResetToggleChange = async (newVal) => {
+    setAutoResetEnabled(newVal);
+    if (!newVal) {
+      setIsSavingAutoReset(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        const res = await fetch('/api/admin/auto-reset', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            enabled: false,
+            schedule: autoResetSchedule,
+            action: autoResetAction
+          })
+        });
+        if (res.ok) {
+          setAutoResetStatusMsg("Automated reset turned OFF.");
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSavingAutoReset(false);
+      }
+    } else {
+      setAutoResetStatusMsg(null);
+    }
+  };
+
+  const handleActivateAutoReset = async () => {
+    if (!autoResetEnabled) return alert("Please turn the toggle ON first!");
+    setIsSavingAutoReset(true);
+    setAutoResetStatusMsg(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const res = await fetch('/api/admin/auto-reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          enabled: true,
+          schedule: autoResetSchedule,
+          action: autoResetAction
+        })
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success) {
+        const scheduleLabels = {
+          'every_monday_0000': 'Every Monday at 00:00 (Midnight)',
+          'every_sunday_0000': 'Every Sunday at 00:00 (Midnight)',
+          'daily_0000': 'Daily at 00:00 (Midnight)',
+          'daily_1200': 'Daily at 12:00 PM (Noon)',
+          'every_12h': 'Every 12 Hours',
+          'every_6h': 'Every 6 Hours',
+          'every_1h': 'Every 1 Hour',
+          'every_5m': 'Every 5 Minutes (Test Mode)'
+        };
+        const chosenLabel = scheduleLabels[autoResetSchedule] || autoResetSchedule;
+        setAutoResetStatusMsg(`✅ Activated! Reset cron job scheduled for: ${chosenLabel}`);
+        alert(`Automated Reset Activated! Scheduled to run ${chosenLabel} going forward.`);
+      } else {
+        alert("Failed to activate: " + (result.error || "Unknown error"));
+      }
+    } catch (err) {
+      alert("Error activating cron job: " + err.message);
+    } finally {
+      setIsSavingAutoReset(false);
+    }
   };
 
   const loadSquarespaceDiscounts = async () => {
@@ -777,6 +883,119 @@ export default function SuperAdmin() {
 
           </div>
 
+        </div>
+
+        {/* AUTOMATED SCHEDULED RESET (CRON JOB) */}
+        <div className="mt-8 sm:mt-12 bg-white text-black p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b-2 border-black pb-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold uppercase italic text-[#E55937] flex items-center gap-2">
+                <Clock size={24} /> Automated Scheduled Reset (Cron Job)
+              </h2>
+              <p className="text-xs text-gray-600 font-semibold mt-1">
+                Schedule scores and wallet rewards to automatically reset on a recurring background timer indefinitely until toggled off.
+              </p>
+            </div>
+            {/* Toggle Switch */}
+            <div className="flex items-center gap-3 shrink-0">
+              <span className={`text-xs font-black uppercase tracking-wider ${autoResetEnabled ? 'text-green-600' : 'text-gray-400'}`}>
+                {autoResetEnabled ? 'ACTIVE' : 'OFF'}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleAutoResetToggleChange(!autoResetEnabled)}
+                className={`w-14 h-8 flex items-center rounded-full p-1 border-2 border-black transition-colors duration-300 ${autoResetEnabled ? 'bg-green-400 justify-end' : 'bg-gray-300 justify-start'}`}
+              >
+                <motion.div
+                  layout
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  className="w-6 h-6 rounded-full bg-white border-2 border-black shadow-sm"
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* Pop-up Time Selector & GO button when Toggle is Activated */}
+          <AnimatePresence>
+            {autoResetEnabled && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4 pt-2 overflow-hidden"
+              >
+                <div className="bg-[#FFE974]/30 border-2 border-black p-4 rounded-2xl space-y-4">
+                  <div className="flex flex-col md:flex-row items-stretch md:items-end gap-3">
+                    {/* Time Selector Box Dropdown Menu */}
+                    <div className="flex-1">
+                      <label className="text-[10px] font-black uppercase opacity-60 block mb-1 flex items-center gap-1">
+                        <Clock size={12} /> Select Cron Schedule Time / Frequency
+                      </label>
+                      <select
+                        value={autoResetSchedule}
+                        onChange={(e) => setAutoResetSchedule(e.target.value)}
+                        className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none"
+                      >
+                        <option value="every_monday_0000">Every Monday at 00:00 (Midnight)</option>
+                        <option value="every_sunday_0000">Every Sunday at 00:00 (Midnight)</option>
+                        <option value="daily_0000">Daily at 00:00 (Midnight)</option>
+                        <option value="daily_1200">Daily at 12:00 PM (Noon)</option>
+                        <option value="every_12h">Every 12 Hours</option>
+                        <option value="every_6h">Every 6 Hours</option>
+                        <option value="every_1h">Every 1 Hour</option>
+                        <option value="every_5m">Every 5 Minutes (Test Mode)</option>
+                      </select>
+                    </div>
+
+                    {/* Action Selector */}
+                    <div className="flex-1">
+                      <label className="text-[10px] font-black uppercase opacity-60 block mb-1 flex items-center gap-1">
+                        <Zap size={12} /> Reset Function Action
+                      </label>
+                      <select
+                        value={autoResetAction}
+                        onChange={(e) => setAutoResetAction(e.target.value)}
+                        className="w-full border-4 border-black p-3 rounded-xl font-bold uppercase text-xs bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none"
+                      >
+                        <option value="reset_all">Reset All Scores & Wallet Rewards</option>
+                        <option value="finalize_week">Award Winner & Reset Scores</option>
+                      </select>
+                    </div>
+
+                    {/* GO Button */}
+                    <button
+                      type="button"
+                      onClick={handleActivateAutoReset}
+                      disabled={isSavingAutoReset}
+                      className="bg-[#E55937] text-white border-4 border-black px-8 py-3 rounded-xl font-black uppercase italic text-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none hover:bg-red-600 transition-all flex items-center justify-center gap-2 h-[50px] shrink-0 cursor-pointer"
+                    >
+                      {isSavingAutoReset ? (
+                        <Loader2 className="animate-spin" size={20} />
+                      ) : (
+                        <>
+                          <Play fill="white" size={18} /> GO
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Status / Confirmation Badge */}
+                  {autoResetStatusMsg && (
+                    <div className="bg-green-100 border-2 border-green-600 text-green-900 p-3 rounded-xl text-xs font-bold flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-green-600 shrink-0" />
+                      <span>{autoResetStatusMsg}</span>
+                    </div>
+                  )}
+
+                  {autoResetLastRun && (
+                    <p className="text-[10px] text-gray-500 font-mono">
+                      Last automated execution: {new Date(autoResetLastRun).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* DANGER ZONE / RESET SECTION */}
